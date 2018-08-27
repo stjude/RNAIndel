@@ -77,30 +77,29 @@ def parse_vcf_record(record):
         parsed_record (tuple): (chr, pos, ref, alt) 
                                Bambino compatible format
     Example:
-
-        deletion
-           pos 123456789012
-     reference ATTAGTAGATGT
-     deletion  ATTA---GATGT
+      deletion
+              pos 123456789012
+        reference ATTAGTAGATGT
+        deletion  ATTA---GATGT
          
-     VCF:
-        CHROM POS REF  ALT
-        N     4   AGTA A
-     Bambino:
-        chr   pos ref alt
-        chr_N 5   GTA -
+        VCF:
+            CHROM POS REF  ALT
+            N     4   AGTA A
+        Bambino:
+            chr   pos ref alt
+            chr_N 5   GTA -
          
-        insertion
+      insertion
            pos 1234***56789012
-     reference ATTA***GTAGATGT
-     insertion ATTAGTAGTAGATGT
+        reference ATTA***GTAGATGT
+        insertion ATTAGTAGTAGATGT
          
-     VCF:
-        CHROM POS REF ALT
-        N     4   A   AGTA
-     Bambino:
-        chr   pos ref alt
-        chr_N 5   -   GTA   
+        VCF:
+            CHROM POS REF ALT
+            N     4   A   AGTA
+        Bambino:
+            chr   pos ref alt
+            chr_N 5   -   GTA   
     """
     parsed_record = None
 
