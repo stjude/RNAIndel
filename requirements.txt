@@ -1,6 +1,3 @@
-Bambino requirements:
-
-rna_indel requirements:
 pandas
 numpy
 sklearn
