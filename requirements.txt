@@ -1,5 +1,7 @@
+java=1.8.0_66
+python>=3.5.2
 pandas
 numpy
 sklearn
 pysam
-pyvcf
+pyvcf=0.6.8
