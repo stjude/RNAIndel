@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import os
+import sys
+import pathlib
 import logging
 import argparse
 import pandas as pd
@@ -23,8 +25,8 @@ logger.addHandler(sh)
 def main():
     args = get_args()
 
-    if args.bambino_output:
-        df = rna.indel_preprocessor(args.bambino_output)
+    if args.bambino:
+        df = rna.indel_preprocessor(args.bambino)
     else:
         df = rna.indel_vcf_processor(args.vcf)
 
@@ -35,24 +37,37 @@ def main():
     df = rna.indel_snp_annotator(df, args.fasta, args.dbsnp, args.clinvar)
     df = rna.indel_classifier(df, args.dir_for_models, processes=args.num_of_processes)
     
-    if args.reclassification:
-        try:
-            if os.path.isfile(args.reclassification_list): 
-                df = rna.reclassify_indels(df, args.reclassification_list)
-        except:
-            df = rna.indel_reclassifier(df)
+    if args.panel_of_non_somatic:
+        df = rna.indel_reclassifier(df, args.fasta, args.panel_of_non_somatic)
     
-    df = rna.indel_postprocessor(df, args.refgene, args.fasta, args.reclassification)
+    df = rna.indel_postprocessor(df, args.refgene, args.fasta, args.panel_of_non_somatic)
 
-    df.to_csv('rna_indels.txt', index=False, sep='\t')
+    df.to_csv(args.output, index=False, sep='\t')
 
 
 def check_pos_int(val):
     val = int(val)
     if val <=0:
-        raise argparse.ArgumentTypeError('The number of processes must be a positve integer')
+        sys.exit('The number of processes must be a positve integer')
 
     return val
+
+
+def check_output(output):
+    p = pathlib.Path(output)
+    out_dir = p.parents[0]
+
+    if not out_dir.exists():
+        sys.exit('Output directory Not Found.')
+    
+    return output
+
+
+def check_panel_of_non_somatic(filepath):
+    if not os.path.isfile(filepath):
+        sys.exit('Panel of non somatic (.vcf) Not Found.')
+    
+    return filepath
 
 
 def get_args():
@@ -64,20 +79,20 @@ def get_args():
 
     parser = argparse.ArgumentParser()
    
-    # required: bam
+    # input required: bam
     parser.add_argument('-b', '--bam', required=True) 
-    # required either: bambino output or vcf
+    # input required either: bambino output or vcf
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('-f', '--bambino-output')
+    group.add_argument('-i', '--bambino')
     group.add_argument('-v', '--vcf') 
-    # required: fasta
+    # output required
+    parser.add_argument('-o', '--output', required=True, type=check_output)
+    # reference required: fasta
     parser.add_argument('-r', '--fasta', required=True)
     # optional: number of processes 
     parser.add_argument('-p', '--num-of-processes', type=check_pos_int)
-    # optional: reclassification by common SNP
-    parser.add_argument('-re-clf', '--reclassification', action='store_true')
-    # optional: reclassification by common SNP + user's list
-    parser.add_argument('-re-clf-w-lst', '--reclassification-list')
+    # optional: reclassification by black list
+    parser.add_argument('-pons', '--panel-of-non-somatic', type=check_panel_of_non_somatic)
     # configurations: with defaut value
     parser.add_argument('-refgene', '--refgene', default=REFGENE)
     parser.add_argument('-dbsnp', '--dbsnp', default=DBSNP)
@@ -86,6 +101,7 @@ def get_args():
     args = parser.parse_args()
 
     return args
+
 
 if __name__ == '__main__':
     main()

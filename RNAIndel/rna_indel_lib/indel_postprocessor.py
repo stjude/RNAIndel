@@ -35,6 +35,10 @@ def indel_postprocessor(df, refgene, fasta, reclf=False):
     df['lt'] = df.apply(lt_aln_indel_generator, axis=1)
     df['pos'], df['ref'], df['alt'] = zip(*df.apply(left_align_report, axis=1))
      
+    # re-classify common indels to germline
+    df['predicted_class'], df['prob_s'], df['prob_g'], df['prob_a'] = \
+    zip(*df.apply(classify_common_snp_to_germline, axis=1))
+    
     # reannotate afer left-alignment
     exon_data = pysam.TabixFile(refgene)
     anno = partial(annotate_indels, exon_data=exon_data, fasta=fasta, postprocess=True)
@@ -100,13 +104,32 @@ def unify_equivalent_indels(df):
     """
     # to keep original order
     df['order'] = df.index
-   
+    
     # select one with highest somatic probability
     df = df.sort_values('prob_s', ascending=False)
     df = df.drop_duplicates(['chr', 'pos', 'ref', 'alt'])
     df = df.sort_values('order')
-
+    
     return df
+
+
+def classify_common_snp_to_germline(row):
+    """Reclassify common indels predicted 'somatic' to germline
+
+    Args:
+        row (pandas.Series)
+    Returns:
+    """
+    pred = row['predicted_class']
+    proba_somatic = row['prob_s']
+    proba_germline = row['prob_g']
+    proba_artifact = row['prob_a']
+    
+    if pred == 'somatic' and row['is_common'] == 1:
+        if 'Pathogenic' not in row['clin_info'] and 'Likely_pathogenic' not in row['clin_info']:
+            pred, proba_somatic, proba_germline, proba_artifact = 'germline', 0, 1, 0 
+    
+    return pred, proba_somatic, proba_germline, proba_artifact
 
 
 def format_header(df, reclf=False):
@@ -153,7 +176,7 @@ def format_header(df, reclf=False):
                'is_at_del'
                ]
     if reclf:
-        header1 = header1 + ['reclassified', 'comment']
+        header1 = header1 + ['comment']
 
     header = header1 + header2
 

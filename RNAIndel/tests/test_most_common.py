@@ -3,7 +3,7 @@
 from unittest import TestCase
 
 import sys
-sys.path.append('..')
+sys.path.append('../rna_indel_lib')
 from most_common import most_common
 
 class MostCommon(TestCase):

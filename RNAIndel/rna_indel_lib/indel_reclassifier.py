@@ -10,78 +10,91 @@ for indels predicted somatic.
 import pysam
 import pandas as pd
 from functools import partial
+from .indel_snp_annotator_dev import vcf2bambino
+from .indel_snp_annotator_dev import are_equivalent
+from .indel_curator_dev import curate_indel_in_genome
 
-def indel_reclassifier(df, reclf_bed_file=None):
-    """Main module to reclassify based on common SNP 
-    and, if user-defined list is provided, reclassify based on
-    the list.
 
+def indel_reclassifier(df, fasta, pons_vcf=None):
+    """Main module to reclassify based on user-defined 
+    panel of non somatic (PONS). 
+    
     Args:
         df (pandas.DataFrame): df with prediction made
-        reclf_bed_file (file): user-defined .bed. Tabix-indexed. 
-                               Default=None (not provided)
+        fasta (str): path to .fa
+        pons_vcf (str): user-defined .vcf. Tabix-indexed. 
+                        Default=None (not provided)
     Returns:
         df (pandas.DataFrame): df reclassified
     """
-    df['reclassified'] = df['predicted_class']
+    # create comment column and fill with '-'
     df['comment'] = '-'
-
-    # reclassification by common snp (first priority)
-    df['reclassified'], df['comment'] = zip(*df.apply(reclassify_by_common, axis=1))
     
-    # OPTIONAL reclassification by bad list (lowest priority)
-    if reclf_bed_file:
-        db_reclf = pysam.TabixFile(reclf_bed_file)
-        reclf = partial(relassify_by_list, db_reclf=db_reclf)
-        df['reclassified'], df['comment'] = zip(*df.apply(reclf, axis=1))
+    # OPTIONAL reclassification by non somatic list
+    if pons_vcf:
+        pons = pysam.TabixFile(pons_vcf)
+        reclf = partial(wrap_reclassify_by_pons, fasta=fasta, pons=pons)
+        df['predicted_class'], df['comment'] = zip(*df.apply(reclf, axis=1))
 
     return df
-     
 
-def reclassify_by_common(row):
-    """Reclassifies common SNP indels predicted somatic to germline
-   
-    Args:
-        row (pandas.Series)
-    Returns:
-        row['reclassified'] (str): reclassifed class
-        row['comment'] (str): 'to_germline_by_common_snp' if reclassified 
+
+def wrap_reclassify_by_pons(row, fasta, pons):
+    """Wrap 'relassify_by_panel_of_non_somatic' so that this function is
+    only applied to instances predicted 'somatic'
+
+    Args: see 'relassify_by_panel_of_non_somatic'
+    Returns: see 'relassify_by_panel_of_non_somatic'
     """
-    if row['predicted_class'] == 'somatic' and row['is_common'] == 1:
-        return 'germline', 'to_germline_by_common_snp'
+    if row['predicted_class'] == 'somatic' and row['is_common'] != 1:
+       return relassify_by_panel_of_non_somatic(row, fasta, pons)      
     else:
-        return row['reclassified'], row['comment']
+       return row['predicted_class'], row['comment']
 
 
-def relassify_by_list(row, db_reclf):
-    """Reclassifies indels predicted somatic using user-defined reclassification list
+def relassify_by_panel_of_non_somatic(row, fasta, pons):
+    """Reclassifies indels predicted somatic using user-defined
+    panel of non somatic (PONS).
 
     Args:
         row (pandas.Series)
-        db_reclf (pysam.TabixFile obj): object storing indexed .bed file 
+        fasta (str): path to .fa
+        pons (pysam.TabixFile obj): object storing .vcf 
     Returns:
-        row['reclassified'] (str): reclassifed class
-        row['comment'] (str): 'to_***_by_reclassification_list' if reclassified
+        'predicted_class' (str): reclassifed class if applicable
+        'comment' (str): 'reclassified' if reclassified, '-' otherwise 
     """
+    search_window = 50
+    
     chr = row['chr']
     pos = row['pos']
-    ref = row['ref']
-    alt = row['alt']
-    prob_a = row['prob_a']
-    prob_g = row['prob_g']
+    idl_type = row['is_ins']
+    idl_seq = row['indel_seq']
     
-    if row['reclassified'] == 'somatic' and row['comment'] == '-':
-        try:
-            to_be_reclf = db_reclf.fetch(chr, pos, pos+1, parser=pysam.asTuple())
-        except:
-            return row['reclassified'], row['comment']
+    idl = curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq)
+    
+    # check if contif names in vcf are prefixed with 'chr'
+    sample_contig = pons.contigs[0]
+    if not sample_contig.startswith('chr'):
+        chr_vcf = chr.replace('chr', '')
+    else:
+        chr_vcf = chr
 
-        if to_be_reclf:
-            for instance in to_be_reclf:
-                if ref == instance[3] and alt == instance[4]:
-                    if prob_a <= prob_g:
-                        return 'germline', 'to_germline_by_reclassification_list'
+    start, end = pos - search_window, pos + search_window
+     
+    # check if the indel is equivalent to indel on the panel of non somatic (PONS)
+    # reclassify based on the 2nd highest probability if equivalent PONS indel found
+    for record in pons.fetch(chr_vcf, start, end, parser=pysam.asTuple()):
+        bambinos = vcf2bambino(record)
+        for bb in bambinos:
+             if idl_type == bb.idl_type and len(idl_seq) == len(bb.idl_seq):
+                 pons_idl = curate_indel_in_genome(fasta, chr, bb.pos, bb.idl_type, bb.idl_seq)
+                               
+                 if are_equivalent(idl, pons_idl):
+                    if row['prob_a'] >= row['prob_g']:
+                          
+                          return 'artifact', 'reclassified'
                     else:
-                        return 'artifact', 'to_artifact_by_reclassification_list'
-         
-    return row['reclassified'], row['comment'] 
+                          return 'germline', 'reclassified'
+    
+    return row['predicted_class'], row['comment'] 

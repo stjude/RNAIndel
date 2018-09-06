@@ -60,18 +60,19 @@ def annotate_indel_on_db(row, fasta, dbsnp, clnvr):
         clnvr (str): path to clinvar.indel.vcf.gz
 
     Returns:
-        this_idl (IndelReport obj): indel object with SNP report
+        report (IndelReport obj): report object with SNP info
     """
     chr = row['chr']
     pos = row['pos']
     idl_type = row['is_ins']
     idl_seq = row['indel_seq']
+   
     
-    # obj representing indel to be reported
-    this_idl = IndelReport(chr, pos, idl_type, idl_seq)
-    # obj representing 'this indel' in reference genome
+    # obj representing the indel in reference genome
     idl = curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq)
-    
+    # obj representing report of the indel
+    report = IndelReport(chr, pos, idl_type, idl_seq)
+ 
     # search for equivalent indels over pos +/- search_window nt
     search_window = 50
     start, end = pos - search_window, pos + search_window
@@ -86,10 +87,10 @@ def annotate_indel_on_db(row, fasta, dbsnp, clnvr):
                                                 bb.idl_type, bb.idl_seq)
                 if are_equivalent(idl, db_idl):
                     rs = record[2]
-                    this_idl.list_dbsnp_id(rs)
-                    this_idl.list_dbsnp_freq(dbsnp_freq(record))
-                    this_idl.list_dbsnp_origin(dbsnp_origin(record))
-                    this_idl.list_dbsnp_common(dbsnp_common(record))
+                    report.add_dbsnp_id(rs)
+                    report.add_dbsnp_freq(dbsnp_freq(record))
+#                   report.add_dbsnp_origin(dbsnp_origin(record))
+                    report.add_dbsnp_common(dbsnp_common(record))
 
     for record in clnvr.fetch(chr_vcf, start, end, parser=pysam.asTuple()):
         bambinos = vcf2bambino(record)
@@ -99,12 +100,12 @@ def annotate_indel_on_db(row, fasta, dbsnp, clnvr):
                                                 bb.idl_type, bb.idl_seq)
                 if are_equivalent(idl, db_idl):
                     id = record[2]
-                    this_idl.list_clnvr_id(id)
-                    this_idl.list_clnvr_freq(clnvr_freq(record))
-                    this_idl.list_clnvr_origin(clnvr_origin(record))
-                    this_idl.list_clnvr_info(cln_info(record))
+                    report.add_clnvr_id(id)
+                    report.add_clnvr_freq(clnvr_freq(record))
+#                   report.add_clnvr_origin(clnvr_origin(record))
+                    report.add_clnvr_info(cln_info(record))
     
-    return this_idl 
+    return report
 
 
 def is_on_dbsnp(row):
@@ -155,19 +156,17 @@ def count_padding_bases(seq1, seq2):
        n (int): 
 
     Examples:
-        a deletion is represented in .vcf as follows
-        
         REF    ALT
         
-        ATATC  AT
+        GCG    GCGCG
         
         By 'left-alignment', REF and ATL are alignmed: 
-             ATATC  
-             ||      
-             AT
+             GCG 
+             |||      
+             GCGCG
        
-       The first 2 bases are left-aligned.
-       In this case, 2 will be returned
+       The first 3 bases are left-aligned.
+       In this case, 3 will be returned
     """
     if len(seq1) <= len(seq2):
         shorter, longer  = seq1, seq2
@@ -220,10 +219,10 @@ def vcf2bambino(record):
               
     """ 
     chr = 'chr' + record[0]
-    # add 1 to pos (see Example in doc)
-    pos = int(record[1]) + 1 
+    pos = int(record[1]) 
     ref = record[3]
-    # alt sequences may be multiple
+
+    # multiallelic contains multiple alt 
     alts = record[4].split(',')
     
     parsed = []
@@ -233,13 +232,13 @@ def vcf2bambino(record):
         if len(ref) < len(alt):
             idl_type = 1
             idl_seq = alt[n:]
-            idl = IndelReport(chr, pos, idl_type, idl_seq)
+            idl = IndelReport(chr, pos+n, idl_type, idl_seq)
             parsed.append(idl)
         # deletion
         elif len(ref) > len(alt):
             idl_type = 0
             idl_seq = ref[n:]
-            idl = IndelReport(chr, pos, idl_type, idl_seq)
+            idl = IndelReport(chr, pos+n, idl_type, idl_seq)
             parsed.append(idl)
         else:
             pass

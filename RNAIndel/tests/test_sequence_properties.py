@@ -3,7 +3,7 @@
 from  unittest import TestCase
 
 import sys
-sys.path.append('..')
+sys.path.append('../rna_indel_lib')
 import sequence_properties as sp
 
 

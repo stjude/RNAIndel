@@ -6,7 +6,7 @@ from unittest.mock import patch
 from pandas.util.testing import assert_frame_equal
 
 import sys
-sys.path.append('..')
+sys.path.append('../rna_indel_lib')
 import indel_preprocessor as pre
 
 
@@ -36,7 +36,7 @@ class TestIndelPreprocessor(TestCase):
         self.fixture = df
      
     def test_main(self):
-        assert_frame_equal(pre.main('./testdata/test_1.txt'), self.fixture)
+        assert_frame_equal(pre.indel_preprocessor('./testdata/test_1.txt'), self.fixture)
                
 if __name__ == '__main__':
     from unittest import main

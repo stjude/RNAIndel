@@ -118,7 +118,8 @@ def calculate_proba(df, model_dir, **kwargs):
     df = pd.concat([df_mono, df_non_mono], axis=0)
     df.sort_values('order', inplace=True)
     df.drop('order', axis=1, inplace=True)
-   
+    df.reset_index(drop=True, inplace=True)
+        
     return df
 
     
