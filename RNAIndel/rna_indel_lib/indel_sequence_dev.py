@@ -421,7 +421,6 @@ class PileupWithIndel(Indel):
             else:
                 pass
         
-        
         if complexities == []:
             return 0
 
@@ -449,10 +448,10 @@ class PileupWithIndel(Indel):
                         complexity = lt_edit_dist + rt_edit_dist
                         complexities.append(complexity)
         if complexities == []:
-            return raw_value
+            return indel_complexity_against_ref
         else:
             refined_value = min(complexities)
-            return min(raw_value, refined_value)
+            return min(indel_complexity_against_ref, refined_value)
 
 
 class CodingSequenceWithIndel(SequenceWithIndel):

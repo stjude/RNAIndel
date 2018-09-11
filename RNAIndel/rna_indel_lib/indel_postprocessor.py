@@ -89,7 +89,7 @@ def left_align_report(row):
         ref = row['lt'].idl_seq
         alt = '-'
        
-    return pos, alt, ref 
+    return pos, ref, alt 
 
 
 def unify_equivalent_indels(df):
