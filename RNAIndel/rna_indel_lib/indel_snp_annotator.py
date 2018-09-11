@@ -12,10 +12,10 @@ import argparse
 import operator
 import pandas as pd
 from functools import partial
-from .indel_curator_dev import curate_indel_in_genome
-from .indel_sequence_dev import SequenceWithIndel
 from .indel_features import IndelReport
-from .indel_equivalence_solver_dev import are_equivalent
+from .indel_sequence import SequenceWithIndel
+from .indel_curator import curate_indel_in_genome
+from .indel_equivalence_solver import are_equivalent
 
 
 def indel_snp_annotator(df, fasta, dbsnp, clnvr):

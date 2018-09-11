@@ -60,13 +60,13 @@ def calculate_proba(df, model_dir, **kwargs):
                     'is_nmd_insensitive', 
                     'is_near_boundary',
                     'indel_complexity', 
-                    'ipkc', 
+                    'ipg', 
                     'is_uniq_mapped'
                     ]
 
     non_mono_features = [
                          'indel_size', 
-                         'ipkc', 
+                         'ipg', 
                          'dissimilarity', 
                          'alt_count',
                          'is_on_dbsnp', 

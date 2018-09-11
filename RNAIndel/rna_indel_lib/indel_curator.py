@@ -5,10 +5,10 @@ import pysam
 import random
 import logging
 import numpy as np
-from rna_indel_lib.most_common import most_common
-from rna_indel_lib.indel_sequence_dev import SequenceWithIndel
-from rna_indel_lib.indel_sequence_dev import PileupWithIndel
-from rna_indel_lib.indel_sequence_dev import PileupWithIndelNotFound
+from .most_common import most_common
+from .indel_sequence import SequenceWithIndel
+from .indel_sequence import PileupWithIndel
+from .indel_sequence import PileupWithIndelNotFound
 
 
 random.seed(123)
@@ -653,8 +653,7 @@ def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq):
         idl_seq = infer_del_seq_from_data(decomposed_non_idl_reads,
                                           idl_flanks,
                                           del_seq)
-        if idl_seq != del_seq:
-            print(chr, pos, del_seq, idl_seq) 
+    
     ########################
     # Summarize the result #
     ########################

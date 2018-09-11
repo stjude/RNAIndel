@@ -10,16 +10,16 @@ import re
 import numpy as np
 import pandas as pd
 import subprocess as sp
-from .indel_curator_dev import curate_indel_in_genome
 from functools import partial
+from .indel_sequence import SequenceWithIndel
+from .indel_curator import curate_indel_in_genome
 from .indel_protein_processor import acc_len_dict
-from .indel_sequence_dev import SequenceWithIndel
 
 mrna = re.compile(r'NM_[0-9]+')
 
 def indel_equivalence_solver(df, fasta, refgene):
     """Solve indel equivalence and calculates 
-    indels_per_kilo_coding_sequence (ipkc)
+    indels_per_gene (ipg)
     
     Args:
         df (pandas.DataFrame)
@@ -36,7 +36,7 @@ def indel_equivalence_solver(df, fasta, refgene):
     # counts indels per transcript in an equivalent aware way
     acc_len = acc_len_dict(refgene)
     dfg = df.groupby('gene_symbol')
-    df  = dfg.apply(partial(indels_per_kilo_cds, d=acc_len))
+    df  = dfg.apply(partial(indels_per_gene, d=acc_len))
         
     df.drop(['gene_symbol', 'equivalence_id'], axis=1, inplace=True)
 
@@ -244,26 +244,26 @@ def merge_equivalents(df):
     return df
 
 
-def indels_per_kilo_cds(df, d):
-    """Counts the number of Indels Per Kilo Coding sequence (IPKC)
+def indels_per_gene(df, d):
+    """Counts the number of indels per gene (ipg)
     
     Args:
        df (pandas.DataFrame): grouped by 'gene_symbol'
        d (dict): acc_len dict
     Returns:
-       df (pandas.DataFrame): 'ipkc' column added
+       df (pandas.DataFrame): 'ipg' column added
     """
     equivalence_corrected_num_of_indels = len(df['equivalence_id'].unique())
     anno_str = ','.join(df['annotation'].values)
     
     try:
         acc_lst = re.findall(mrna, anno_str)
-        ipkc = [equivalence_corrected_num_of_indels*1000/d[acc]\
+        ipg = [equivalence_corrected_num_of_indels*1000/d[acc]\
                 for acc in acc_lst]
-        df['ipkc'] =  np.median(ipkc)
+        df['ipg'] =  np.median(ipg)
     except:
         median_cds_len = 1323
-        df['ipkc'] = equivalence_corrected_num_of_indels / median_cds_len
+        df['ipg'] = equivalence_corrected_num_of_indels / median_cds_len
     
     return df
 

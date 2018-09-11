@@ -11,9 +11,9 @@ import pysam
 import logging
 import pandas as pd
 from functools import partial
-from .indel_sequence_dev import Indel
 from .left_aligner import lt_aln
-from .indel_annotator_dev import annotate_indels
+from .indel_sequence import Indel
+from .indel_annotator import annotate_indels
 
 logger = logging.getLogger(__name__)
 
@@ -170,7 +170,7 @@ def format_header(df, reclf=False):
                'is_multiallelic',
                'is_truncating',
                'is_nmd_insensitive',
-               'ipkc',
+               'ipg',
                'local_strength',
                'is_at_ins',
                'is_at_del'

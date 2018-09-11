@@ -10,7 +10,7 @@ import sys
 import vcf
 import logging
 import pandas as pd
-from .indel_snp_annotator_dev import count_padding_bases
+from .indel_snp_annotator import count_padding_bases
 
 logger = logging.getLogger(__name__)
 

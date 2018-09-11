@@ -10,9 +10,9 @@ for indels predicted somatic.
 import pysam
 import pandas as pd
 from functools import partial
-from .indel_snp_annotator_dev import vcf2bambino
-from .indel_snp_annotator_dev import are_equivalent
-from .indel_curator_dev import curate_indel_in_genome
+from .indel_snp_annotator import vcf2bambino
+from .indel_snp_annotator import are_equivalent
+from .indel_curator import curate_indel_in_genome
 
 
 def indel_reclassifier(df, fasta, pons_vcf=None):

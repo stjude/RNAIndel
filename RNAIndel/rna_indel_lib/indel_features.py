@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from .indel_sequence_dev import Indel
+from .indel_sequence import Indel
 
 
 class AnnotationFeatures(object):

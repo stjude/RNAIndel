@@ -11,8 +11,8 @@ import pandas as pd
 from functools import partial
 from .indel_features import SamFeatures
 from .indel_features import AnnotationFeatures
-from .indel_curator_dev import curate_indel_in_genome
-from .indel_curator_dev import curate_indel_in_pileup
+from .indel_curator import curate_indel_in_genome
+from .indel_curator import curate_indel_in_pileup
 
 
 def indel_sequence_processor(df, fasta, bam):
