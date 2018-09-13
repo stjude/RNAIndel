@@ -555,7 +555,7 @@ def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq):
         else:
             msg = notfound + chr + '|' + str(pos+1) + '|' + idl_seq + '|' + '-'
         
-        logging.info(msg+'\n')
+        logging.info(msg)
         
         # retuns NotFound obj
         return PileupWithIndelNotFound(chr, pos, idl_type, idl_seq)
@@ -580,7 +580,7 @@ def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq):
         else:
             msg = notfound + chr + '|' + str(pos+1) + '|' + idl_seq + '|' + '-'
         
-        logging.info(msg+'\n')
+        logging.info(msg)
         
         # retuns NotFound obj
         return PileupWithIndelNotFound(chr, pos, idl_type, idl_seq)

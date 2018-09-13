@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""8th (last) step of analysis 
+"""8th  step of analysis 
 
 Left-align, unify equivalents and format the result
 
@@ -176,7 +176,7 @@ def format_header(df, reclf=False):
                'is_at_del'
                ]
     if reclf:
-        header1 = header1 + ['comment']
+        header1 = header1 + ['filter']
 
     header = header1 + header2
 

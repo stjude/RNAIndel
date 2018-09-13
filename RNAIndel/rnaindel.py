@@ -8,23 +8,12 @@ import argparse
 import pandas as pd
 import rna_indel_lib as rna
 
-logger = logging.getLogger('')
-logger.setLevel(logging.INFO)
-
-fh = logging.FileHandler('./run.log', delay=True)
-fh.setLevel(logging.INFO)
-fh_formatter = logging.Formatter('%(asctime)s %(module)-12s %(levelname)-8s %(message)s')
-fh.setFormatter(fh_formatter)
-logger.addHandler(fh)
-
-sh = logging.StreamHandler()
-sh.setLevel(logging.WARNING)
-logger.addHandler(sh)
-
 
 def main():
     args = get_args()
-
+    
+    create_logger(args.output)
+    
     if args.bambino:
         df = rna.indel_preprocessor(args.bambino)
     else:
@@ -41,8 +30,27 @@ def main():
         df = rna.indel_reclassifier(df, args.fasta, args.panel_of_non_somatic)
     
     df = rna.indel_postprocessor(df, args.refgene, args.fasta, args.panel_of_non_somatic)
+    rna.indel_vcf_writer(df, args.bam, args.fasta, args.output)
+    
 
-    df.to_csv(args.output, index=False, sep='\t')
+def create_logger(output):
+    p = pathlib.Path(output)
+    out_dir = p.parents[0].as_posix()
+ 
+    logger = logging.getLogger('')
+    logger.setLevel(logging.INFO)
+
+    fh = logging.FileHandler(os.path.join(out_dir, 'run.log'), delay=True)
+    fh.setLevel(logging.INFO)
+    fh_formatter = logging.Formatter('%(asctime)s %(module)-12s %(levelname)-8s %(message)s')
+    fh.setFormatter(fh_formatter)
+    logger.addHandler(fh)
+
+    sh = logging.StreamHandler()
+    sh.setLevel(logging.WARNING)
+    logger.addHandler(sh)
+    
+    return logger
 
 
 def check_pos_int(val):

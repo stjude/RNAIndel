@@ -47,7 +47,7 @@ class SamFeatures(object):
         self.is_uniq_mapped = is_uniq_mapped
 
 
-class IndelReport(Indel):
+class IndelSnpFeatures(Indel):
     """Store and summarize dbSNP and ClinVar info
     
     Attributes:

@@ -12,7 +12,7 @@ import argparse
 import operator
 import pandas as pd
 from functools import partial
-from .indel_features import IndelReport
+from .indel_features import IndelSnpFeatures
 from .indel_sequence import SequenceWithIndel
 from .indel_curator import curate_indel_in_genome
 from .indel_equivalence_solver import are_equivalent
@@ -60,7 +60,7 @@ def annotate_indel_on_db(row, fasta, dbsnp, clnvr):
         clnvr (str): path to clinvar.indel.vcf.gz
 
     Returns:
-        report (IndelReport obj): report object with SNP info
+        report (IndelSnpFeatures): idl object reporting SNP info
     """
     chr = row['chr']
     pos = row['pos']
@@ -71,7 +71,7 @@ def annotate_indel_on_db(row, fasta, dbsnp, clnvr):
     # obj representing the indel in reference genome
     idl = curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq)
     # obj representing report of the indel
-    report = IndelReport(chr, pos, idl_type, idl_seq)
+    report = IndelSnpFeatures(chr, pos, idl_type, idl_seq)
  
     # search for equivalent indels over pos +/- search_window nt
     search_window = 50
@@ -189,7 +189,7 @@ def vcf2bambino(record):
     Args:
        record (tuple): vcf line with fields separated in tuple
     Returns:
-       parsed (list): a list of IndelReport obj
+       parsed (list): a list of IndelSnpFeatures obj
 
     Example:
       
@@ -232,13 +232,13 @@ def vcf2bambino(record):
         if len(ref) < len(alt):
             idl_type = 1
             idl_seq = alt[n:]
-            idl = IndelReport(chr, pos+n, idl_type, idl_seq)
+            idl = IndelSnpFeatures(chr, pos+n, idl_type, idl_seq)
             parsed.append(idl)
         # deletion
         elif len(ref) > len(alt):
             idl_type = 0
             idl_seq = ref[n:]
-            idl = IndelReport(chr, pos+n, idl_type, idl_seq)
+            idl = IndelSnpFeatures(chr, pos+n, idl_type, idl_seq)
             parsed.append(idl)
         else:
             pass
