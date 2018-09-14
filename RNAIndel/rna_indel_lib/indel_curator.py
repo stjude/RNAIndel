@@ -502,7 +502,7 @@ def infer_del_seq_from_data(decomposed_non_idl_reads, idl_flanks, del_seq):
     return inferred_seq      
      
 
-def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq):
+def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq):
     """Generates an object describing what indel looks like
     in the pileup view.
     
@@ -512,7 +512,7 @@ def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq):
         pos (int): 1-based position of indel on the reference
         idl_type (int): 1 for insertion 0 for deletion
         idl_seq (str): inserted or deleted sequence
-
+        mapq (int): MAPQ for uniquely mapped reads. Default=255
     Returns:
         PileupWithIndel object: if indels found as specified with 
                                 chr, pos, idl_type and idl_seq 
@@ -667,7 +667,7 @@ def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq):
 
     # decide if uniquely mapped
     is_uniq_mapped = 0
-    if most_common(map_qual) == 255:
+    if most_common(map_qual) == mapq:
         is_uniq_mapped = 1
    
     # decide if bidirectionally supported

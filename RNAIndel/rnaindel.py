@@ -14,15 +14,15 @@ def main():
     
     create_logger(args.output)
     
-    if args.bambino:
-        df = rna.indel_preprocessor(args.bambino)
+    if args.input_bambino:
+        df = rna.indel_preprocessor(args.input_bambino)
     else:
-        df = rna.indel_vcf_processor(args.vcf)
+        df = rna.indel_vcf_processor(args.input_vcf)
 
     df = rna.indel_annotator(df, args.refgene, args.fasta)
-    df = rna.indel_sequence_processor(df, args.fasta, args.bam)
+    df = rna.indel_sequence_processor(df, args.fasta, args.bam, args.uniq_mapq)
     df = rna.indel_protein_processor(df, args.refgene) 
-    df = rna.indel_equivalence_solver(df, args.fasta, args.refgene)
+    df = rna.indel_equivalence_solver(df, args.fasta, args.refgene, args.output)
     df = rna.indel_snp_annotator(df, args.fasta, args.dbsnp, args.clinvar)
     df = rna.indel_classifier(df, args.dir_for_models, processes=args.num_of_processes)
     
@@ -91,15 +91,17 @@ def get_args():
     parser.add_argument('-b', '--bam', required=True) 
     # input required either: bambino output or vcf
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('-i', '--bambino')
-    group.add_argument('-v', '--vcf') 
+    group.add_argument('-ib', '--input-bambino')
+    group.add_argument('-iv', '--input-vcf') 
     # output required
     parser.add_argument('-o', '--output', required=True, type=check_output)
     # reference required: fasta
     parser.add_argument('-r', '--fasta', required=True)
+    # optional: MAPQ
+    parser.add_argument('-q', '--uniq-mapq', default=255, type=int) 
     # optional: number of processes 
     parser.add_argument('-p', '--num-of-processes', type=check_pos_int)
-    # optional: reclassification by black list
+    # optional: reclassification by non-somatic list
     parser.add_argument('-pons', '--panel-of-non-somatic', type=check_panel_of_non_somatic)
     # configurations: with defaut value
     parser.add_argument('-refgene', '--refgene', default=REFGENE)

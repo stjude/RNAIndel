@@ -89,6 +89,7 @@ def link_datadict_to_dataframe(row, dict):
     d = {}
     for k, v in dict.items():
         d[k] = [row[c] for c in v['COLUMN']]
+        
         if len(d[k]) == 1:
             d[k] = d[k][0]
 

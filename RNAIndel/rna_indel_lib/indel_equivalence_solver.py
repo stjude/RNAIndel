@@ -6,7 +6,9 @@ Find equivalent indels and merge them.
 'indel_equivalence_solver' is the main routine of this module
 """
 
+import os
 import re
+import pathlib
 import numpy as np
 import pandas as pd
 import subprocess as sp
@@ -17,7 +19,7 @@ from .indel_protein_processor import acc_len_dict
 
 mrna = re.compile(r'NM_[0-9]+')
 
-def indel_equivalence_solver(df, fasta, refgene):
+def indel_equivalence_solver(df, fasta, refgene, output):
     """Solve indel equivalence and calculates 
     indels_per_gene (ipg)
     
@@ -28,8 +30,13 @@ def indel_equivalence_solver(df, fasta, refgene):
     Returns:
         df (pandas.DataFrame)
     """
+    # intermediate file to store indel equivalence info
+    p = pathlib.Path(output)
+    out_dir = p.parents[0].as_posix()
+    imd_file = os.path.join(out_dir, 'equivalent_indels.txt')
+
     # finds and merge equivalent indels
-    df = solve_equivalence(df, fasta)
+    df = solve_equivalence(df, fasta, imd_file)
     dfe = df.groupby('equivalence_id')
     df = dfe.apply(merge_equivalents)
     
@@ -43,32 +50,32 @@ def indel_equivalence_solver(df, fasta, refgene):
     return df
 
 
-def solve_equivalence(df, fasta):
+def solve_equivalence(df, fasta, imd_file):
     """Finds equivalent indels and assigns IDs based on equivalnece
        Equivalent indels are assigned the same ID numbers.
 
     Args: 
        df (pandas dataframe)
        fasta (str): complete path to FASTA file
-
+       imd_file (file): .txt to store indel equivalene info
     Returns:
        df (pandas datagrame): 'equivalence_id' column added
     """
-    # generates indel objects
+    # generate indel objects
     df['indel_obj'] = df.apply(partial(generate_indel, fasta=fasta), axis=1)
     
-    # finds equivalent indels and outputs an intermediate file
+    # find equivalent indels and outputs an intermediate file
     df['eq'] = df.apply(partial(check_equivalence, df=df), axis=1)
     dfe = df[['eq']].drop_duplicates(['eq'])
-    dfe.to_csv('equivalent_indels.txt', sep='\t', index=False, header=False)
+    dfe.to_csv(imd_file, sep='\t', index=False, header=False)
     
-    # generates dict and assigns IDs 
-    d = equivalence_id_dict()
+    # generate dict and assigns IDs 
+    d = equivalence_id_dict(imd_file)
     df['equivalence_id'] = df.apply(partial(assign_id, d=d), axis=1)
     df.drop(['indel_obj', 'eq'], axis=1, inplace=True)
    
-    # cleans the intermediate file 
-    sp.call(['rm', 'equivalent_indels.txt'])
+    # clean intermediate file 
+    sp.call(['rm', imd_file])
     
     return df
 
@@ -152,7 +159,7 @@ def check_equivalence(row, df):
     return ','.join(res)
 
 
-def equivalence_id_dict():
+def equivalence_id_dict(imd_file):
     """Make dict {chr:pos:indel_type:indel_seq : id}
        the ID number is same for equivalents
 
@@ -164,7 +171,7 @@ def equivalence_id_dict():
     Returns:
          dict 
     """
-    with open('equivalent_indels.txt') as f:
+    with open(imd_file) as f:
         d = {}
         i = 1
         for line in f:
