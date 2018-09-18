@@ -23,17 +23,19 @@ class Indel(object):
        self.idl_seq = idl_seq
    
    @property
-   def chr(self):
-       return self.__chr
-
-   @chr.setter
-   def chr(self, chr):
-       if not chr.startswith('chr'):
-           self.__chr = 'chr' + chr
+   def ref(self):
+       if self.idl_type == 1:
+           return '-'
        else:
-           self.__chr = chr
+           return self.idl_seq
    
-  
+   @property
+   def alt(self):
+       if self.idl_type == 1:
+           return self.idl_seq
+       else:
+           return '-'        
+             
 class SequenceWithIndel(Indel):
     """ Represents indel with its flanking sequence
     

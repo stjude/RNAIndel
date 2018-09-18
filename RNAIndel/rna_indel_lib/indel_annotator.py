@@ -157,7 +157,7 @@ def generate_coding_indels(chr, pos, idl_type, idl_seq, exon_data, fasta):
 
     Returns:
         coding_idl_lst (list): a list of CodingSequenceWithIndel obj
-                               or an empty list for non-coding indel  
+                               empty list if non-coding indel  
     """
     coding_idl_lst = []
     

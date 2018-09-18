@@ -272,7 +272,7 @@ class IndelVcfReport(object):
     ################
     @property
     def FORMAT(self):
-        ad = ','.join([str(i) for i in self.AD])
+        ad = ','.join([str(int(i)) for i in self.AD])
         
         return 'AD\t'+ad 
     

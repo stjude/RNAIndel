@@ -15,10 +15,12 @@ def main():
     create_logger(args.output)
     
     if args.input_bambino:
-        df = rna.indel_preprocessor(args.input_bambino)
+        df = rna.indel_preprocessor(args.input_bambino, args.refgene, args.fasta)
+        df = rna.equivalence_collector(df, args.fasta, args.bam, args.num_of_processes, False)
     else:
-        df = rna.indel_vcf_processor(args.input_vcf)
-
+        df = rna.indel_vcf_preprocessor(args.input_vcf, args.refgene, args.fasta)
+        df = rna.equivalence_collector(df, args.fasta, args.bam, args.num_of_processes, True)
+          
     df = rna.indel_annotator(df, args.refgene, args.fasta)
     df = rna.indel_sequence_processor(df, args.fasta, args.bam, args.uniq_mapq)
     df = rna.indel_protein_processor(df, args.refgene) 

@@ -9,18 +9,22 @@ indel calls on canonical chromosomes.
 
 import os
 import sys
+import pysam
 import logging
 import pandas as pd
+from functools import partial
+from .indel_annotator import generate_coding_indels
+
 
 logger = logging.getLogger(__name__)
 
-def indel_preprocessor(filename):
+def indel_preprocessor(bambinofile, refgene, fasta):
     """Validate, extract and format indel calls from Bambino output
      
     Args:
-        filename (str): Bambino output filename (contains SNVs + indels)
+        bambinofile (str): Bambino output filename (contains SNVs + indels)
     Returns:
-        df (pandas.DataFrame): Only contains indels
+        df (pandas.DataFrame): Contains coding indels
                                4 columns formatted as: 
 
                                chr  pos  ref  alt
@@ -30,10 +34,12 @@ def indel_preprocessor(filename):
                                       ....
                                chrY 987  CCT  -
     """
-    if not exists_bambino_output(filename):
+    exon_data = pysam.TabixFile(refgene)
+
+    if not exists_bambino_output(bambinofile):
         sys.exit(1)
     
-    df = pd.read_csv(filename, sep='\t', dtype={'dbSNP': str})
+    df = pd.read_csv(bambinofile, sep='\t', dtype={'dbSNP': str})
      
     if not is_non_trivial_result(df):
         sys.exit(1)
@@ -47,10 +53,40 @@ def indel_preprocessor(filename):
         
     df = rename_header(df)
     df = format_indel_report(df)
+
+    coding = partial(flag_coding_indels, exon_data=exon_data, fasta=fasta)
+    df['is_coding'] = df.apply(coding, axis=1)
+    df =  df[df['is_coding'] == True]
+    
+    if len(df) == 0:
+        logging.warning('No coding indels annotated. Analysis done.')
+        sys.exit(0)
+    
+    df.drop('is_coding', axis=1, inplace=True)
     df = df.reset_index(drop=True)
     
     return df
 
+
+def flag_coding_indels(row, exon_data, fasta):
+    is_coding = False
+    
+    if row['ref'] == '-':
+        idl_type, idl_seq = 1, row['alt']
+    else:
+        idl_type, idl_seq = 0, row['ref']
+
+    res = generate_coding_indels(row['chr'],
+                                 row['pos'],
+                                 idl_type,
+                                 idl_seq,
+                                 exon_data,
+                                 fasta)
+    if res != []:
+        is_coding = True
+
+    return is_coding
+    
 
 def exists_bambino_output(filename):
     """Assert if Bambino output file exists
@@ -100,31 +136,31 @@ def extract_necessary_info(df):
 
     df = df[['Chr', 'Pos', 'Type', 'Chr_Allele', 'Alternative_Allele']]
     
-    df['is_canonical'] = df.apply(is_canonical_chromosome, axis=1)
-    df = df[df['is_canonical'] == 1]
+    df['is_canonical'] = df.apply(lambda x :is_canonical_chromosome(x['Chr']), axis=1)
+    df = df[df['is_canonical'] == True]
     df.drop('is_canonical', axis=1, inplace=True)
 
     return df 
 
 
-def is_canonical_chromosome(row):
+def is_canonical_chromosome(chr):
     """Check if chr is 1-22, X or Y (M not included)
 
     Args:
-        row (pandas.Series): chromosome name (str) at index 'Chr'
+        chr (str): chromosome name
     Returns:
         is_canonical (bool): True if chr is 1-22, X or Y
     """
     is_canonical = False
     
-    chr_name = row['Chr'].replace('chr', '')
-    
-    if chr_name == 'X' or chr_name == 'Y':
+    if chr.startswith('chr'):
+        chr = chr.replace('chr', '')
+
+    if chr == 'X' or chr == 'Y':
         is_canonical = True
     else:
         try:
-            chr_num = int(chr_name)
-            if 1 <= chr_num <= 22:
+            if 1 <= int(chr) <= 22:
                 is_canonical = True
         except:
             pass

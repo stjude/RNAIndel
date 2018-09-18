@@ -10,9 +10,10 @@ from .indel_sequence_processor import *
 from .indel_reclassifier import *
 from .indel_sequence import *
 from .indel_snp_annotator import *
-from .indel_vcf_processor import *
+from .indel_vcf_preprocessor import *
 from .left_aligner import *
 from .most_common import *
 from .sequence_properties import *
 from .indel_vcf_writer import *
 from .indel_vcf import *
+from .indel_equivalece_collector import *
