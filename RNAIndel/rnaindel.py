@@ -16,9 +16,15 @@ def main():
     
     if args.input_bambino:
         df = rna.indel_preprocessor(args.input_bambino)
+        df = rna.indel_rescue(df, args.fasta, args.bam, 
+                              num_of_processes=args.num_of_processes)
     else:
-        df = rna.indel_vcf_processor(args.input_vcf)
-
+        df = rna.indel_vcf_preprocessor(args.input_vcf)
+        df = rna.indel_rescue(df, args.fasta, args.bam,
+                              num_of_processes=args.num_of_processes,
+                              left_aligned=True,
+                              external_vcf=True)
+              
     df = rna.indel_annotator(df, args.refgene, args.fasta)
     df = rna.indel_sequence_processor(df, args.fasta, args.bam, args.uniq_mapq)
     df = rna.indel_protein_processor(df, args.refgene) 
