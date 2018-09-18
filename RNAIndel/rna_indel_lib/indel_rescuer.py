@@ -1,4 +1,5 @@
 import pysam
+import numpy as np
 import pandas as pd
 from functools import partial
 from multiprocessing import Pool
@@ -10,25 +11,42 @@ from .indel_curator import extract_all_valid_reads
 from .indel_equivalence_solver import are_equivalent
 
 
-def equivalence_collector(df, fasta, bam, num_of_process, left_alinged): 
-    #bam_data = pysam.AlignmentFile(bam, 'rb')
+def indel_rescuer(df, fasta, bam, **kwargs): 
     
-    pool = Pool(num_of_process)
+    num_of_processes = kwargs.pop('num_of_processes', 1)
+    left_aligned = kwargs.pop('left_aligned', False) 
+    external_vcf =  kwargs.pop('external_vcf', False)
 
-    # wrap recover_equivalent_indels
-    recover = partial(recover_equivalent_indels,
-                      fasta=fasta,
-                      bam=bam,
-                      search_window=50,
-                      pool=pool,
-                      left_aligned=left_alinged)
+    pool = Pool(num_of_processes)
+     
+    df['rescued'] = '-'
+     
+    # wrap rescue_by_equivalence
+    rqxeq = partial(rescue_by_equivalence,
+                    fasta=fasta,
+                    bam=bam,
+                    search_window=50,
+                    pool=pool,
+                    left_aligned=left_aligned)
     
-    df['recovered_indels'] = df.apply(recover, axis=1)
+    df['rescued_indels'] = df.apply(rqxeq, axis=1)
     
-    data_in_list_of_dict = df['recovered_indels'].sum()
-    df_recovered = pd.DataFrame(data_in_list_of_dict)
-    df = df[['chr', 'pos', 'ref', 'alt']]
-    df = pd.concat([df, df_recovered], axis=0, sort=True)
+    
+    if external_vcf:
+        rqxnr = partial(rescue_by_nearest,
+                        fasta=fasta,
+                        bam=bam,
+                        search_window=5)
+        df['rescued_indels'] = df.apply(lambda x: rqxnr(x)\
+                                            if x['rescued_indels'] == []\
+                                            else x['rescued_indels'], axis=1)
+
+    data_in_list_of_dict = df['rescued_indels'].sum()
+    df_rescued = pd.DataFrame(data_in_list_of_dict)
+    
+    df = df[['chr', 'pos', 'ref', 'alt', 'rescued']]
+    
+    df = pd.concat([df, df_rescued], axis=0, sort=True)
     
     df = sort_positionally(df)
     df = df.drop_duplicates(['chr', 'pos', 'ref', 'alt'])     
@@ -37,7 +55,7 @@ def equivalence_collector(df, fasta, bam, num_of_process, left_alinged):
     return df
                           
    
-def recover_equivalent_indels(row, fasta, bam, search_window, pool, left_aligned=True):
+def rescue_by_equivalence(row, fasta, bam, search_window, pool, left_aligned):
     """Recorver equivalent indels from left-aligned indel report
     
     Args:
@@ -70,31 +88,60 @@ def recover_equivalent_indels(row, fasta, bam, search_window, pool, left_aligned
         rt_window, lt_window = int(search_window/2), int(search_window/2)
      
 
-    eq_idl = partial(extract_equivalent_indel,
-                     called_idl=called_idl,
+    rescue = partial(extract_indel,
                      fasta=fasta,
                      bam=bam,
                      chr=chr,
-                     idl_type=idl_type)
+                     idl_type=idl_type,
+                     equivalent_to=called_idl)
     
     
     rt_range = [pos+i for i in range(rt_window)]
-    rt_equivalents = pool.map(eq_idl, rt_range)
+    rt_equivalents = pool.map(rescue, rt_range)
       
     lt_range = [pos-i for i in range(lt_window)] 
-    lt_equivalents = pool.map(eq_idl, lt_range)
+    lt_equivalents = pool.map(rescue, lt_range)
     
-    equivalents = list(rt_equivalents) + list(lt_equivalents)
+    equivalents = rt_equivalents + lt_equivalents
 
     equivalents = [{'chr':eq.chr,
                     'pos':eq.pos,
                     'ref':eq.ref,
-                    'alt':eq.alt} for eq in equivalents if eq != None]
+                    'alt':eq.alt,
+                    'rescued':'by_equivalence'} for eq in equivalents if eq != None]
     
     return equivalents
 
 
-def extract_equivalent_indel(pos, called_idl, fasta, bam, chr, idl_type):
+def rescue_by_nearest(row, fasta, bam, search_window):
+    
+    chr = row['chr']
+    pos = row['pos'] 
+    idl_type = 0
+    
+    if row['ref'] == '-':
+        idl_type = 1
+
+    # make [0, 1, -1, 2, -2, ...]
+    pos_move = [-int(i) if int(i) == i else int(i+1) \
+                for i in np.array(range(search_window))/2]
+    i = 0
+    idl_found = None
+    while i < len(pos_move) and not idl_found:
+        idl_found = extract_indel(pos+pos_move[i], fasta, bam, chr, idl_type)
+        i += 1
+
+    if not idl_found:
+        return []
+    else:
+        return [{'chr':idl_found.chr,
+                 'pos':idl_found.pos,
+                 'ref':idl_found.ref,
+                 'alt':idl_found.alt,
+                 'rescued':'by_nearest'}]
+             
+
+def extract_indel(pos, fasta, bam, chr, idl_type, **kwargs):
     """Extract equivalent indel if exists at the locus (chr, pos)
 
     Args:
@@ -107,18 +154,20 @@ def extract_equivalent_indel(pos, called_idl, fasta, bam, chr, idl_type):
         equivalent_indel(SequenceWithIndel or None) :SequenceWithIndel if found
                                                      None if not found
     """
-    equivalent_indel = None
+    idl_at_this_locus = None
+    bam_data = pysam.AlignmentFile(bam, 'rb')
+    idl_to_compare = kwargs.pop('equivalent_to', None)
 
-    bam_data = bam_data = pysam.AlignmentFile(bam, 'rb')
     inferred_idl_seq = get_most_common_indel_seq(bam_data, chr, pos, idl_type)
     
     if inferred_idl_seq:
         idl_at_this_locus = curate_indel_in_genome(fasta, chr, pos, idl_type, inferred_idl_seq)
         
-        if are_equivalent(called_idl, idl_at_this_locus):
-            equivalent_indel = idl_at_this_locus
+        if idl_to_compare:
+            if not are_equivalent(idl_to_compare, idl_at_this_locus):
+                idl_at_this_locus = None
     
-    return equivalent_indel
+    return idl_at_this_locus
 
     
 def get_most_common_indel_seq(bam_data, chr, pos, idl_type):

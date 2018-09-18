@@ -19,7 +19,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 logger = logging.getLogger(__name__)
 
-def indel_classifier(df, model_dir, processes):
+def indel_classifier(df, model_dir, **kwargs):
     """Makes prediction
     
     Args:
@@ -29,16 +29,18 @@ def indel_classifier(df, model_dir, processes):
     Returns:
        df (pandas.DataFrame) : with prediction
     """
+    num_of_processes = kwargs.pop('num_of_processes', 1)
+
     # requires at least 2 indel fragments
     df = df[df['alt_count'] > 1]      
     
-    df = calculate_proba(df, model_dir, num_of_processes=processes)
+    df = calculate_proba(df, model_dir, num_of_processes)
     df['predicted_class'] = df.apply(predict_class, axis=1)
 
     return df
 
 
-def calculate_proba(df, model_dir, **kwargs):
+def calculate_proba(df, model_dir, num_of_processes):
     """Calculates prediction probability for 1-nt (mono) and >1-mt (non-mono) indels
 
     Args:
@@ -85,7 +87,7 @@ def calculate_proba(df, model_dir, **kwargs):
     df['order'] = df.index
     df_mono, df_non_mono = split_by_indel_size(df)
     
-    pool = Pool(kwargs.pop('num_of_processes', 1))
+    pool = Pool(num_of_processes)
     header = ['prob_a', 'prob_g', 'prob_s']
     
     # prediction for mono indels
