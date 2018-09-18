@@ -12,8 +12,8 @@ import pysam
 import logging
 import pandas as pd
 from functools import partial
-from .indel_curator_dev import curate_indel_in_genome
-from .indel_sequence_dev import CodingSequenceWithIndel
+from .indel_curator import curate_indel_in_genome
+from .indel_sequence import CodingSequenceWithIndel
 
 logger = logging.getLogger(__name__)
 
@@ -157,7 +157,7 @@ def generate_coding_indels(chr, pos, idl_type, idl_seq, exon_data, fasta):
 
     Returns:
         coding_idl_lst (list): a list of CodingSequenceWithIndel obj
-                               or an empty list for non-coding indel  
+                               empty list if non-coding indel  
     """
     coding_idl_lst = []
     

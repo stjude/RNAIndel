@@ -8,14 +8,15 @@ Calculates features at sequence and alignment level
 
 import pysam
 import pandas as pd
-from .indel_curator_dev import curate_indel_in_genome
-from .indel_curator_dev import curate_indel_in_pileup
 from functools import partial
-from .indel_features import AnnotationFeatures
+from .most_common import most_common
 from .indel_features import SamFeatures
+from .indel_features import AnnotationFeatures
+from .indel_curator import curate_indel_in_genome
+from .indel_curator import curate_indel_in_pileup
 
 
-def indel_sequence_processor(df, fasta, bam):
+def indel_sequence_processor(df, fasta, bam, mapq):
     """Calculate features from Bambino output, annotation, and .bam
     
     Features not used for final model are commented out '#'
@@ -43,7 +44,8 @@ def indel_sequence_processor(df, fasta, bam):
     
     # features derived from sequence alingment/map
     bam_data = pysam.AlignmentFile(bam, 'rb')    
-    df['s'] = df.apply(partial(sam_features, fasta=fasta, bam_data=bam_data), axis=1)
+    sam = partial(sam_features, fasta=fasta, bam_data=bam_data, mapq=mapq)
+    df['s'] = df.apply(sam, axis=1)
     # df['gc'] = df.apply(lambda x: x['s'].gc, axis=1)
     # df['local_gc'] = df.apply(lambda x: x['s'].local_gc, axis=1)
     # df['lc'] = df.apply(lambda x: x['s'].lc, axis=1)
@@ -163,17 +165,6 @@ def indel_size(row):
     return indel_size
 
 
-def most_common(lst):
-    """Returns the most common element in a list.
-
-    Args:
-        lst (list): list with any datatype
-    Returns:
-        an element (any): the most common one.
-    """
-    return max(set(lst), key=lst.count)
-
-
 def anno_features(row):
     """Encodes features derived from variant annotaion:
         
@@ -230,7 +221,7 @@ def anno_features(row):
                               most_common(insensitivities))
 
 
-def sam_features(row, fasta, bam_data):
+def sam_features(row, fasta, bam_data, mapq):
     """Encodes features derived from sequence alignment/map(SAM)
     
     Args:
@@ -254,7 +245,7 @@ def sam_features(row, fasta, bam_data):
     = curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq)
     # PileupWithIndel obj in bam
     idl_bam \
-    = curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq)
+    = curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq)
     
     # global sequence properties 
     # derived from reference genome

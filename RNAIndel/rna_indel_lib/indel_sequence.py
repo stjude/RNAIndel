@@ -2,8 +2,8 @@
 
 import pysam
 import numpy as np
+from .most_common import most_common
 import rna_indel_lib.sequence_properties as sp
-from rna_indel_lib.most_common import most_common
 
 
 class Indel(object):
@@ -23,17 +23,19 @@ class Indel(object):
        self.idl_seq = idl_seq
    
    @property
-   def chr(self):
-       return self.__chr
-
-   @chr.setter
-   def chr(self, chr):
-       if not chr.startswith('chr'):
-           self.__chr = 'chr' + chr
+   def ref(self):
+       if self.idl_type == 1:
+           return '-'
        else:
-           self.__chr = chr
+           return self.idl_seq
    
-  
+   @property
+   def alt(self):
+       if self.idl_type == 1:
+           return self.idl_seq
+       else:
+           return '-'        
+             
 class SequenceWithIndel(Indel):
     """ Represents indel with its flanking sequence
     
@@ -43,6 +45,7 @@ class SequenceWithIndel(Indel):
     """ 
   
     def __init__(self, chr, pos, idl_type, lt_seq, idl_seq, rt_seq):
+        
         Indel.__init__(self, chr, pos, idl_type, idl_seq)
         self.lt_seq = lt_seq  
         self.rt_seq = rt_seq 
@@ -151,9 +154,18 @@ class SequenceWithIndel(Indel):
 
 class PileupWithIndelNotFound(Indel):
     """Represents indels not aligned/found as specified by caller
+
+    Attributes:
+        chr (str): as specified by caller
+        pos (int): as specified by caller
+        idl_type (int): as specified by caller
+        idl_seq (str): as specified by caller
+        
+        other attributes are set None      
     """
     
     def __init__(self, chr, pos, idl_type, idl_seq):
+        
         Indel.__init__(self, chr, pos, idl_type, idl_seq)
         self.ref_count = None
         self.alt_count = None
@@ -182,7 +194,11 @@ class PileupWithIndelNotFound(Indel):
 
 
 class PileupWithIndel(Indel):
-    """Represents pileup with indel 
+    """Represents pileup with indel
+
+    For each read, SequenceWithIndel obj. is created
+    and sequence properties are calculated. The summary
+    of the properties of all read represents the pileup.
 
     Attributes
         ref_flanks (list): list of [5' reference flank, 3' reference flank]
@@ -197,11 +213,16 @@ class PileupWithIndel(Indel):
     """
 
     def __init__(self, chr, pos, idl_type, idl_seq,
-                 ref_flanks, idl_flanks,
-                 ref_count, alt_count,
-                 is_multiallelic, is_near_boundary,
-                 is_bidirectional, is_uniq_mapped,
+                 ref_flanks, 
+                 idl_flanks,
+                 ref_count, 
+                 alt_count,
+                 is_multiallelic, 
+                 is_near_boundary,
+                 is_bidirectional, 
+                 is_uniq_mapped,
                  non_idl_flanks):
+       
        Indel.__init__(self, chr, pos, idl_type, idl_seq)
        self.ref_flanks = ref_flanks
        self.idl_flanks = idl_flanks
@@ -223,9 +244,9 @@ class PileupWithIndel(Indel):
             SequenceWithIndel (obj): representing reference sequence 
                                      with indel and splicing (if spliced)
         """
-        ref_reads = [SequenceWithIndel(self.chr, self.pos, self.idl_type,\
-                                       flank[0], self.idl_seq, flank[1]) \
-                                       for flank in self.ref_flanks]
+        ref_reads = [SequenceWithIndel(self.chr, self.pos, self.idl_type,flank[0], self.idl_seq, flank[1])\
+                     for flank in self.ref_flanks]
+        
         return ref_reads
 
 
@@ -237,9 +258,9 @@ class PileupWithIndel(Indel):
         Returns:
             SequenceWithIndel (obj): representing indel read as aligned in bam
         """     
-        indel_reads = [SequenceWithIndel(self.chr, self.pos, self.idl_type,\
-                                         flank[0], self.idl_seq, flank[1])\
-                                         for flank in self.idl_flanks]  
+        indel_reads = [SequenceWithIndel(self.chr, self.pos, self.idl_type,flank[0], self.idl_seq, flank[1])\
+                       for flank in self.idl_flanks]
+                             
         return indel_reads
     
 
@@ -252,15 +273,19 @@ class PileupWithIndel(Indel):
             SequenceWithIndel (obj): representing non-indel reads as aligned in bam
                                      this read may contain polymorphisms.
         """
-        non_indel_reads = [SequenceWithIndel(self.chr, self.pos, self.idl_type,\
-                                             flank[0], self.idl_seq, flank[1])\
-                                             for flank in self.non_idl_flanks]
+        non_indel_reads = [SequenceWithIndel(self.chr, self.pos, self.idl_type, flank[0], self.idl_seq, flank[1])\
+                           for flank in self.non_idl_flanks]
 
         return non_indel_reads
 
 
     def repeat(self):
-        """Most freqent number of repeats
+        """Most frequent number of repeats in pileup
+
+        Args:
+            None
+        Returns:
+            most frequent repeat number (int)
         """
         repeats = []
         for indel in self.generate_indel_reads():
@@ -271,7 +296,14 @@ class PileupWithIndel(Indel):
 
 
     def local_gc(self, n):
-        """
+        """Average GC content
+        
+        Args:
+            n (int): length of flanking sequence considered
+                     6 for RNA read
+                     50 for reference genome
+        Returns:
+            average local GC content (float) 
         """
         local_vals = []
         for indel in self.generate_indel_reads():
@@ -284,13 +316,14 @@ class PileupWithIndel(Indel):
                  
 
     def local_lc(self, n):
-        """Average local linguistic complexity values over indel reads
+        """Average local Linguistic Complexity 
         
         Args:
-            n (int): window in flanking seq
-                     to make sure the flanking seq is n-nt or longer
+            n (int): length of flanking sequence considered
+                     6 for RNA read
+                     50 for reference genome
         Returns:
-            mean local lc (float): averaged over indel read found in the pileup
+            average local lc (float)
         """
         local_vals = []
         for indel in self.generate_indel_reads():
@@ -303,7 +336,14 @@ class PileupWithIndel(Indel):
 
 
     def local_strength(self, n):
-        """
+        """Average local DNA-strength
+
+        Args:
+            n (int): length of flanking sequence considered
+                     6 for RNA read
+                     50 for reference genome
+        Returns:
+            average DNA-strength (float)  
         """
         local_strengths = []
         for indel in self.generate_indel_reads():
@@ -316,7 +356,12 @@ class PileupWithIndel(Indel):
 
    
     def dissimilarity(self):
-        """
+        """Average Dissimilarity
+
+        Args:
+            None
+        Returns:
+            average Dissimilarity (float)
         """
         dissimilarities = []
         idl_size = len(self.idl_seq)
@@ -330,8 +375,35 @@ class PileupWithIndel(Indel):
 
     
     def indel_complexity(self, n):
+        """Mininum edit distance between indel and non-indel flanking sequences
+        
+        Args:
+            n (int): length of flanking sequence considered
+                     n = 6 for RNA read
+                     indel complexity is not defined for reference.
+        Returns:   
+           indel complexity (int) 
+        
+        Example:           * ***      mismatch
+                 CGTAGTAT  GAAGCAAAGT (non-indel_read 1)
+                 CGTAGTATAGAAGCAAAAGT (indel_read 1)
+                 CGTAGTATAGAAGCAAAAGT (indel_read 2)
+                 CGTAGTAT  GAAGCAAAGT (non-indel_read_2)
+                 
+                 For indel_read_1 and non-indel_read_1, 
+
+                 left edit_dist(TAGTAT, TAGTAT) = 0
+                 right edit_dist(AAGCAA, GAAGCA) = 2
+                
+                 indel complexity = left edit_dist + right edit_dist
+                                  = 2 
+                                      
+                 Calculate for indel_read_i nad non-indel_read_j 
+                 and take mininum.
         """
-        """
+        # first compare with reference
+        # if indel complexity against ref is 0, return 0.
+        # -> O(N) (N: num of indel reads)
         complexities = []
         indel_reads = self.generate_indel_reads()
         ref_reads = self.generate_ref_reads()
@@ -351,15 +423,15 @@ class PileupWithIndel(Indel):
             else:
                 pass
         
-        
         if complexities == []:
             return 0
 
-        raw_value = min(complexities)
-        if raw_value == 0:
+        indel_complexity_against_ref = min(complexities)
+        if indel_complexity_against_ref == 0:
             return 0
 
-        # raw_value > 0, check for SNP-induced compleixty
+        # indel_complexity_against_ref > 0, check for SNP-induced compleixty 
+        # -> O(NxM) (M: num of non-indel reads)
         complexities = []
         indel_reads = self.generate_indel_reads()
         non_reads = self.generate_non_indel_reads()
@@ -378,21 +450,49 @@ class PileupWithIndel(Indel):
                         complexity = lt_edit_dist + rt_edit_dist
                         complexities.append(complexity)
         if complexities == []:
-            return raw_value
+            return indel_complexity_against_ref
         else:
             refined_value = min(complexities)
-            return min(raw_value, refined_value)
+            return min(indel_complexity_against_ref, refined_value)
 
 
 class CodingSequenceWithIndel(SequenceWithIndel):
+    """Represents indel annotated with gene info
+    
+    Attributes:
+        strand (str): '+' for positive strand '-' for negative
+        accession (str): RefSeq accession number (e.g. NM_****)
+        gene_symbol (str): gene name
+        exon (int): exon number. 1 is the first exon 
+        exon_start (int): the exon start pos on genome coordinate
+        exon_end (int): the exon end pos on genome coordinate
+        last_exon (int): 1 if the current exon is the last exon, 0 otherwise
+        cds_start (int): the pos of coding sequence (cds) starting at the exon_start
+        prev_exon_start (int): (current - 1) exon start pos on genome coordinate
+                              -1 if current = 1 (first exon)
+        prev_exon_end (int): (current - 1) exon end pos on genome coordinate
+                              -1 if current = 1
+        next_exon_start (int): (current + 1) exon start pos on genome coordinate
+                              -1 if current = last exon
+        next_exon_end (int): (current + 1) exon end pos on genome coordinate
+                              -1 if current = last exon
+    """
+    
     def __init__(self, chr, pos, idl_type, lt_seq, idl_seq, rt_seq,
-                 strand, accession, gene_symbol,
-                 exon, exon_start, exon_end, last_exon,
+                 strand, 
+                 accession, 
+                 gene_symbol,
+                 exon, 
+                 exon_start, 
+                 exon_end, 
+                 last_exon,
                  cds_start,
-                 prev_exon_start, prev_exon_end,
-                 next_exon_start, next_exon_end):
-        SequenceWithIndel.__init__(self, chr, pos,
-                                   idl_type, lt_seq, idl_seq, rt_seq)
+                 prev_exon_start, 
+                 prev_exon_end,
+                 next_exon_start, 
+                 next_exon_end):
+        
+        SequenceWithIndel.__init__(self, chr, pos, idl_type, lt_seq, idl_seq, rt_seq)
 
         self.strand = strand
         self.accession = accession
@@ -406,8 +506,16 @@ class CodingSequenceWithIndel(SequenceWithIndel):
         self.prev_exon_end = prev_exon_end
         self.next_exon_start = next_exon_start
         self.next_exon_end = next_exon_end
+   
     
     def is_nmd_insensitive(self):
+        """Nonsense-mediatate decay (NMD) insensitivity
+         
+        Args:
+            None
+        Returns:
+            is_insensitive (int): 1 if insensitive 0 otherwise
+        """
         is_insensitive = 0
         
         if self.exon == 1 or self.exon == self.last_exon:
@@ -415,7 +523,28 @@ class CodingSequenceWithIndel(SequenceWithIndel):
 
         return is_insensitive
 
+
     def effect(self):
+        """Report indel annotation based on the region where
+        indel is annotated. 
+        
+        Possible regions:
+            Exon, 
+            Splice site (0 < dist.to exon boundary < 3)
+            Splice region (2 < dist.to exon boundary < 11)
+
+        Args:
+            None
+        Returns:
+            indel annotation (str): see Example
+        
+        Example:
+                           
+            SDF4|NM_016547|167|frameshiftTruncating|0
+           
+        Pipe-delimited string reports GeneName, Accession, 
+        Codon pos, Effect and NMD-insensitivity. 
+        """
         if self.strand == '+':
             if self.exon_start <= self.pos <= self.exon_end:
                 return self.exonic_on_pos_strand()
@@ -441,20 +570,22 @@ class CodingSequenceWithIndel(SequenceWithIndel):
     
 
     def cds_pos_in_exonic_indels(self):
-        """the position of the first coding sequence (CDS) base affected
-           by the indel. 'cds_pos' - 1 gives the last unaffected base position.
-           
-           As name suggests, this method is for indels within exon.
-
-           Example:          1234567890123
-                      CDS  : ATGCTACGACTGA
-                       del : ATGCTA-GACTGA  -> cds_pos = 7
+        """Report coding sequence (CDS) pos affected by indel
+        
+        Args:
+            None
+        Returns:
+            cds pos (int): The first coding sequence base affected by the indel
+       
+        Example:        1234567890123
+                 CDS  : ATGCTACGACTGA
+                  del : ATGCTA---CTGA  -> cds_pos = 7
                              
-                             123456 7890123
-                      CDS  : ATGCTA*CGACTGA             
-                       ins : ATGCTATCGACTGA  -> cds_pos = 7
-               Note that the sequences are unaffected upto 
-               first 6 (i.e., cds_pos-1) bases in both cases.  
+                        123456   7890123
+                 CDS  : ATGCTA   CGACTGA             
+                  ins : ATGCTATAGCGACTGA  -> cds_pos = 7
+
+        Note that the sequences are unaffected upto first 6 bases. 
         """
         # insertion/deletion on positive strand
         if self.strand == '+':
@@ -471,7 +602,22 @@ class CodingSequenceWithIndel(SequenceWithIndel):
 
 
     def exonic_on_pos_strand(self):
-        """return like aapos_effect
+        """Annotate coding exon indel on positve strand
+
+        Args:
+            None
+        Returns:
+            indel annotation (str): gene|acc|codon_pos|effect|nmd_insensitivity
+            
+            possible effect: frameshiftTruncating
+                             inframeDel
+                             inframeIns
+                             nonsenseTruncating
+                             spliceTruncating (the GT-AG motif broken)
+                             splicePreserving (the GT-AG motif preserved)
+           
+           The splice effect is possible when insertion occurs at the 5'exon
+           boundary.  
         """
         
         # insertion at 5'exon_start
@@ -522,17 +668,29 @@ class CodingSequenceWithIndel(SequenceWithIndel):
 
     
     def splice_site_on_pos_strand(self):
-        
+        """Annotate indel within 2-nt to exon boundary on positve strand
+
+        Args:
+            None
+        Returns:
+           indel annotation (str): gene|acc|codon_pos|effect|nmd_insensitivity 
+                                    
+           possible effect: 
+                           spliceShortIntron (for intron <= 5-nt)
+                           splicePreserving (the GT-AG motif preserved)
+                           spliceTruncating (the GT-AG motif broken)
+                           spliceRegion (for ins at 2-nt upstream of 5'splice site)
+        """
         # splicing motif + at least 1 base
-        # ith_exon_end + GT + (at least one) + AG + (i+1)th_exon_start
-        min_motif_len = 6
+        # GT + (at least one) + AG
+        min_motif_len = 5
 
         # 5'splice
         if self.exon_start > self.pos:
             cds_pos = self.cds_start - 1
             codon_pos = int(cds_pos/3) + 1
 
-            if self.exon_start - self.prev_exon_end <= min_motif_len:
+            if (self.exon_start-1) - self.prev_exon_end <= min_motif_len:
                 return codon_pos, 'spliceShortIntron'
             
             else:
@@ -603,6 +761,18 @@ class CodingSequenceWithIndel(SequenceWithIndel):
 
 
     def splice_region_on_pos_strand(self):
+        """Annotate indel in splice region on positive strand
+        
+        Splice region is defined intronic region where
+             2 < distance to the exon boundary < 11
+        
+        Args:
+            None
+        Returns:
+            indel annotation (str): gene|acc|codon_pos|effect|nmd_insensitivity
+            
+            possible effect: spliceRegion
+        """
         # 5'splice region
         if self.exon_start > self.pos:
             cds_pos = self.cds_start - 1 
@@ -617,6 +787,23 @@ class CodingSequenceWithIndel(SequenceWithIndel):
             
 
     def exonic_on_neg_strand(self):
+        """Annotate coding indel on negative strand
+        
+         Args:
+             None
+         Returns:
+             indel annotation (str): gene|acc|codon_pos|effect|nmd_insensitivity
+         
+             possible effect: frameshiftTruncating
+                              inframeDel
+                              inframeIns
+                              nonsenseTruncating
+                              spliceTruncating (the GT-AG motif broken)
+                              splicePreserving (the GT-AG motif preserved)
+         
+             The splice effect is possible when insertion occurs at the 3'exon
+             boundary.
+        """
         
         # insertion at 3'exon_start
         if self.idl_type == 1 and self.pos == self.exon_start:
@@ -666,16 +853,30 @@ class CodingSequenceWithIndel(SequenceWithIndel):
             
    
     def splice_site_on_neg_strand(self):
+        """Annotate indel within 2-nt to exon boundary on negative strand
+
+        Args:
+            None
+        Returns:
+            indel annotation (str): gene|acc|codon_pos|effect|nmd_insensitivity
+
+            possible effect:
+                            spliceShortIntron (for intron <= 5-nt)
+                            splicePreserving (the GT-AG motif preserved)
+                            spliceTruncating (the GT-AG motif broken)
+                            spliceRegion (for ins at 2-nt upstream of 3'splice site)
+        """
+
         # splicing motif + at least 1 base
-        # ith_exon_end + GT + (at least one) + AG + (i+1)th_exon_start
-        min_motif_len = 6
+        # GT + (at least one) + AG
+        min_motif_len = 5
 
         # 5'splice
         if self.pos > self.exon_end:
             cds_pos = self.cds_start - 1
             codon_pos = int(cds_pos/3) + 1
 
-            if self.prev_exon_start - self.exon_end <= min_motif_len:
+            if (self.prev_exon_start-1) - self.exon_end <= min_motif_len:
                 return codon_pos, 'spliceShortIntron'
             
             else:
@@ -744,6 +945,18 @@ class CodingSequenceWithIndel(SequenceWithIndel):
        
         
     def splice_region_on_neg_strand(self):
+        """Annotate indel in splice region on negative strand
+
+        Splice region is defined intronic region where
+             2 < distance to the exon boundary < 11
+         
+        Args:
+            None
+        Returns:
+            indel annotation (str): gene|acc|codon_pos|effect|nmd_insensitivity
+         
+            possible effect: spliceRegion
+        """
         # 5'splice region
         if self.pos > self.exon_end:
             cds_pos = self.cds_start - 1 

@@ -3,7 +3,7 @@
 from unittest import TestCase
 
 import sys
-sys.path.append('..')
+sys.path.append('../rna_indel_lib')
 from  indelsequence_dev import Indel
 
 class TestIndel(TestCase):
@@ -16,7 +16,7 @@ class TestIndel(TestCase):
         self.assertEqual(self.indel_1.chr, 'chrX')
         self.assertEqual(self.indel_2.chr, 'chrX')
 
-class 
+#class 
 
 
 if __name__ == '__main__':
