@@ -21,7 +21,7 @@ def indel_rescuer(df, fasta, bam, **kwargs):
      
     df['rescued'] = '-'
      
-    # wrap rescue_by_equivalence
+    # rescue by equivalence
     rqxeq = partial(rescue_by_equivalence,
                     fasta=fasta,
                     bam=bam,
@@ -30,16 +30,18 @@ def indel_rescuer(df, fasta, bam, **kwargs):
                     left_aligned=left_aligned)
     
     df['rescued_indels'] = df.apply(rqxeq, axis=1)
-    
-    
+    df['rescued'] = df.apply(flag_indel_rescued_by_equivalence, axis=1)
+                                  
+    # rescue by nearest
     if external_vcf:
         rqxnr = partial(rescue_by_nearest,
                         fasta=fasta,
                         bam=bam,
-                        search_window=5)
+                        search_window=10)
         df['rescued_indels'] = df.apply(lambda x: rqxnr(x)\
                                             if x['rescued_indels'] == []\
                                             else x['rescued_indels'], axis=1)
+    df['rescued'] = df.apply(flag_indel_rescued_by_nearest, axis=1)
 
     data_in_list_of_dict = df['rescued_indels'].sum()
     df_rescued = pd.DataFrame(data_in_list_of_dict)
@@ -113,6 +115,15 @@ def rescue_by_equivalence(row, fasta, bam, search_window, pool, left_aligned):
     return equivalents
 
 
+def flag_indel_rescued_by_equivalence(row):
+    flag = row['rescued']
+
+    if row['rescued_indels'] != []:
+        flag = 'by_equivalence'
+
+    return flag
+
+
 def rescue_by_nearest(row, fasta, bam, search_window):
     
     chr = row['chr']
@@ -140,6 +151,12 @@ def rescue_by_nearest(row, fasta, bam, search_window):
                  'alt':idl_found.alt,
                  'rescued':'by_nearest'}]
              
+def flag_indel_rescued_by_nearest(row):
+    flag = row['rescued']
+    if row['rescued_indels'] != [] and flag != 'by_equivalence':
+        flag = 'by_nearest'
+
+    return flag
 
 def extract_indel(pos, fasta, bam, chr, idl_type, **kwargs):
     """Extract equivalent indel if exists at the locus (chr, pos)
