@@ -24,11 +24,11 @@ def main():
         os.environ['CLASSPATH'] = '{}/*'.format(bambino_home)
 
     # Unpaired Bambino command
-    cmd_str = 'java -Xmx6000m Ace2.SAMStreamingSNPFinder -of {} -fasta $fasta -min-mapq 1 ' \
+    cmd_str = 'java -Xmx6000m Ace2.SAMStreamingSNPFinder -of {} -fasta {} -min-mapq 1 ' \
               '-optional-tags XT!=R -bam {} -tn N -dbsnp-file $db_snp -min-quality 20 ' \
               '-min-flanking-quality 20 -min-alt-allele-count 3 -min-minor-frequency 0 -broad-min-quality 10 ' \
               '-mmf-max-hq-mismatches 6 -mmf-max-hq-mismatches-xt-u 10 -mmf-min-quality 15 -mmf-max-any-mismatches 6 ' \
-              '-unique-filter-coverage 2 -no-strand-skew-filter -illumina-q2 1'.format(args.high20, args.bam)
+              '-unique-filter-coverage 2 -no-strand-skew-filter -illumina-q2 1'.format(args.high20, args.fasta, args.bam)
     stdout, stderr, return_code = run_shell_command(cmd_str)
     if return_code != 0:
         print("Failed while running unpaired Bambino.", file=sys.stderr)
