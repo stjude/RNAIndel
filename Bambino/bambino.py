@@ -10,9 +10,9 @@ import subprocess
 def main():
     head_description = '''Bambino wrapper (with hardcoded parameters) that works with RNAIndel.'''
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=head_description)
-    parser.add_argument('-i', '--bam', metavar='STR', required=True, help='input tumor bam file')
-    parser.add_argument('-f', '--fasta', metavar='STR', required=True, help='reference fasta file')
-    parser.add_argument('-o', '--high20', metavar='STR', required=True, help='output high20 file')
+    parser.add_argument('-b', '--bam', metavar='STR', required=True, help='input tumor bam file')
+    parser.add_argument('-f', '--fasta', metavar='STR', required=True, help='reference genome FASTA file')
+    parser.add_argument('-o', '--output-file', metavar='STR', required=True, help='output file with Bambino indel calls')
     args = parser.parse_args()
 
     # Add Bambino home dir to CLASSPATH
