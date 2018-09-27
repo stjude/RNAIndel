@@ -1,7 +1,7 @@
 # RNAIndel
 Somatic indel detector for tumor RNA-Seq data.
 
-# Prerequisites
+## Prerequisites
 * python>=3.5.2
     * pandas>=0.22.0
     * numpy>=1.12.0
@@ -10,13 +10,12 @@ Somatic indel detector for tumor RNA-Seq data.
     * pyvcf=0.6.8
 * java=1.8.0_66 (for [Bambino](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3051333/) only)
 
-# Download
+## Download
 ```
 git clone https://github.com/adamdingliang/RNAIndel/tree/master  # Clone the repo
-cd RNAIndel                                                      # Switch to source directory
 ```
 
-# Installation
+## Installation
 It is highly recommended to setup a virtual python environment using [conda](https://conda.io/docs/) and install 
 the python dependencies in the virtual environment:
 ```
@@ -27,25 +26,44 @@ pip install -r requirements.txt             # Install python dependencies
 
 You can install RNAIndel from source directly:
 ```
+cd RNAIndel                 # Switch to source directory
 python setup.py install     # Install `bambino` and `rna_indel` from source
 bambino -h                  # Check if `bambino` works correctly
 rna_indel -h                # Check if `rna_indel` works correctly
 ```
 
-# Run on the command line
+## Run on the command line
 Call indels using Bambino:
 ```
 bambino -i BAM -f REF_FASTA -o BAMBINO_RAW_INDEL
 ```
+### bambino Options
+* ```-b input tumor bam file```
+* ```-f reference genome FASTA file```
+* ```-o output file with Bambino indel calls```
 
-Use Bambino indel calls as an input:
+Use Bambino indel calls as an input to RNAIndel (highly recommended):
 ```
-rna_indel -b BAM -ib BAMBINO_RAW_INDEL -r REF_FASTA -dbsnp DBSNP [other options]
+rna_indel -b BAM -i BAMBINO_INDEL_CALL -f REF_FASTA -o OUTPUT_VCF [other options]
 ```
-Use indels from other indel caller (e.g., GATK) as an input:
+
+Use indels from other indel caller (e.g., GATK) as an input to RNAIndel:
 ```
-rna_indel -b BAM -iv RAW_INDEL_VCF -r REF_FASTA -dbsnp DBSNP [other options]
+rna_indel -b BAM -c RAW_INDEL_VCF -r REF_FASTA -o OUTPUT_VCF [other options]
 ```
+### rna_indel Options
+* ```-b input tumor bam file (required)```
+* ```-i input file with Bambino indel calls (required for using Bambino indel calls)```
+* ```-c input vcf file with indel calls (required for using other indel callers, e.g. [GATK](https://software.broadinstitute.org/gatk/))```
+* ```-o output vcf file (required)```
+* ```-f reference genome FASTA file (required)```
+* ```-q STAR mapping quality MAPQ for unique mappers (default=255)```
+* ```-p number of cores (default=1)```
+* ```-n user-defined panel of non-somatic indel list in vcf format```
+* ```-r [refgene](https://www.ncbi.nlm.nih.gov/refseq/) coding exon database```
+* ```-d indels on [dbSNP](https://www.ncbi.nlm.nih.gov/snp) database in vcf format```
+* ```-l [ClinVar](https://www.ncbi.nlm.nih.gov/clinvar/) database```
+* ```-m directory with trained random forest models```
 
 # Run as a Workflow
 Run Bambino and RNAIndel as a workflow
