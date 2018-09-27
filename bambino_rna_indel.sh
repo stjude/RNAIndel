@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
+# This wrapper runs Bambino and RNAIndel without the need of the installation.
 
-#set -x
+# set -x
 
 print_usage() {
-    >&2 echo "Runs Bambino first and supplies the high_20 output file to RNAIndel, then runs RNAIndel."
+    >&2 echo "Runs Bambino first and supplies the indel calls to RNAIndel, then runs RNAIndel."
 	>&2 echo "Usage: bambino_rna_indel.sh tumor_bam fasta db_snp"
 	>&2 echo "Required parameters:"
-	>&2 echo "\$1 tumor_bam: input tumor RNA-Seq bam file"
-	>&2 echo "\$2 fasta: input GRCh38 fasta file"
-	>&2 echo "\$3 db_snp: input DB SNP blo file"
+	>&2 echo "\$1 tumor_bam: input tumor bam file"
+	>&2 echo "\$2 fasta: reference genome (GRCh38) FASTA file"
+	>&2 echo "\$3 db_snp: indels on dbSNP database in vcf format"
 }
 
 if [ "$#" == 0 ]; then print_usage ; exit 0; fi

@@ -7,7 +7,6 @@ Make prediction for 1-nt (mono) and >1-nt (non-mono) indels
 """
 
 import os
-import sys
 import gzip
 import pickle
 import logging
@@ -15,13 +14,12 @@ import numpy as np
 import pandas as pd
 from functools import partial
 from multiprocessing import Pool
-from sklearn.ensemble import RandomForestClassifier
 
 logger = logging.getLogger(__name__)
 
+
 def indel_classifier(df, model_dir, **kwargs):
-    """Makes prediction
-    
+    """ Makes prediction
     Args:
         df (pandas.DataFrame)
         model_dir (str): path to dir where models are locaded
@@ -41,8 +39,7 @@ def indel_classifier(df, model_dir, **kwargs):
 
 
 def calculate_proba(df, model_dir, num_of_processes):
-    """Calculates prediction probability for 1-nt (mono) and >1-mt (non-mono) indels
-
+    """ Calculates prediction probability for 1-nt (mono) and >1-mt (non-mono) indels
     Args:
         df (pandas.DataFrame): with features calculated 
         model_dir (str): path to dir where model pickle files are located
@@ -126,8 +123,7 @@ def calculate_proba(df, model_dir, num_of_processes):
 
     
 def split_by_indel_size(df):
-    """Sort 1-nt and >1-nt indels
-
+    """ Sort 1-nt and >1-nt indels
     Args:
         df (pandas.DataFrame)
     Returns:
@@ -144,8 +140,7 @@ def split_by_indel_size(df):
 
 
 def predict(model, data, features):
-    """Calculate prediction probabaility
-    
+    """ Calculate prediction probabaility
     Args:
         model (file): trained model stored in .pkl.gz 
         data (pandas.DataFrame): df_mono or df_non_mono
@@ -161,15 +156,13 @@ def predict(model, data, features):
 
 
 def predict_class(row):
-    """Assign class based on the highest probability
-
+    """ Assign class based on the highest probability
     Args:
         row (pandas.Series)
     Returns:
         predicted class (str): 'artifact', 'germline', or 'somatic'
     """
     maxp = max(row['prob_a'], row['prob_g'], row['prob_s'])
-    
     if maxp == row['prob_a']:
         return 'artifact'
     elif maxp == row['prob_g']:

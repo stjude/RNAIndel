@@ -385,7 +385,7 @@ def decompose_non_indel_read(read, pos, ins_or_del, idl_seq):
     
     non_idl_flanks = [lt, rt]
 
-    return (read, idl_seq, non_idl_flanks)
+    return read, idl_seq, non_idl_flanks
     
    
 def is_near_exon_boundary(parsed_indel_read):
