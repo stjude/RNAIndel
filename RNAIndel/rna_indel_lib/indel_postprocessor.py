@@ -36,8 +36,9 @@ def indel_postprocessor(df, refgene, fasta, reclf=False):
     df['pos'], df['ref'], df['alt'] = zip(*df.apply(left_align_report, axis=1))
      
     # re-classify common indels to germline
-    df['predicted_class'], df['prob_s'], df['prob_g'], df['prob_a'] = \
-    zip(*df.apply(classify_common_snp_to_germline, axis=1))
+    # DO NOT DELETE '\' (does run but incorrect result)
+    df['predicted_class'],\
+    df['reclassified'] = zip(*df.apply(reclassify_common_indels, axis=1))
     
     # reannotate afer left-alignment
     exon_data = pysam.TabixFile(refgene)
@@ -50,7 +51,6 @@ def indel_postprocessor(df, refgene, fasta, reclf=False):
         sys.exit(0)
 
     df = unify_equivalent_indels(df)
-    df = format_header(df, reclf)
     
     return df
 
@@ -113,7 +113,7 @@ def unify_equivalent_indels(df):
     return df
 
 
-def classify_common_snp_to_germline(row):
+def reclassify_common_indels(row):
     """Reclassify common indels predicted 'somatic' to germline
 
     Args:
@@ -124,62 +124,11 @@ def classify_common_snp_to_germline(row):
     proba_somatic = row['prob_s']
     proba_germline = row['prob_g']
     proba_artifact = row['prob_a']
+    msg = row['reclassified']
     
     if pred == 'somatic' and row['is_common'] == 1:
-        if 'Pathogenic' not in row['clin_info'] and 'Likely_pathogenic' not in row['clin_info']:
-            pred, proba_somatic, proba_germline, proba_artifact = 'germline', 0, 1, 0 
+        if 'Pathogenic' not in row['clin_info'] \
+        and 'Likely_pathogenic' not in row['clin_info']:
+            pred, msg = 'germline', 'reclassified' 
     
-    return pred, proba_somatic, proba_germline, proba_artifact
-
-
-def format_header(df, reclf=False):
-    """Formats header for readability
-   
-    Args:
-        df (pandas.DataFrame): df with left-alinged and de-duplicated
-        reclf (bool): True if reclassification is performed, Default=False
-    Returns:
-        df (pandas.DataFrame): formatted df
-    """
-    header1 = [
-               'chr', 
-               'pos', 
-               'ref', 
-               'alt', 
-               'annotation',
-               'dbsnp', 
-               'max_maf',
-               'is_common',
-               'clin_info',
-               'prob_s',
-               'prob_g',
-               'prob_a',
-               'predicted_class'
-              ]
-
-    header2 = [
-               'ref_count',
-               'alt_count',
-               'indel_complexity',
-               'dissimilarity',
-               'indel_size',
-               'repeat',
-               'is_uniq_mapped',
-               'is_near_boundary',
-               'is_bidirectional',
-               'is_multiallelic',
-               'is_truncating',
-               'is_nmd_insensitive',
-               'ipg',
-               'local_strength',
-               'is_at_ins',
-               'is_at_del'
-               ]
-    if reclf:
-        header1 = header1 + ['filter']
-
-    header = header1 + header2
-
-    df = df[header]
-
-    return df
+    return pred, msg

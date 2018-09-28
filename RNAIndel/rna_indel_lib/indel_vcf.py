@@ -2,6 +2,7 @@
 
 import re
 import pysam
+import numpy as np
 from rna_indel_lib.indel_sequence import Indel
 from rna_indel_lib.left_aligner import peek_left_base
 
@@ -46,21 +47,18 @@ class IndelVcfReport(object):
 
     @property
     def ID(self):
-        """Return ID info (typically dbSNP ID).
+        """Return ID info (dbSNP ID).
         If info is none or not defined (not set), return the 
         defined missing value: a dot '.'
 
         Returns:
             self.__ID (str) or . (str)
         """ 
-        try:
-            if self.__ID == None or self.__ID == '-':
-                return '.'
-            else:
-                return self.__ID
-        except:
+        if self.__ID and self.__ID.startswith('rs'):
+            return self.__ID
+        else:
             return '.'
-   
+      
     @ID.setter
     def ID(self, ID):
         """Set dbSNP IDs as semi-colon delimited list
@@ -68,8 +66,10 @@ class IndelVcfReport(object):
         Args:
             ID (str): dbSNP IDs with any delimiter
         """
-        rs_lst = snp_ptn.findall(ID)
-        self.__ID = ';'.join(rs_lst)
+        self.__ID = ID
+        if self.__ID:
+            rs_lst = snp_ptn.findall(ID)
+            self.__ID = ';'.join(rs_lst)
 
     @property
     def REF(self):
@@ -116,15 +116,9 @@ class IndelVcfReport(object):
         missing value: a dot '.'
 
         Returns:
-            self.__QUAL (int) or . (str)
+            self.QUAL (int) or . (str)
         """ 
-        try:
-            if self.__QUAL == None:
-                return '.'
-            else:
-                return self.__QUAL
-        except:
-            return '.'
+        return '.'
    
     @QUAL.setter
     def QUAL(self, QUAL):
@@ -143,12 +137,15 @@ class IndelVcfReport(object):
         Returns:
             self.__FILTER (str) or 'PASS' (str)
         """ 
-        try:
-            if self.__FILTER == None or self.__FILTER == '-':
-                return 'PASS'
-            else:
-                return self.__FILTER
-        except:
+        if self.__FILTER == '-':
+            return 'PASS'
+        elif self.__FILTER == 'notfound':
+            return 'NtF'
+        elif self.__FILTER == 'lt2count':
+            return 'Lt2'
+        elif self.__FILTER == 'by_nearest':
+            return 'RqN'
+        else:
             return 'PASS'
    
     @FILTER.setter
@@ -174,71 +171,107 @@ class IndelVcfReport(object):
     ################
     @property
     def INFO(self):
-        pred = 'PRED='+self.PRED
+                
+        if not self.PRED:
+            pred = ''
+        else:
+            pred = 'PRED='+self.PRED
         
-        prob = 'PROB='+','.join([str(p) for p in self.PROB])
-        
+        if not self.PROB:
+            prob = ''
+        else:
+            prob = 'PROB='+','.join([str(p) for p in self.PROB])
+             
         db = 'DB'
-        if self.DB == '-':
+        if not self.DB or self.DB == '-':
             db = ''
 
         anno = 'ANNO='+self.ANNO
-        
-        maxmaf = 'MAXMAF='+str(self.MAXMAF)
-        if self.MAXMAF == -1:
+       
+        if not self.MAXMAF or self.MAXMAF == -1:
             maxmaf = ''
+        else:
+            maxmaf = 'MAXMAF='+str(self.MAXMAF)
         
-        common = 'COMMON'
-        if self.COMMON != 1:     
-           common = ''
+        common = ''
+        if self.COMMON == 1:     
+           common = 'COMMON'
         
-        clin = 'CLIN='+self.CLIN
-        if self.CLIN == '-':
+        if not self.CLIN or self.CLIN == '-':
             clin = ''
+        else:
+            clin = 'CLIN='+self.CLIN
         
-        icp = 'ICP='+str(self.ICP)
+        if not self.ICP:
+            icp =''
+        else:
+            icp = 'ICP='+str(self.ICP)
         
-        dsm = 'DSM='+str(self.DSM)
+        if not self.DSM:
+            dsm = ''
+        else:
+            dsm = 'DSM='+str(self.DSM)
         
-        isz = 'ISZ='+str(self.ISZ)
-
-        rep ='REP='+str(self.REP)
-
+        if not self.ISZ:
+            isz = ''
+        else:
+            isz = 'ISZ='+str(self.ISZ)
+        
+        if not self.REP:
+            rep = ''
+        else:
+            rep ='REP='+str(self.REP)
+        
         uqm = 'UQM'
-        if self.UQM == 0:
+        if not self.UQM or self.UQM == 0:
             uqm = ''
-        
+
         neb = 'NEB'
-        if self.NEB == 0:
+        if not self.NEB or self.NEB == 0:
             neb = ''
 
         bid = 'BID'
-        if self.BID == 0:
+        if not self.BID or self.BID == 0:
             bid = ''
 
         mta = 'MTA'
-        if self.MTA == 0:
+        if not self.MTA or self.MTA == 0:
             mta = ''
         
         nmd = 'NMD'
-        if self.NMD == 0:
+        if not self.NMD or self.NMD == 0:
             nmd = ''
 
-        ipg = 'IPG='+str(self.IPG)
-        
-        lsg = 'LSG='+str(self.LSG)
+        if not self.IPG:
+            ipg = ''
+        else:
+            ipg = 'IPG='+str(self.IPG)
+
+        if not self.LSG:
+            lsg = ''
+        else:
+            lsg = 'LSG='+str(self.LSG)
           
         ati = 'ATI'
-        if self.ATI == 0:
+        if not self.ATI or self.ATI == 0:
             ati = ''
 
         atd = 'ATD'
-        if self.ATD == 0:
+        if not self.ATD or self.ATD == 0:
             atd = ''
+        
+        rcf = 'RCF'
+        if not self.RCF or self.RCF == '-':
+            rcf = ''
+
+        if self.RQB and self.RQB[0] == 'by_nearest':
+            rqb = 'RQB='+self.RQB[1].replace('rescued_by:', '')
+        else:
+            rqb = ''
 
         info_lst \
         = [pred, prob, db, anno, maxmaf, common, clin, icp, dsm,
-           isz, rep, uqm, neb, bid, mta, nmd, ipg, lsg, ati, atd]
+           isz, rep, uqm, neb, bid, mta, nmd, ipg, lsg, ati, atd, rcf, rqb]
         
         return ';'.join([i for i in info_lst if i != ''])
 
@@ -247,7 +280,7 @@ class IndelVcfReport(object):
         self.PRED = INFO['PRED']
         self.PROB = INFO['PROB']
         self.DB = INFO['DB']
-        self.ANNO = INFO['ANNO']    
+        self.ANNO = INFO['ANNO']
         self.MAXMAF = INFO['MAXMAF']
         self.COMMON = INFO['COMMON']
         self.CLIN = INFO['CLIN']
@@ -265,17 +298,21 @@ class IndelVcfReport(object):
         self.LSG = INFO['LSG']
         self.ATI = INFO['ATI']
         self.ATD = INFO['ATD']
-     
+        self.RCF = INFO['RCF']
+        self.RQB = INFO['RQB']     
 
     ################
     # FORMAT field #
     ################
     @property
     def FORMAT(self):
-        ad = ','.join([str(int(i)) for i in self.AD])
-        
-        return 'AD\t'+ad 
+        if self.AD:
+            ad = ','.join([str(int(i)) for i in self.AD])
+            return 'AD\t'+ad
+        else:
+            return '' 
     
     @FORMAT.setter
     def FORMAT(self, FORMAT):
         self.AD = FORMAT['AD']
+

@@ -27,14 +27,11 @@ def indel_reclassifier(df, fasta, pons_vcf=None):
     Returns:
         df (pandas.DataFrame): df reclassified
     """
-    # create filter column and fill with '-'
-    df['filter'] = '-'
-    
     # OPTIONAL reclassification by non somatic list
     if pons_vcf:
         pons = pysam.TabixFile(pons_vcf)
         reclf = partial(wrap_reclassify_by_pons, fasta=fasta, pons=pons)
-        df['predicted_class'], df['filter'] = zip(*df.apply(reclf, axis=1))
+        df['predicted_class'], df['reclassified'] = zip(*df.apply(reclf, axis=1))
 
     return df
 
@@ -49,7 +46,7 @@ def wrap_reclassify_by_pons(row, fasta, pons):
     if row['predicted_class'] == 'somatic' and row['is_common'] != 1:
        return relassify_by_panel_of_non_somatic(row, fasta, pons)      
     else:
-       return row['predicted_class'], row['filter']
+       return row['predicted_class'], row['reclassified']
 
 
 def relassify_by_panel_of_non_somatic(row, fasta, pons):
@@ -97,4 +94,4 @@ def relassify_by_panel_of_non_somatic(row, fasta, pons):
                     else:
                           return 'germline', 'reclassified'
     
-    return row['predicted_class'], row['filter'] 
+    return row['predicted_class'], row['reclassified'] 

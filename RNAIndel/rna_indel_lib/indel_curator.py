@@ -3,7 +3,7 @@
 import re
 import pysam
 import random
-import logging
+#import logging
 import numpy as np
 from .most_common import most_common
 from .indel_sequence import SequenceWithIndel
@@ -14,7 +14,7 @@ from .indel_sequence import PileupWithIndelNotFound
 random.seed(123)
 cigar_ptn = re.compile(r'[0-9]+[MIDNSHPX=]')
 
-logger = logging.getLogger(__name__)
+#logger = logging.getLogger(__name__)
 
 
 def curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq):
@@ -549,13 +549,13 @@ def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq):
     #
     if idl_reads == []:
        
-        notfound = 'NotFoundAsSpecified: '
-        if idl_type == 'I':
-            msg = notfound + chr + '|' + str(pos+1) + '|' + '-' + '|' + idl_seq
-        else:
-            msg = notfound + chr + '|' + str(pos+1) + '|' + idl_seq + '|' + '-'
+        #notfound = 'NotFoundAsSpecified: '
+        #if idl_type == 'I':
+        #    msg = notfound + chr + '|' + str(pos+1) + '|' + '-' + '|' + idl_seq
+        #else:
+        #    msg = notfound + chr + '|' + str(pos+1) + '|' + idl_seq + '|' + '-'
         
-        logging.info(msg)
+        #logging.info(msg)
         
         # retuns NotFound obj
         return PileupWithIndelNotFound(chr, pos, idl_type, idl_seq)
@@ -574,13 +574,13 @@ def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq):
     #
     if filtered_decomposed_idl_reads == []:
         
-        notfound = 'NotFoundAsSpecified: '
-        if idl_type == 'I':
-            msg = notfound + chr + '|' + str(pos+1) + '|' + '-' + '|' + idl_seq
-        else:
-            msg = notfound + chr + '|' + str(pos+1) + '|' + idl_seq + '|' + '-'
+        #notfound = 'NotFoundAsSpecified: '
+        #if idl_type == 'I':
+        #    msg = notfound + chr + '|' + str(pos+1) + '|' + '-' + '|' + idl_seq
+        #else:
+        #    msg = notfound + chr + '|' + str(pos+1) + '|' + idl_seq + '|' + '-'
         
-        logging.info(msg)
+        #logging.info(msg)
         
         # retuns NotFound obj
         return PileupWithIndelNotFound(chr, pos, idl_type, idl_seq)

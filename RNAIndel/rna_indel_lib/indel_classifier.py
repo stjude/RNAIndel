@@ -31,11 +31,11 @@ def indel_classifier(df, model_dir, **kwargs):
     """
     num_of_processes = kwargs.pop('num_of_processes', 1)
 
-    # requires at least 2 indel fragments
-    df = df[df['alt_count'] > 1]      
-    
     df = calculate_proba(df, model_dir, num_of_processes)
     df['predicted_class'] = df.apply(predict_class, axis=1)
+
+    # used in later step
+    df['reclassified'] = '-'
 
     return df
 

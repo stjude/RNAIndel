@@ -16,19 +16,19 @@ def main():
     
     if args.input_bambino:
         df = rna.indel_preprocessor(args.input_bambino, args.refgene, args.fasta)
-        df = rna.indel_rescue(df, args.fasta, args.bam, 
-                              num_of_processes=args.num_of_processes)
+        df = rna.indel_rescuer(df, args.fasta, args.bam, 
+                               num_of_processes=args.num_of_processes)
     else:
         df = rna.indel_vcf_preprocessor(args.input_vcf, args.refgene, args.fasta)
         df = rna.indel_rescuer(df, args.fasta, args.bam,
-                              num_of_processes=args.num_of_processes,
-                              left_aligned=True,
-                              external_vcf=True)
+                               num_of_processes=args.num_of_processes,
+                               left_aligned=True,
+                               external_vcf=True)
               
     df = rna.indel_annotator(df, args.refgene, args.fasta)
-    df = rna.indel_sequence_processor(df, args.fasta, args.bam, args.uniq_mapq)
+    df, df_filtered = rna.indel_sequence_processor(df, args.fasta, args.bam, args.uniq_mapq)
     df = rna.indel_protein_processor(df, args.refgene) 
-    df = rna.indel_equivalence_solver(df, args.fasta, args.refgene, args.output)
+    df = rna.indel_equivalence_solver(df, args.fasta, args.refgene)
     df = rna.indel_snp_annotator(df, args.fasta, args.dbsnp, args.clinvar)
     df = rna.indel_classifier(df, args.dir_for_models, num_of_processes=args.num_of_processes)
     
@@ -36,7 +36,7 @@ def main():
         df = rna.indel_reclassifier(df, args.fasta, args.panel_of_non_somatic)
     
     df = rna.indel_postprocessor(df, args.refgene, args.fasta, args.panel_of_non_somatic)
-    rna.indel_vcf_writer(df, args.bam, args.fasta, args.output)
+    rna.indel_vcf_writer(df, df_filtered, args.bam, args.fasta, args.output)
     
 
 def create_logger(output):

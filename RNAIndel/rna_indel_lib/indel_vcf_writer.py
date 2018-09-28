@@ -16,10 +16,11 @@ import pandas as pd
 from functools import partial
 from .indel_vcf import IndelVcfReport
 from .left_aligner import peek_left_base
+from .indel_rescuer import sort_positionally
 
 metaID = re.compile(r'ID=([A-Za-z]+)')
 
-def indel_vcf_writer(df, bam, fasta, vcfname):
+def indel_vcf_writer(df, df_filtered, bam, fasta, vcfname):
     """Output result in .vcf
     
     Args:
@@ -31,7 +32,10 @@ def indel_vcf_writer(df, bam, fasta, vcfname):
         None: a vcf file will be written out
     """
     fa = pysam.FastaFile(fasta)
+    df = pd.concat([df, df_filtered], axis=0, ignore_index=True, sort=True)
     
+    df = sort_positionally(df)
+
     info = define_info_dict()
     fmt = define_format_dict()
     vcf = partial(generate_indel_vcf, info_dict=info, format_dict=fmt, fa=fa)
@@ -40,7 +44,7 @@ def indel_vcf_writer(df, bam, fasta, vcfname):
     vcf_records = df.apply(lambda x: x['vcf'].vcf_record, axis=1).values
     
     with open(vcfname, 'w') as f:
-        f.write(vcf_template(bam, info, fmt) + '\n')
+        f.write(vcf_template(bam, fasta, info, fmt) + '\n')
         f.write('\n'.join(vcf_records))
 
 
@@ -58,13 +62,13 @@ def generate_indel_vcf(row, info_dict, format_dict, fa):
     IndelVcfReport(fa, row['chr'], row['pos'], row['ref'], row['alt'])
     
     # dbSNP ID
-    idl_vcf.ID = row['dbsnp']
+    if row['dbsnp'] == row['dbsnp']:
+        idl_vcf.ID = row['dbsnp']
+    else:
+        idl_vcf.ID = None
     
-    # reclassification info if applicable
-    try:
-        idl_vcf.FILTER = row['filter']
-    except:
-        pass
+    # FILTER 
+    idl_vcf.FILTER = row['filtered']
     
     # fill INFO field
     info = link_datadict_to_dataframe(row, info_dict)
@@ -88,10 +92,12 @@ def link_datadict_to_dataframe(row, dict):
     """
     d = {}
     for k, v in dict.items():
-        d[k] = [row[c] for c in v['COLUMN']]
+        d[k] = [row[c] if row[c] == row[c] else None for c in v['COLUMN'] ]
         
         if len(d[k]) == 1:
             d[k] = d[k][0]
+        elif None in d[k]:
+            d[k] = None
 
     return d
 
@@ -128,7 +134,7 @@ def get_samplename(bam):
     return samplename
 
 
-def vcf_template(bam, info_dict, format_dict):
+def vcf_template(bam, fasta, info_dict, format_dict):
     """Prepare VCF meta info lines and header lines 
     https://samtools.github.io/hts-specs/VCFv4.2.pdf
   
@@ -144,14 +150,16 @@ def vcf_template(bam, info_dict, format_dict):
      '##fileformat=VCFv4.2', 
      '##filedate='+get_today(), 
      '##source=RNAIndel',
-     '##reference=GRCh38',
-     '##FILTER=<ID=reclassified,Description="Reclassified by user-defined panel">'
+     '##reference='+fasta,
+     '##FILTER=<ID=NtF,Description="Not found as specified in the input VCF">',
+     '##FILTER=<ID=Lt2,Description="Less than 2 alt allele count">',
+     '##FILTER=<ID=ReN,Description="Rescued with nearest indel">'
     ]
      
     info_order = ['PRED', 'PROB', 'DB', 'ANNO', 'MAXMAF', 'COMMON',\
                   'CLIN', 'ICP', 'DSM', 'ISZ', 'REP', 'UQM',\
                   'NEB', 'BID', 'MTA', 'TRC', 'NMD',\
-                  'IPG', 'LSG', 'ATI', 'ATD']
+                  'IPG', 'LSG', 'ATI', 'ATD', 'RCF', 'RQB']
 
     meta_2 = ['##INFO=<ID='+i+','\
               'Number='+info_dict[i]['Number']+','\
@@ -339,6 +347,18 @@ def define_info_dict():
                 'Number':'0',
                 'Type':'Flag',
                 'Description':'Flagged if deletion of A or T'
+               },
+         'RCF':{
+                'COLUMN':['reclassified'],
+                'Number':'0',
+                'Type':'Flag',
+                'Description':'Flagged if reclassified'
+               },
+         'RQB':{
+                'COLUMN':['filtered', 'rescued'],
+                'Number':'1',
+                'Type':'String',
+                'Description':'Rescued by indel nearest to this entry'
                }
         }
   

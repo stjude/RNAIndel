@@ -64,10 +64,15 @@ def indel_sequence_processor(df, fasta, bam, mapq):
     
     df.drop(['a', 's'], axis=1, inplace=True)
     
-    # remove any row with NA
+    df.to_csv('test_2.txt', sep='\t', index=False)
+    df['filtered'] = df.apply(flag_invalid_entry, axis=1)
+    
+    df, df_filtered = df[df['filtered'] == '-'], df[df['filtered'] != '-']  
+    
+    # drop original calls rescued by equivalence
     df.dropna(inplace=True)
     
-    return df
+    return df, df_filtered
 
 
 def is_gc_ins(row):
@@ -291,12 +296,12 @@ def sam_features(row, fasta, bam_data, mapq):
     try:
         ref_count = idl_bam.ref_count
     except:
-        ref_count = 'NA'
+        ref_count = None
     
     try:
         alt_count = idl_bam.alt_count
     except:
-        alt_count = 'NA'
+        alt_count = None
 
     try:
         is_multiallelic = idl_bam.is_multiallelic
@@ -325,3 +330,57 @@ def sam_features(row, fasta, bam_data, mapq):
                        is_multiallelic, is_near_boundary,
                        is_bidirectional, is_uniq_mapped)
 
+
+def flag_invalid_entry(row):
+    """Flag entries to be filtered
+   
+    Args:
+        row (pandas.Series)
+    Returns:
+        filtered (str): '-' for valid entrr, otherwise invalid.
+
+    Example:
+        
+       Case 1:
+            chr  pos  rescued         ref_count alt_count
+            chrN 123  by_equivalence  30        1
+         ->      
+            chr  pos  rescued         ref_count alt_count filtered
+            chrN 123  by_equivalence  30        1         lt2count
+
+       Case 2:
+            chr  pos  rescued ref_count alt_count
+            chrN 123  - 
+       ->
+            chr  pos  rescued ref_count alt_count filtered
+            chrN 123  -                           notfound
+            
+       Case 3:
+       The indel at chrN:123 was rescued by the nearest indel chrN:125.
+            chr  pos  rescued               ref_count  alt_count
+            chrN 123  rescued_by:chrN:125
+            chrN 125                        10         5
+       
+       ->   chr  pos  rescued               ref_count  alt_count filtereed
+            chrN 123  rescued_by:chrN:125                        by_nearest
+            chrN 125                        10         5         -   
+    """                                          
+    filtered = '-'
+    
+    # Case 1
+    if row['alt_count'] < 2:
+        filtered = 'lt2count'
+    # Case 2
+    # not rescued and not found in the bam
+    elif row['rescued'] == '-' and row['alt_count'] != row['alt_count']:
+        filtered = 'notfound'
+    # Case 3
+    # original call that is rescued by nearest indel 
+    # (they are not found as specified)
+    elif row['rescued'].startswith('rescued_by:') \
+    and row['alt_count'] != row['alt_count']:
+        filtered = 'by_nearest'
+    else:
+        pass
+        
+    return filtered  
