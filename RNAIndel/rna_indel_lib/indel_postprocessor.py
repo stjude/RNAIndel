@@ -9,13 +9,13 @@ Left-align, unify equivalents and format the result
 import sys
 import pysam
 import logging
-import pandas as pd
 from functools import partial
 from .left_aligner import lt_aln
 from .indel_sequence import Indel
 from .indel_annotator import annotate_indels
 
 logger = logging.getLogger(__name__)
+
 
 def indel_postprocessor(df, refgene, fasta, reclf=False):
     """Main routine to perform left-alingment, unification, and formatting

@@ -7,7 +7,6 @@ Calculates features at sequence and alignment level
 """
 
 import pysam
-import pandas as pd
 from functools import partial
 from .most_common import most_common
 from .indel_features import SamFeatures

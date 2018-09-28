@@ -8,11 +8,11 @@ Calculate features at protein level
 
 import re
 import gzip
-import pandas as pd
 import numpy as np
 from functools import partial
 
 numeric = re.compile(r'[0-9]+')
+
 
 def indel_protein_processor(df, refgene, proteincdd=None):
     """Calculate protein features

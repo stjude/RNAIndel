@@ -4,9 +4,9 @@ Somatic indel detector for tumor RNA-Seq data.
 RNAIndel only works with hg38 (GRCh38).
 
 ## References
-1. Edmonson, Michael N. et al. “Bambino: A Variant Detector and Alignment Viewer for next-Generation Sequencing Data in 
-the SAM/BAM Format.” Bioinformatics 27.6 (2011): 865–866. PMC. Web. 27 Sept. 2018.
-2. RNAIndel
+1. Edmonson, Michael N. et al. [Bambino: A Variant Detector and Alignment Viewer for next-Generation Sequencing Data in 
+the SAM/BAM Format](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3051333/). Bioinformatics 27.6 (2011): 865–866.
+2. RNAIndel. Submitted.
 
 ## Prerequisites
 * python>=3.5.2
@@ -15,7 +15,7 @@ the SAM/BAM Format.” Bioinformatics 27.6 (2011): 865–866. PMC. Web. 27 Sept.
     * sklearn>=0.18.1
     * pysam=0.15.1
     * pyvcf=0.6.8
-* java=1.8.0_66 (for [Bambino](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3051333/) only)
+* java=1.8.0_66 (required for Bambino only)
 
 ## Download
 ```
@@ -40,28 +40,27 @@ rna_indel -h                # Check if `rna_indel` works correctly
 ```
 
 ## Run on the command line
-Call indels using Bambino:
+#### Indel calling using Bambino
 ```
-bambino -i BAM -f REF_FASTA -o BAMBINO_RAW_INDEL
+bambino -i BAM -f REF_FASTA -o BAMBINO_OUTPUT
 ```
-### bambino Options
+##### bambino Options
 * ```-b``` input tumor bam file
 * ```-f``` reference genome FASTA file
-* ```-o``` output file with Bambino indel calls
+* ```-o``` Bambino output file
 
-Use Bambino indel calls as an input to RNAIndel (highly recommended):
+#### Use Bambino indel calls as an input to RNAIndel (recommended)
 ```
-rna_indel -b BAM -i BAMBINO_INDEL_CALL -f REF_FASTA -o OUTPUT_VCF [other options]
+rna_indel -b BAM -i BAMBINO_OUTPUT -f REF_FASTA -o OUTPUT_VCF [other options]
 ```
-
-Use indels from other indel caller (e.g., GATK) as an input to RNAIndel:
+#### Use indels from other indel caller (e.g., GATK) as an input to RNAIndel
 ```
-rna_indel -b BAM -c RAW_INDEL_VCF -r REF_FASTA -o OUTPUT_VCF [other options]
+rna_indel -b BAM -c INDEL_CALL_VCF -r REF_FASTA -o OUTPUT_VCF [other options]
 ```
-### rna_indel Options
+##### rna_indel Options
 * ```-b``` input tumor bam file (required)
-* ```-i``` input file with Bambino indel calls (required for using Bambino indel calls)
-* ```-c``` input vcf file with indel calls (required for using other indel callers, e.g. [GATK](https://software.broadinstitute.org/gatk/))
+* ```-i``` Bambino output file (required for using Bambino as the indel caller)
+* ```-c``` vcf file with indel calls (required for using other callers, e.g. [GATK](https://software.broadinstitute.org/gatk/))
 * ```-o``` output vcf file (required)
 * ```-f``` reference genome (GRCh38) FASTA file (required)
 * ```-q``` STAR mapping quality MAPQ for unique mappers (default=255)
@@ -72,5 +71,5 @@ rna_indel -b BAM -c RAW_INDEL_VCF -r REF_FASTA -o OUTPUT_VCF [other options]
 * ```-l``` [ClinVar database](https://www.ncbi.nlm.nih.gov/clinvar/)
 * ```-m``` directory with trained random forest models
 
-# Run as a Workflow
+## Run as a Workflow
 Run Bambino and RNAIndel as a workflow

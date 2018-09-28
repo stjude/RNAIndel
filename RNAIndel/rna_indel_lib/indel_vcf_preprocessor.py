@@ -18,6 +18,7 @@ from .indel_preprocessor import is_canonical_chromosome
 
 logger = logging.getLogger(__name__)
 
+
 def indel_vcf_preprocessor(vcffile, refgene, fasta):
     """
     

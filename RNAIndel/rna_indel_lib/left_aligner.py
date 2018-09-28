@@ -3,9 +3,6 @@
 by Tan et al 2015 Bioinformatics, 31:2202-2204
 """
 
-import pysam
-from .indel_sequence import Indel
-
 
 def lt_aln(idl, fa):
     """Perfoms left alignment 

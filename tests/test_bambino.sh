@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Test bambino_rna_indel.sh on testdata
+# Test bambino executable on testdata
 
 module load java/1.8.0_66
 
@@ -13,4 +13,6 @@ FASTA="/research/rgs01/project_space/zhanggrp/MethodDevelopment/common/rna_seq_i
 # We should provide this file and its index file for user to download
 DB_SNP="/research/rgs01/project_space/zhanggrp/MethodDevelopment/common/rna_seq_indels/dbsnp/00-All.151.indel.vcf.gz"
 
-./bambino_rna_indel.sh $TUMOR_BAM $FASTA $DB_SNP
+BAMBINO_OUTPUT='./testdata/outputs/bambino_calls.txt'
+
+bambino -b $TUMOR_BAM -f $FASTA -d $DB_SNP -o $BAMBINO_OUTPUT

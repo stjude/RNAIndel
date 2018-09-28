@@ -1,41 +1,39 @@
 #!/usr/bin/env python3
 
-import pysam
-import numpy as np
 from .most_common import most_common
-import rna_indel_lib.sequence_properties as sp
+from .sequence_properties import *
 
 
 class Indel(object):
-   """Represents indel by chr, pos, ins/del, seq
-
+    """ Represents indel by chr, pos, ins/del, seq
     Attributes:
         chr (str): chromosomes chr1-11, chrX, or chrY
         pos (int): 1-based position specifying the first base 
                    affected by the indel
         idl_type (int): 1 for insertion, 0 for deletion
         idl_seq (str): inserted or deleted sequence
-   """
-   def __init__(self, chr, pos, idl_type, idl_seq):
-       self.chr = chr
-       self.pos = pos
-       self.idl_type = idl_type
-       self.idl_seq = idl_seq
+    """
+    def __init__(self, chr, pos, idl_type, idl_seq):
+        self.chr = chr
+        self.pos = pos
+        self.idl_type = idl_type
+        self.idl_seq = idl_seq
    
-   @property
-   def ref(self):
-       if self.idl_type == 1:
-           return '-'
-       else:
-           return self.idl_seq
+    @property
+    def ref(self):
+        if self.idl_type == 1:
+            return '-'
+        else:
+            return self.idl_seq
    
-   @property
-   def alt(self):
-       if self.idl_type == 1:
-           return self.idl_seq
-       else:
-           return '-'        
-             
+    @property
+    def alt(self):
+        if self.idl_type == 1:
+            return self.idl_seq
+        else:
+            return '-'
+
+
 class SequenceWithIndel(Indel):
     """ Represents indel with its flanking sequence
     

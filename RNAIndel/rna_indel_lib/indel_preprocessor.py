@@ -15,8 +15,8 @@ import pandas as pd
 from functools import partial
 from .indel_annotator import generate_coding_indels
 
-
 logger = logging.getLogger(__name__)
+
 
 def indel_preprocessor(bambinofile, refgene, fasta):
     """Validate, extract and format indel calls from Bambino output

@@ -8,7 +8,6 @@ for indels predicted somatic.
 """
 
 import pysam
-import pandas as pd
 from functools import partial
 from .indel_snp_annotator import vcf2bambino
 from .indel_snp_annotator import are_equivalent

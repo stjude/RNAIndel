@@ -4,7 +4,6 @@ import re
 import pysam
 import random
 import logging
-import numpy as np
 from .most_common import most_common
 from .indel_sequence import SequenceWithIndel
 from .indel_sequence import PileupWithIndel

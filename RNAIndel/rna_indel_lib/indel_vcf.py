@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 
 import re
-import pysam
-from rna_indel_lib.indel_sequence import Indel
-from rna_indel_lib.left_aligner import peek_left_base
-
+from .indel_sequence import Indel
+from .left_aligner import peek_left_base
 
 snp_ptn = re.compile(r'rs[0-9]+')
 

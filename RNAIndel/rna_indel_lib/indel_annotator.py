@@ -4,7 +4,7 @@
 Checks if indels are coding or non-coding and annotates
 coding indels with variant effect 
 
-'indel_annotator' is the main routine of this module
+indel_annotator is the main routine of this module
 """
 
 import sys
@@ -16,6 +16,7 @@ from .indel_curator import curate_indel_in_genome
 from .indel_sequence import CodingSequenceWithIndel
 
 logger = logging.getLogger(__name__)
+
 
 def indel_annotator(df, refgene, fasta):
     """Sort coding indels and annotate coding indels with variant effect

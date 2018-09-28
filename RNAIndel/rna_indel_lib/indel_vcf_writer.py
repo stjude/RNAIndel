@@ -9,15 +9,15 @@ Output analysis result in .vcf
 Must hard-code define_info_dict and define_format_dict
 to edit the meta info.
 """
+
 import re
 import pysam
 import datetime
-import pandas as pd
 from functools import partial
 from .indel_vcf import IndelVcfReport
-from .left_aligner import peek_left_base
 
 metaID = re.compile(r'ID=([A-Za-z]+)')
+
 
 def indel_vcf_writer(df, bam, fasta, vcfname):
     """Output result in .vcf

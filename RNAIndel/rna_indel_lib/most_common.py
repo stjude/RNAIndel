@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+
 def most_common(lst):
     """Returns the most common element in a list
 

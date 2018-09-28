@@ -8,12 +8,8 @@ Annotate indels if they are on dbSNP
 
 import re
 import pysam
-import argparse
-import operator
-import pandas as pd
 from functools import partial
 from .indel_features import IndelSnpFeatures
-from .indel_sequence import SequenceWithIndel
 from .indel_curator import curate_indel_in_genome
 from .indel_equivalence_solver import are_equivalent
 

@@ -13,11 +13,11 @@ import numpy as np
 import pandas as pd
 import subprocess as sp
 from functools import partial
-from .indel_sequence import SequenceWithIndel
 from .indel_curator import curate_indel_in_genome
 from .indel_protein_processor import acc_len_dict
 
 mrna = re.compile(r'NM_[0-9]+')
+
 
 def indel_equivalence_solver(df, fasta, refgene, output):
     """Solve indel equivalence and calculates 
@@ -267,7 +267,7 @@ def indels_per_gene(df, d):
         acc_lst = re.findall(mrna, anno_str)
         ipg = [equivalence_corrected_num_of_indels*1000/d[acc]\
                 for acc in acc_lst]
-        df['ipg'] =  np.median(ipg)
+        df['ipg'] = np.median(ipg)
     except:
         median_cds_len = 1323
         df['ipg'] = equivalence_corrected_num_of_indels / median_cds_len
