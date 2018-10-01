@@ -1,7 +1,11 @@
 from setuptools import setup, find_packages
 
+version = {}
+with open("./version.py") as fp:
+    exec(fp.read(), version)
+
 setup(name='RNAIndel',
-      version='0.1',
+      version=version['__version__'],
       description='Somatic Indel Detector for Tumor RNA-Seq Data',
       url='https://github.com/adamdingliang/RNAIndel',
       author='Kohei Hagiwara, Liang Ding',
@@ -14,19 +18,14 @@ setup(name='RNAIndel',
                         'pyvcf == 0.6.8'],
       python_requires='>=3.5.2',
       packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-      package_data={'RNAIndel': ['clnvr/clinvar.indel.old.vcf.gz',
-                                 'clnvr/clinvar.indel.old.vcf.gz.tbi',
-                                 'clnvr/clinvar.indel.vcf.gz',
-                                 'clinvar.indel.vcf.gz.tbi',
-                                 'models/*.pkl.gz',
-                                 'refgene/refCodingExon.bed.gz',
-                                 'refgene/refCodingExon.bed.gz.tbi',
-                                 'testdata/inputs/bambino_sample.txt',
-                                 'testdata/outputs/rna_indels.txt'],
+      package_data={'RNAIndel': ['testdata/inputs/*',
+                                 'testdata/outputs/*'],
                     'Bambino': ['bambino-1.0.jar',
                                 'mysql-connector-java-5.1.10.jar',
                                 'picard.jar',
-                                'third_party.jar']},
+                                'third_party.jar',
+                                'testdata/inputs/*',
+                                'testdata/outputs/*']},
       include_package_data=True,
       test_suite='tests',
       entry_points={'console_scripts': ['rna_indel=RNAIndel.rna_indel:main', 'bambino=Bambino.bambino:main']}

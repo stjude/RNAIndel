@@ -19,8 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 def indel_preprocessor(bambinofile, refgene, fasta):
-    """Validate, extract and format indel calls from Bambino output
-     
+    """ Validate, extract and format indel calls from Bambino output
     Args:
         bambinofile (str): Bambino output filename (contains SNVs + indels)
     Returns:
@@ -99,10 +98,9 @@ def exists_bambino_output(filename):
     it_exists = False
            
     if not os.path.exists(filename):
-        logging.critical('Bambino output does NOT exist.')
+        logging.critical('Error: Bambino output file not found.')
     else:
         it_exists = True
-
     return it_exists
 
     

@@ -63,7 +63,7 @@ class SequenceWithIndel(Indel):
         else:
             seq = self.lt_seq[-n:] + self.idl_seq + self.rt_seq[:n]
         
-        return sp.gc(seq)
+        return gc(seq)
 
     
     def lc(self, n):
@@ -79,8 +79,8 @@ class SequenceWithIndel(Indel):
         rt_seq_n = self.rt_seq[:n]
         
         try:
-            lt_lc = sp.linguistic_complexity(lt_seq_n)
-            rt_lc = sp.linguistic_complexity(rt_seq_n)
+            lt_lc = linguistic_complexity(lt_seq_n)
+            rt_lc = linguistic_complexity(rt_seq_n)
             lc = (lt_lc + rt_lc) / 2
         except:
             lc = None
@@ -100,8 +100,8 @@ class SequenceWithIndel(Indel):
         rt_seq_n = self.rt_seq[:n]
 
         try:
-            lt_lc = sp.linguistic_complexity(lt_seq_n)
-            rt_lc = sp.linguistic_complexity(rt_seq_n)
+            lt_lc = linguistic_complexity(lt_seq_n)
+            rt_lc = linguistic_complexity(rt_seq_n)
             local_lc = min(lt_lc, rt_lc)
         except:
             local_lc = None
@@ -123,7 +123,7 @@ class SequenceWithIndel(Indel):
         else:
             seq = self.lt_seq[-n:] + self.idl_seq + self.rt_seq[:n]
         
-        return sp.dna_strength(seq)
+        return dna_strength(seq)
 
 
     def repeat(self):
@@ -135,7 +135,7 @@ class SequenceWithIndel(Indel):
             repeat (int)
         """
 
-        return sp.repeat(self.idl_type, self.lt_seq, self.idl_seq, self.rt_seq)
+        return repeat(self.idl_type, self.lt_seq, self.idl_seq, self.rt_seq)
 
 
     def dissimilarity(self):
@@ -147,7 +147,7 @@ class SequenceWithIndel(Indel):
             dissimilarity (float)
         """
        
-        return sp.dissimilarity(self.lt_seq, self.idl_seq, self.rt_seq)
+        return dissimilarity(self.lt_seq, self.idl_seq, self.rt_seq)
 
 
 class PileupWithIndelNotFound(Indel):
@@ -409,11 +409,11 @@ class PileupWithIndel(Indel):
             if len(idl.lt_seq) >= n and len(idl.rt_seq) >= n:
                 lt = idl.lt_seq[-n:]
                 lt_ref = ref.lt_seq[-n:]
-                lt_edit_dist = sp.editdistance(lt, lt_ref)
+                lt_edit_dist = editdistance(lt, lt_ref)
 
                 rt = idl.rt_seq[:n]
                 rt_ref = ref.rt_seq[:n]
-                rt_edit_dist = sp.editdistance(rt, rt_ref)
+                rt_edit_dist = editdistance(rt, rt_ref)
 
                 complexity = lt_edit_dist + rt_edit_dist
                         
@@ -439,11 +439,11 @@ class PileupWithIndel(Indel):
                     if len(non.lt_seq) >= n and len(non.rt_seq) >= n:
                         lt = idl.lt_seq[-n:]
                         lt_non = non.lt_seq[-n:]
-                        lt_edit_dist = sp.editdistance(lt, lt_non)
+                        lt_edit_dist = editdistance(lt, lt_non)
 
                         rt = idl.rt_seq[:n]
                         rt_non = non.rt_seq[:n]
-                        rt_edit_dist = sp.editdistance(rt, rt_non)
+                        rt_edit_dist = editdistance(rt, rt_non)
 
                         complexity = lt_edit_dist + rt_edit_dist
                         complexities.append(complexity)
@@ -654,7 +654,7 @@ class CodingSequenceWithIndel(SequenceWithIndel):
                 else:
                     seq = self.lt_seq[-2:] + self.rt_seq[:1]
             # check for stop codon
-            if sp.exists_stop_codon(self.strand, seq):
+            if exists_stop_codon(self.strand, seq):
                 return codon_pos, 'nonsenseTruncating'
             else:
                 if len(self.idl_seq) % 3 == 0 and self.idl_type == 1:
@@ -839,7 +839,7 @@ class CodingSequenceWithIndel(SequenceWithIndel):
                 else:
                     seq = self.lt_seq[-1:] + self.rt_seq[:2]
             # check for stop codon
-            if sp.exists_stop_codon(self.strand, seq):
+            if exists_stop_codon(self.strand, seq):
                 return codon_pos, 'nonsenseTruncating'
             else:
                 if len(self.idl_seq) % 3 == 0 and self.idl_type == 1:

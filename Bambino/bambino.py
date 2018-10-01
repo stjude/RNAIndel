@@ -41,7 +41,7 @@ def main():
         print(stderr, file=sys.stderr)
         sys.exit(return_code)
     else:
-        print('Bambino was successful.', file=sys.stderr)
+        print('bambino completed successfully.', file=sys.stderr)
 
 
 def run_shell_command(command_string):

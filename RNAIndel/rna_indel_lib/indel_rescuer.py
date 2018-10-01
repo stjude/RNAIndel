@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import pysam
 import numpy as np
 import pandas as pd
@@ -89,14 +90,12 @@ def rescue_by_equivalence(row, fasta, bam, search_window, pool, left_aligned):
     else:
         rt_window, lt_window = int(search_window/2), int(search_window/2)
      
-
     rescue = partial(extract_indel,
                      fasta=fasta,
                      bam=bam,
                      chr=chr,
                      idl_type=idl_type,
                      equivalent_to=called_idl)
-    
     
     rt_range = [pos+i for i in range(rt_window)]
     rt_equivalents = pool.map(rescue, rt_range)
@@ -150,13 +149,15 @@ def rescue_by_nearest(row, fasta, bam, search_window):
                  'ref':idl_found.ref,
                  'alt':idl_found.alt,
                  'rescued':'by_nearest'}]
-             
+
+
 def flag_indel_rescued_by_nearest(row):
     flag = row['rescued']
     if row['rescued_indels'] != [] and flag != 'by_equivalence':
         flag = 'by_nearest'
 
     return flag
+
 
 def extract_indel(pos, fasta, bam, chr, idl_type, **kwargs):
     """Extract equivalent indel if exists at the locus (chr, pos)
@@ -218,11 +219,10 @@ def get_most_common_indel_seq(bam_data, chr, pos, idl_type):
     except:
         return idl_seq
 
-    if parsed_indel_reads == []:
+    if not parsed_indel_reads:
         return idl_seq
     else:
-        decomposed = [decompose_indel_read(parsed_read) \
-                      for parsed_read in parsed_indel_reads] 
+        decomposed = [decompose_indel_read(parsed_read) for parsed_read in parsed_indel_reads]
     
     idl_seq = most_common([decomp[1] for decomp in decomposed]) 
    
@@ -242,5 +242,3 @@ def sort_positionally(df):
     df['chr'] = df.apply(lambda x:'chr'+str(x['chr']), axis=1)
     
     return df
-
-
