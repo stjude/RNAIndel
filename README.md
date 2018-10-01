@@ -4,8 +4,9 @@ Somatic indel detector for tumor RNA-Seq data.
 RNAIndel only works with hg38 (GRCh38).
 
 ## Citations
-1. Edmonson, Michael N. et al. [Bambino: A Variant Detector and Alignment Viewer for next-Generation Sequencing Data in 
-the SAM/BAM Format](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3051333/). Bioinformatics 27.6 (2011): 865–866.
+1. Edmonson, M.N., Zhang, J., Yan, C., Finney, R.P., Meerzaman, D.M., and Buetow, K.H.. Bambino: A Variant Detector and Alignment Viewer for next-Generation Sequencing Data in 
+the SAM/BAM Format. Bioinformatics 27.6 (2011): 865–866. 
+DOI: [10.1093/bioinformatics/btr032](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3051333/)
 2. RNAIndel. Submitted.
 
 ## Prerequisites
@@ -52,11 +53,11 @@ bambino -i BAM -f REF_FASTA -o BAMBINO_OUTPUT
 
 ### Run RNAIndel with Bambino calls (recommended)
 ```
-rna_indel -b BAM -i BAMBINO_OUTPUT -f REF_FASTA -o OUTPUT_VCF [other options]
+rna_indel -b BAM -i BAMBINO_OUTPUT -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [other options]
 ```
-### Run RNAIndel with indels from other callers (e.g., GATK)
+### Run RNAIndel with indels from other callers
 ```
-rna_indel -b BAM -c INDEL_CALL_VCF -r REF_FASTA -o OUTPUT_VCF [other options]
+rna_indel -b BAM -c INDEL_CALL_VCF -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [other options]
 ```
 #### RNAIndel options
 * ```-b``` input bam file (required)
