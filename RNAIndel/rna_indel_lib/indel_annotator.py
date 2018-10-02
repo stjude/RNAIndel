@@ -27,29 +27,30 @@ def indel_annotator(df, refgene, fasta):
         fasta (str): path to .fa
     Returns:
         df (pandas.DataFrame): with indels annotated
-    """ 
-    df['is_ins'] = df.apply(is_insertion, axis=1)
-    df['indel_seq'] = df.apply(get_indel_seq, axis=1)
-        
+    """
+    df["is_ins"] = df.apply(is_insertion, axis=1)
+    df["indel_seq"] = df.apply(get_indel_seq, axis=1)
+
     # performs annotation
     exon_data = pysam.TabixFile(refgene)
     anno = partial(annotate_indels, exon_data=exon_data, fasta=fasta)
-    df['annotation'] = df.apply(anno, axis=1)
-    
+    df["annotation"] = df.apply(anno, axis=1)
+
     # removes unannotated calls (non-coding indels)
-    df = df[df['annotation'] != '-']
-    
+    df = df[df["annotation"] != "-"]
+
     if len(df) == 0:
-        logging.warning('No indels annotated in coding region. Analysis done.')
+        logging.warning("No indels annotated in coding region. Analysis done.")
         sys.exit(0)
-     
+
     # gene symbols
-    df['gene_symbol'] = df.apply(get_gene_symbol, axis=1)
-    
+    df["gene_symbol"] = df.apply(get_gene_symbol, axis=1)
+
     # formats the header
-    df = df[['chr', 'pos', 'ref', 'alt', 'indel_seq',
-             'annotation', 'gene_symbol', 'is_ins']]
-    
+    df = df[
+        ["chr", "pos", "ref", "alt", "indel_seq", "annotation", "gene_symbol", "is_ins"]
+    ]
+
     return df
 
 
@@ -63,9 +64,9 @@ def is_insertion(row):
     """
     is_insertion = 0
 
-    if row['ref'] == '-':
+    if row["ref"] == "-":
         is_insertion = 1
-    
+
     return is_insertion
 
 
@@ -77,11 +78,11 @@ def get_indel_seq(row):
     Returns:
         indel_seq (str): inserted or deleted  sequence
     """
-    if row['ref'] == '-':
-        indel_seq = row['alt']
+    if row["ref"] == "-":
+        indel_seq = row["alt"]
     else:
-        indel_seq = row['ref']
-    
+        indel_seq = row["ref"]
+
     return indel_seq
 
 
@@ -112,14 +113,14 @@ def annotate_indels(row, exon_data, fasta, postprocess=False):
 
             '-' for non-coding indels
     """
-    chr = row['chr']
-    pos = row['pos']
-    idl_type = row['is_ins']
-    idl_seq = row['indel_seq']
-    
+    chr = row["chr"]
+    pos = row["pos"]
+    idl_type = row["is_ins"]
+    idl_seq = row["indel_seq"]
+
     # generates CodingSequenceWithIndel instances
     idls = generate_coding_indels(chr, pos, idl_type, idl_seq, exon_data, fasta)
-    
+
     # annotates for all RefSeq isoforms
     annots = []
     if idls != []:
@@ -128,20 +129,29 @@ def annotate_indels(row, exon_data, fasta, postprocess=False):
             refseq_acc = idl.accession
             codon_pos, effect = idl.effect()
             is_insensitive = idl.is_nmd_insensitive()
-           
+
             if not postprocess:
-                anno = gene + '|' + refseq_acc + '|' + str(codon_pos)\
-                       + '|' + effect + '|' + str(is_insensitive)  
+                anno = (
+                    gene
+                    + "|"
+                    + refseq_acc
+                    + "|"
+                    + str(codon_pos)
+                    + "|"
+                    + effect
+                    + "|"
+                    + str(is_insensitive)
+                )
             else:
-                anno = gene + '|' + refseq_acc + '|' + str(codon_pos) + '|' + effect 
+                anno = gene + "|" + refseq_acc + "|" + str(codon_pos) + "|" + effect
 
             annots.append(anno)
 
     if len(annots) == 0:
-        annotation = '-'
+        annotation = "-"
     else:
-        annotation = ','.join(annots)
-    
+        annotation = ",".join(annots)
+
     return annotation
 
 
@@ -161,75 +171,93 @@ def generate_coding_indels(chr, pos, idl_type, idl_seq, exon_data, fasta):
                                empty list if non-coding indel  
     """
     coding_idl_lst = []
-    
+
     try:
-        candidate_genes = exon_data.fetch(chr, pos-11, pos+11)
+        candidate_genes = exon_data.fetch(chr, pos - 11, pos + 11)
     except:
         candidate_genes = None
-         
+
     # check for UTR
     if candidate_genes:
         for line in candidate_genes:
-            lst = line.split('\t')
-            
+            lst = line.split("\t")
+
             # parsing exon info
-            info = lst[3].split('|')
+            info = lst[3].split("|")
             exon = int(info[2])
             last_exon = int(info[3])
 
             # exon start and end
             exon_start, exon_end = int(lst[1]), int(lst[2])
-            
-            # strand 
+
+            # strand
             strand = lst[4]
-            
+
             # 5'UTR on positive strand (insertion)
-            if strand == '+' and exon == 1\
-            and idl_type == 1 and exon_start >= pos:
+            if strand == "+" and exon == 1 and idl_type == 1 and exon_start >= pos:
                 pass
             # 5'UTR on positive strand (deletion)
-            elif strand == '+' and exon == 1\
-            and idl_type == 0 and exon_start > pos:
-                pass 
+            elif strand == "+" and exon == 1 and idl_type == 0 and exon_start > pos:
+                pass
             # 3'UTR on positive strand
-            elif strand == '+' and exon == last_exon and pos > exon_end:
+            elif strand == "+" and exon == last_exon and pos > exon_end:
                 pass
             # 5'UTR on negative strand
-            elif strand == '-' and exon == 1 and pos > exon_end:
+            elif strand == "-" and exon == 1 and pos > exon_end:
                 pass
             # 3'UTR on negative strand (insertion)
-            elif strand == '-' and exon == last_exon\
-            and idl_type == 1 and exon_start >= pos:
+            elif (
+                strand == "-"
+                and exon == last_exon
+                and idl_type == 1
+                and exon_start >= pos
+            ):
                 pass
             # 3'UTR on negative strand (deletion)
-            elif strand == '-' and exon == last_exon\
-            and idl_type == 0 and exon_start > pos:
+            elif (
+                strand == "-"
+                and exon == last_exon
+                and idl_type == 0
+                and exon_start > pos
+            ):
                 pass
             else:
-                indel_in_reference_genome = \
-                curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq)
+                indel_in_reference_genome = curate_indel_in_genome(
+                    fasta, chr, pos, idl_type, idl_seq
+                )
                 lt_seq = indel_in_reference_genome.lt_seq
-                rt_seq = indel_in_reference_genome.rt_seq   
+                rt_seq = indel_in_reference_genome.rt_seq
 
                 accession = info[0]
                 gene_symbol = info[1]
                 cds_start = int(info[4])
-                prev_exon = lst[5].split('|')
-                prev_exon_start, prev_exon_end = \
-                int(prev_exon[0]), int(prev_exon[1])
-                next_exon = lst[6].split('|') 
-                next_exon_start, next_exon_end = \
-                int(next_exon[0]), int(next_exon[1])  
-                     
-                indel = CodingSequenceWithIndel(chr, pos, idl_type,
-                                                lt_seq, idl_seq, rt_seq,
-                                                strand, accession, gene_symbol,
-                                                exon, exon_start, exon_end,
-                                                last_exon, cds_start,
-                                                prev_exon_start, prev_exon_end,
-                                                next_exon_start, next_exon_end)
+                prev_exon = lst[5].split("|")
+                prev_exon_start, prev_exon_end = int(prev_exon[0]), int(prev_exon[1])
+                next_exon = lst[6].split("|")
+                next_exon_start, next_exon_end = int(next_exon[0]), int(next_exon[1])
+
+                indel = CodingSequenceWithIndel(
+                    chr,
+                    pos,
+                    idl_type,
+                    lt_seq,
+                    idl_seq,
+                    rt_seq,
+                    strand,
+                    accession,
+                    gene_symbol,
+                    exon,
+                    exon_start,
+                    exon_end,
+                    last_exon,
+                    cds_start,
+                    prev_exon_start,
+                    prev_exon_end,
+                    next_exon_start,
+                    next_exon_end,
+                )
                 coding_idl_lst.append(indel)
-        
+
         return coding_idl_lst
 
 
@@ -242,10 +270,10 @@ def get_gene_symbol(row):
         gene_symbol (str): gene name(s)
     """
     pd.options.mode.chained_assignment = None
-    
-    lst = row['annotation'].split(',')
-    genes = [token.split('|')[0] for token in lst]
-    
-    gene_symbol = ','.join(set(genes))
+
+    lst = row["annotation"].split(",")
+    genes = [token.split("|")[0] for token in lst]
+
+    gene_symbol = ",".join(set(genes))
 
     return gene_symbol

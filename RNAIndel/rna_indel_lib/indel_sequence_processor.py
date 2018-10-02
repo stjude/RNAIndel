@@ -28,44 +28,44 @@ def indel_sequence_processor(df, fasta, bam, mapq):
         df (pandas.DataFrame)
     """
     # features derived from Bambino output
-    #df['is_gc_ins'] = df.apply(is_gc_ins, axis=1)
-    #df['is_gc_del'] = df.apply(is_gc_del, axis=1)
-    df['is_at_ins'] = df.apply(is_at_ins, axis=1)
-    df['is_at_del'] = df.apply(is_at_del, axis=1)
-    df['indel_size'] = df.apply(indel_size, axis=1)
-        
+    # df['is_gc_ins'] = df.apply(is_gc_ins, axis=1)
+    # df['is_gc_del'] = df.apply(is_gc_del, axis=1)
+    df["is_at_ins"] = df.apply(is_at_ins, axis=1)
+    df["is_at_del"] = df.apply(is_at_del, axis=1)
+    df["indel_size"] = df.apply(indel_size, axis=1)
+
     # features derived from annotation
-    df['a'] = df.apply(anno_features, axis=1)
+    df["a"] = df.apply(anno_features, axis=1)
     # df['is_inframe'] = df.apply(lambda x: x['a'].is_inframe, axis=1)
-    df['is_truncating'] = df.apply(lambda x: x['a'].is_truncating, axis=1)
+    df["is_truncating"] = df.apply(lambda x: x["a"].is_truncating, axis=1)
     # df['is_splice'] = df.apply(lambda x: x['a'].is_splice, axis=1)
-    df['is_nmd_insensitive'] = df.apply(lambda x: x['a'].is_nmd_insensitive, axis=1)
-    
+    df["is_nmd_insensitive"] = df.apply(lambda x: x["a"].is_nmd_insensitive, axis=1)
+
     # features derived from sequence alingment/map
-    bam_data = pysam.AlignmentFile(bam, 'rb')    
+    bam_data = pysam.AlignmentFile(bam, "rb")
     sam = partial(sam_features, fasta=fasta, bam_data=bam_data, mapq=mapq)
-    df['s'] = df.apply(sam, axis=1)
+    df["s"] = df.apply(sam, axis=1)
     # df['gc'] = df.apply(lambda x: x['s'].gc, axis=1)
     # df['local_gc'] = df.apply(lambda x: x['s'].local_gc, axis=1)
     # df['lc'] = df.apply(lambda x: x['s'].lc, axis=1)
     # df['local_lc'] = df.apply(lambda x: x['s'].local_lc, axis=1)
     # df['strength'] = df.apply(lambda x: x['s'].strength, axis=1)
-    df['local_strength'] = df.apply(lambda x: x['s'].local_strength, axis=1) 
-    df['repeat'] = df.apply(lambda x: x['s'].repeat, axis=1)
-    df['dissimilarity'] = df.apply(lambda x: x['s'].dissimilarity, axis=1)
-    df['indel_complexity'] = df.apply(lambda x: x['s'].indel_complexity, axis=1)
-    df['ref_count'] = df.apply(lambda x: x['s'].ref_count, axis=1)
-    df['alt_count'] = df.apply(lambda x: x['s'].alt_count, axis=1)
-    df['is_multiallelic'] = df.apply(lambda x: x['s'].is_multiallelic, axis=1)
-    df['is_near_boundary'] = df.apply(lambda x: x['s'].is_near_boundary, axis=1)
-    df['is_bidirectional'] = df.apply(lambda x: x['s'].is_bidirectional, axis=1)
-    df['is_uniq_mapped'] = df.apply(lambda x: x['s'].is_uniq_mapped, axis=1)
-    
-    df.drop(['a', 's'], axis=1, inplace=True)
-    
+    df["local_strength"] = df.apply(lambda x: x["s"].local_strength, axis=1)
+    df["repeat"] = df.apply(lambda x: x["s"].repeat, axis=1)
+    df["dissimilarity"] = df.apply(lambda x: x["s"].dissimilarity, axis=1)
+    df["indel_complexity"] = df.apply(lambda x: x["s"].indel_complexity, axis=1)
+    df["ref_count"] = df.apply(lambda x: x["s"].ref_count, axis=1)
+    df["alt_count"] = df.apply(lambda x: x["s"].alt_count, axis=1)
+    df["is_multiallelic"] = df.apply(lambda x: x["s"].is_multiallelic, axis=1)
+    df["is_near_boundary"] = df.apply(lambda x: x["s"].is_near_boundary, axis=1)
+    df["is_bidirectional"] = df.apply(lambda x: x["s"].is_bidirectional, axis=1)
+    df["is_uniq_mapped"] = df.apply(lambda x: x["s"].is_uniq_mapped, axis=1)
+
+    df.drop(["a", "s"], axis=1, inplace=True)
+
     # remove any row with NA
     df.dropna(inplace=True)
-    
+
     return df
 
 
@@ -79,15 +79,15 @@ def is_gc_ins(row):
         is_gc_ins (bool): 1 for 'G' or 'C' insertion
                           0 otherwise
     """
-    if row['is_ins'] == 1 and row['indel_seq'] == 'G':
+    if row["is_ins"] == 1 and row["indel_seq"] == "G":
         is_gc_ins = 1
-    elif row['is_ins'] == 1 and row['indel_seq'] == 'C':
+    elif row["is_ins"] == 1 and row["indel_seq"] == "C":
         is_gc_ins = 1
     else:
         is_gc_ins = 0
 
     return is_gc_ins
-         
+
 
 def is_gc_del(row):
     """Encodes if the indel is a deletion of 'G' or 'C'
@@ -99,9 +99,9 @@ def is_gc_del(row):
         is_gc_del (bool): 1 for 'G' or 'C' deletion
                           0 otherwise
     """
-    if row['is_ins'] == 0 and row['indel_seq'] == 'G':
-        is_gc_del = 1    
-    elif row['is_ins'] == 0 and row['indel_seq'] == 'C':
+    if row["is_ins"] == 0 and row["indel_seq"] == "G":
+        is_gc_del = 1
+    elif row["is_ins"] == 0 and row["indel_seq"] == "C":
         is_gc_del = 1
     else:
         is_gc_del = 0
@@ -120,9 +120,9 @@ def is_at_ins(row):
         is_at_ins (bool): 1 for 'A' or 'T' insertion
                           0 otherwise
     """
-    if row['is_ins'] == 1 and row['indel_seq'] == 'A':
-        is_at_ins = 1  
-    elif row['is_ins'] == 1 and row['indel_seq'] == 'T':
+    if row["is_ins"] == 1 and row["indel_seq"] == "A":
+        is_at_ins = 1
+    elif row["is_ins"] == 1 and row["indel_seq"] == "T":
         is_at_ins = 1
     else:
         is_at_ins = 0
@@ -141,9 +141,9 @@ def is_at_del(row):
         is_at_del (bool): 1 for 'A' or 'T' deletion
                           0 otherwise
     """
-    if row['is_ins'] == 0 and row['indel_seq'] == 'A':
+    if row["is_ins"] == 0 and row["indel_seq"] == "A":
         is_at_del = 1
-    elif row['is_ins'] == 0 and row['indel_seq'] == 'T':
+    elif row["is_ins"] == 0 and row["indel_seq"] == "T":
         is_at_del = 1
     else:
         is_at_del = 0
@@ -159,8 +159,8 @@ def indel_size(row):
     Returns:
         indel_size (int): a positive int
     """
-    indel_size = len(row['indel_seq'])
-    
+    indel_size = len(row["indel_seq"])
+
     return indel_size
 
 
@@ -179,45 +179,44 @@ def anno_features(row):
         row (pandas.Series): a Series with 'annotation' index
     Returns:
         AnnotationFeatures (obj) 
-    """   
-    lst = row['annotation'].split(',') 
-    
+    """
+    lst = row["annotation"].split(",")
+
     inframe = 0
     truncates = []
     splice = 0
     insensitivities = []
     for anno in lst:
-        
-        if 'inframe' in anno:
+
+        if "inframe" in anno:
             inframe += 1
         else:
             pass
-        
-        if 'Truncating' in anno:
+
+        if "Truncating" in anno:
             truncates.append(1)
         else:
             truncates.append(0)
 
-        if 'splice' in anno:
+        if "splice" in anno:
             splice += 1
         else:
             pass
 
-        is_insensitive = int(anno.split('|')[-1])
-        insensitivities.append(is_insensitive) 
-    
-    is_inframe = 0     
+        is_insensitive = int(anno.split("|")[-1])
+        insensitivities.append(is_insensitive)
+
+    is_inframe = 0
     if inframe > 0:
         is_inframe = 1
-    
+
     is_splice = 0
     if splice > 0:
-        is_splice = 1 
-            
-    return AnnotationFeatures(is_inframe,
-                              most_common(truncates),
-                              is_splice,
-                              most_common(insensitivities))
+        is_splice = 1
+
+    return AnnotationFeatures(
+        is_inframe, most_common(truncates), is_splice, most_common(insensitivities)
+    )
 
 
 def sam_features(row, fasta, bam_data, mapq):
@@ -234,68 +233,66 @@ def sam_features(row, fasta, bam_data, mapq):
     dna_window = 50
     rna_window = 6
 
-    chr = row['chr']
-    pos = row['pos']
-    idl_type = row['is_ins']
-    idl_seq = row['indel_seq']
-    
+    chr = row["chr"]
+    pos = row["pos"]
+    idl_type = row["is_ins"]
+    idl_seq = row["indel_seq"]
+
     # SequenceWithIndel obj in refrence genome
-    idl_ref_genome \
-    = curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq)
+    idl_ref_genome = curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq)
     # PileupWithIndel obj in bam
-    idl_bam \
-    = curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq)
-    
-    # global sequence properties 
+    idl_bam = curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq)
+
+    # global sequence properties
     # derived from reference genome
     gc = idl_ref_genome.gc(dna_window)
     lc = idl_ref_genome.lc(dna_window)
     strength = idl_ref_genome.strength(dna_window)
-    
+
     # local sequence properties derived from bam
     # these consider individual variations such SNPs
     # replace with info from fasta if failed to retrieve
     # info from bam (this may happen if the reads are too short)
     try:
         local_gc = idl_bam.gc(rna_window)
-    except:    
+    except:
         local_gc = idl_ref_genome.gc(rna_window)
-        
+
     try:
         local_lc = idl_bam.local_lc(rna_window)
     except:
         local_lc = idl_ref_genome.local_lc(rna_window)
 
     try:
-       local_strength = idl_bam.strength(rna_window)
+        local_strength = idl_bam.strength(rna_window)
     except:
-       local_strength = idl_ref_genome.strength(rna_window)
+        local_strength = idl_ref_genome.strength(rna_window)
 
     try:
-       repeat = idl_bam.repeat()
+        repeat = idl_bam.repeat()
     except:
-       repeat = idl_ref_genome.repeat()
+        repeat = idl_ref_genome.repeat()
 
     try:
-       dissimilarity = idl_bam.dissimilarity()
+        dissimilarity = idl_bam.dissimilarity()
     except:
-       dissimilarity = idl_ref_genome.dissimilarity()
+        dissimilarity = idl_ref_genome.dissimilarity()
 
     try:
-       indel_complexity = idl_bam.indel_complexity(rna_window)
+        indel_complexity = idl_bam.indel_complexity(rna_window)
     except:
-       indel_complexity = 0 
+        indel_complexity = 0
 
     # alignment/map properities
     try:
         ref_count = idl_bam.ref_count
     except:
-        ref_count = 'NA'
-    
+        ref_count = "NA"
+
     try:
         alt_count = idl_bam.alt_count
     except:
-        alt_count = 'NA'
+        alt_count = "NA"
 
     try:
         is_multiallelic = idl_bam.is_multiallelic
@@ -317,10 +314,20 @@ def sam_features(row, fasta, bam_data, mapq):
     except:
         is_uniq_mapped = 0
 
-    return SamFeatures(gc, lc, strength,
-                       local_gc, local_lc, local_strength,
-                       repeat, dissimilarity, indel_complexity,
-                       ref_count, alt_count,
-                       is_multiallelic, is_near_boundary,
-                       is_bidirectional, is_uniq_mapped)
-
+    return SamFeatures(
+        gc,
+        lc,
+        strength,
+        local_gc,
+        local_lc,
+        local_strength,
+        repeat,
+        dissimilarity,
+        indel_complexity,
+        ref_count,
+        alt_count,
+        is_multiallelic,
+        is_near_boundary,
+        is_bidirectional,
+        is_uniq_mapped,
+    )

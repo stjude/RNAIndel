@@ -13,6 +13,6 @@ def most_common(lst):
        ValueError: if lst is None or empty list
     """
     if not lst:
-        raise ValueError('input must be non-empty list')
+        raise ValueError("input must be non-empty list")
 
     return max(set(lst), key=lst.count)

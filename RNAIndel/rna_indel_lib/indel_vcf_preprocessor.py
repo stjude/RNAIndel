@@ -27,27 +27,27 @@ def indel_vcf_preprocessor(vcffile, refgene, fasta):
     Returns:
         df (pandas.DataFrame): df with indels reported as in Bambino output
     """
-    vcf_data = vcf.Reader(open(vcffile, 'r'))
+    vcf_data = vcf.Reader(open(vcffile, "r"))
     exon_data = pysam.TabixFile(refgene)
 
     df = pd.DataFrame(make_data_list(vcf_data))
-     
+
     datasize = len(df)
-    if len(df) ==  0:
-        logging.warning('No indels detected in input vcf. Analysis done.')
-        sys.exit(0)
-    
-    coding = partial(flag_coding_indels, exon_data=exon_data, fasta=fasta)
-    df['is_coding'] = df.apply(coding, axis=1)
-    df =  df[df['is_coding'] == True]
-    
     if len(df) == 0:
-        logging.warning('No coding indels annotated. Analysis done.')
+        logging.warning("No indels detected in input vcf. Analysis done.")
         sys.exit(0)
-    
-    df.drop('is_coding', axis=1, inplace=True)
+
+    coding = partial(flag_coding_indels, exon_data=exon_data, fasta=fasta)
+    df["is_coding"] = df.apply(coding, axis=1)
+    df = df[df["is_coding"] == True]
+
+    if len(df) == 0:
+        logging.warning("No coding indels annotated. Analysis done.")
+        sys.exit(0)
+
+    df.drop("is_coding", axis=1, inplace=True)
     df = df.reset_index(drop=True)
-      
+
     return df
 
 
@@ -56,13 +56,15 @@ def make_data_list(vcf_data):
     for record in vcf_data:
         parsed_record = parse_vcf_record(record)
         if parsed_record != None:
-            d = {'chr':parsed_record[0],
-                 'pos':parsed_record[1],
-                 'ref':parsed_record[2],
-                 'alt':parsed_record[3]}
-            
+            d = {
+                "chr": parsed_record[0],
+                "pos": parsed_record[1],
+                "ref": parsed_record[2],
+                "alt": parsed_record[3],
+            }
+
             data.append(d)
-            
+
     return data
 
 
@@ -109,12 +111,12 @@ def parse_vcf_record(record):
             pos = record.POS + n  # converts to Bambino coordinate
 
             if len(ref) < len(alt):
-                ref = '-'
+                ref = "-"
                 alt = alt[n:]
             else:
                 ref = ref[n:]
-                alt = '-'
-           
+                alt = "-"
+
             parsed_record = (chr, pos, ref, alt)
 
     return parsed_record

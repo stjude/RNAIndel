@@ -17,69 +17,126 @@ except ImportError:
 def main():
     args = get_args()
     create_logger(args.log_dir)
-    data_dir = args.data_dir.rstrip('/')
-    refgene = '{}/refgene/refCodingExon.bed.gz'.format(data_dir)
-    dbsnp = '{}/dbsnp/00-All.151.indel.vcf.gz'.format(data_dir)
-    clinvar = '{}/clinvar/clinvar.indel.vcf.gz'.format(data_dir)
-    model_dir = '{}/models'.format(data_dir)
+    data_dir = args.data_dir.rstrip("/")
+    refgene = "{}/refgene/refCodingExon.bed.gz".format(data_dir)
+    dbsnp = "{}/dbsnp/00-All.151.indel.vcf.gz".format(data_dir)
+    clinvar = "{}/clinvar/clinvar.indel.vcf.gz".format(data_dir)
+    model_dir = "{}/models".format(data_dir)
 
     if args.input_bambino:
         df = ri.indel_preprocessor(args.input_bambino, refgene, args.fasta)
-        df = ri.indel_rescuer(df, args.fasta, args.bam, num_of_processes=args.process_num)
+        df = ri.indel_rescuer(
+            df, args.fasta, args.bam, num_of_processes=args.process_num
+        )
     else:
         df = ri.indel_vcf_preprocessor(args.input_vcf, args.refgene, args.fasta)
-        df = ri.indel_rescuer(df, args.fasta, args.bam, num_of_processes=args.process_num,
-                              left_aligned=True, external_vcf=True)
-              
+        df = ri.indel_rescuer(
+            df,
+            args.fasta,
+            args.bam,
+            num_of_processes=args.process_num,
+            left_aligned=True,
+            external_vcf=True,
+        )
+
     df = ri.indel_annotator(df, refgene, args.fasta)
     df = ri.indel_sequence_processor(df, args.fasta, args.bam, args.uniq_mapq)
     df = ri.indel_protein_processor(df, refgene)
     df = ri.indel_equivalence_solver(df, args.fasta, refgene, args.output_vcf)
     df = ri.indel_snp_annotator(df, args.fasta, dbsnp, clinvar)
     df = ri.indel_classifier(df, model_dir, num_of_processes=args.process_num)
-    
+
     if args.non_somatic_panel:
         df = ri.indel_reclassifier(df, args.fasta, args.non_somatic_panel)
-    
+
     df = ri.indel_postprocessor(df, refgene, args.fasta, args.non_somatic_panel)
     ri.indel_vcf_writer(df, args.bam, args.fasta, args.output_vcf)
-    print('rna_indel completed successfully', file=sys.stderr)
+    print("rna_indel completed successfully", file=sys.stderr)
 
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-b', '--bam', metavar='FILE', required=True, help='input tumor bam file')
+    parser.add_argument(
+        "-b", "--bam", metavar="FILE", required=True, help="input tumor bam file"
+    )
 
     # input indel calls required either: bambino output or a vcf file
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('-i', '--input-bambino', metavar='FILE', help='input file with indel calls from Bambino')
-    group.add_argument('-c', '--input-vcf', metavar='FILE', help='input vcf file with indel calls from other callers')
+    group.add_argument(
+        "-i",
+        "--input-bambino",
+        metavar="FILE",
+        help="input file with indel calls from Bambino",
+    )
+    group.add_argument(
+        "-c",
+        "--input-vcf",
+        metavar="FILE",
+        help="input vcf file with indel calls from other callers",
+    )
 
-    parser.add_argument('-o', '--output-vcf', metavar='FILE', required=True, help='output vcf file')
-    parser.add_argument('-f', '--fasta', metavar='FILE', required=True,
-                        help='reference genome (GRCh38) FASTA file')
-    parser.add_argument('-d', '--data-dir', metavar='DIR', required=True, type=check_folder_existence,
-                        help='data directory contains refgene, dbsnp and clivar databases')
-    parser.add_argument('-q', '--uniq-mapq', metavar='INT', default=255, type=int,
-                        help='STAR mapping quality MAPQ for unique mappers')
-    parser.add_argument('-p', '--process-num', metavar='INT', default=1, type=check_pos_int,
-                        help='number of processes (default is 1)')
-    parser.add_argument('-n', '--non-somatic-panel', metavar='FILE', type=check_panel_of_non_somatic,
-                        help='user-defined panel of non-somatic indel list in vcf format')
-    parser.add_argument('-l', '--log-dir', metavar='DIR', type=check_folder_existence,
-                        help='directory for storing log files')
+    parser.add_argument(
+        "-o", "--output-vcf", metavar="FILE", required=True, help="output vcf file"
+    )
+    parser.add_argument(
+        "-f",
+        "--fasta",
+        metavar="FILE",
+        required=True,
+        help="reference genome (GRCh38) FASTA file",
+    )
+    parser.add_argument(
+        "-d",
+        "--data-dir",
+        metavar="DIR",
+        required=True,
+        type=check_folder_existence,
+        help="data directory contains refgene, dbsnp and clivar databases",
+    )
+    parser.add_argument(
+        "-q",
+        "--uniq-mapq",
+        metavar="INT",
+        default=255,
+        type=int,
+        help="STAR mapping quality MAPQ for unique mappers",
+    )
+    parser.add_argument(
+        "-p",
+        "--process-num",
+        metavar="INT",
+        default=1,
+        type=check_pos_int,
+        help="number of processes (default is 1)",
+    )
+    parser.add_argument(
+        "-n",
+        "--non-somatic-panel",
+        metavar="FILE",
+        type=check_panel_of_non_somatic,
+        help="user-defined panel of non-somatic indel list in vcf format",
+    )
+    parser.add_argument(
+        "-l",
+        "--log-dir",
+        metavar="DIR",
+        type=check_folder_existence,
+        help="directory for storing log files",
+    )
     args = parser.parse_args()
     return args
 
 
 def create_logger(log_dir):
-    logger = logging.getLogger('')
+    logger = logging.getLogger("")
     logger.setLevel(logging.INFO)
 
     if log_dir:
-        fh = logging.FileHandler(os.path.join(log_dir, 'rna_indel.log'), delay=True)
+        fh = logging.FileHandler(os.path.join(log_dir, "rna_indel.log"), delay=True)
         fh.setLevel(logging.INFO)
-        fh_formatter = logging.Formatter('%(asctime)s %(module)-12s %(levelname)-8s %(message)s')
+        fh_formatter = logging.Formatter(
+            "%(asctime)s %(module)-12s %(levelname)-8s %(message)s"
+        )
         fh.setFormatter(fh_formatter)
         logger.addHandler(fh)
 
@@ -92,22 +149,22 @@ def create_logger(log_dir):
 def check_pos_int(val):
     val = int(val)
     if val <= 0:
-        sys.exit('Error: The number of processes must be a positive integer.')
+        sys.exit("Error: The number of processes must be a positive integer.")
     return val
 
 
 def check_folder_existence(folder):
     p = pathlib.Path(folder)
     if not p.exists():
-        sys.exit('Error: {} directory Not Found.'.format(folder))
+        sys.exit("Error: {} directory Not Found.".format(folder))
     return folder
 
 
 def check_panel_of_non_somatic(file_path):
     if not os.path.isfile(file_path):
-        sys.exit('Error: Panel of non somatic (.vcf) Not Found.')
+        sys.exit("Error: Panel of non somatic (.vcf) Not Found.")
     return file_path
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

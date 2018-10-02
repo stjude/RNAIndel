@@ -29,29 +29,32 @@ def indel_postprocessor(df, refgene, fasta, reclf=False):
         df (pandas.DataFrame): df with all post-processing done
     """
     fa = pysam.FastaFile(fasta)
-    
+
     # left-alignment
     lt_aln_indel_generator = partial(generate_lt_aln_indel, fa=fa)
-    df['lt'] = df.apply(lt_aln_indel_generator, axis=1)
-    df['pos'], df['ref'], df['alt'] = zip(*df.apply(left_align_report, axis=1))
-     
+    df["lt"] = df.apply(lt_aln_indel_generator, axis=1)
+    df["pos"], df["ref"], df["alt"] = zip(*df.apply(left_align_report, axis=1))
+
     # re-classify common indels to germline
-    df['predicted_class'], df['prob_s'], df['prob_g'], df['prob_a'] = \
-    zip(*df.apply(classify_common_snp_to_germline, axis=1))
-    
+    df["predicted_class"], df["prob_s"], df["prob_g"], df["prob_a"] = zip(
+        *df.apply(classify_common_snp_to_germline, axis=1)
+    )
+
     # reannotate afer left-alignment
     exon_data = pysam.TabixFile(refgene)
     anno = partial(annotate_indels, exon_data=exon_data, fasta=fasta, postprocess=True)
-    df['annotation'] = df.apply(anno, axis=1)
-    df = df[df['annotation'] != '-']
+    df["annotation"] = df.apply(anno, axis=1)
+    df = df[df["annotation"] != "-"]
 
     if len(df) == 0:
-        logging.warning('No indels annotated in coding region after left-alignment. Analysis done.')
+        logging.warning(
+            "No indels annotated in coding region after left-alignment. Analysis done."
+        )
         sys.exit(0)
 
     df = unify_equivalent_indels(df)
     df = format_header(df, reclf)
-    
+
     return df
 
 
@@ -65,9 +68,9 @@ def generate_lt_aln_indel(row, fa):
     Returns:
         idl (Indel obj): Indel obj left-aligned against reference
     """
-    idl = Indel(row['chr'], row['pos'], row['is_ins'], row['indel_seq'])
+    idl = Indel(row["chr"], row["pos"], row["is_ins"], row["indel_seq"])
     idl = lt_aln(idl, fa)
-     
+
     return idl
 
 
@@ -81,15 +84,15 @@ def left_align_report(row):
         pos (int): 1-based coordinate
         alt, ref (str): alt or ref allele 
     """
-    pos = row['lt'].pos
-    if row['is_ins'] == 1:
-        ref = '-'
-        alt = row['lt'].idl_seq
+    pos = row["lt"].pos
+    if row["is_ins"] == 1:
+        ref = "-"
+        alt = row["lt"].idl_seq
     else:
-        ref = row['lt'].idl_seq
-        alt = '-'
-       
-    return pos, ref, alt 
+        ref = row["lt"].idl_seq
+        alt = "-"
+
+    return pos, ref, alt
 
 
 def unify_equivalent_indels(df):
@@ -103,13 +106,13 @@ def unify_equivalent_indels(df):
         df (pandas.Dataframe): de-duplicated dataframe
     """
     # to keep original order
-    df['order'] = df.index
-    
+    df["order"] = df.index
+
     # select one with highest somatic probability
-    df = df.sort_values('prob_s', ascending=False)
-    df = df.drop_duplicates(['chr', 'pos', 'ref', 'alt'])
-    df = df.sort_values('order')
-    
+    df = df.sort_values("prob_s", ascending=False)
+    df = df.drop_duplicates(["chr", "pos", "ref", "alt"])
+    df = df.sort_values("order")
+
     return df
 
 
@@ -120,15 +123,18 @@ def classify_common_snp_to_germline(row):
         row (pandas.Series)
     Returns:
     """
-    pred = row['predicted_class']
-    proba_somatic = row['prob_s']
-    proba_germline = row['prob_g']
-    proba_artifact = row['prob_a']
-    
-    if pred == 'somatic' and row['is_common'] == 1:
-        if 'Pathogenic' not in row['clin_info'] and 'Likely_pathogenic' not in row['clin_info']:
-            pred, proba_somatic, proba_germline, proba_artifact = 'germline', 0, 1, 0 
-    
+    pred = row["predicted_class"]
+    proba_somatic = row["prob_s"]
+    proba_germline = row["prob_g"]
+    proba_artifact = row["prob_a"]
+
+    if pred == "somatic" and row["is_common"] == 1:
+        if (
+            "Pathogenic" not in row["clin_info"]
+            and "Likely_pathogenic" not in row["clin_info"]
+        ):
+            pred, proba_somatic, proba_germline, proba_artifact = "germline", 0, 1, 0
+
     return pred, proba_somatic, proba_germline, proba_artifact
 
 
@@ -142,41 +148,41 @@ def format_header(df, reclf=False):
         df (pandas.DataFrame): formatted df
     """
     header1 = [
-               'chr', 
-               'pos', 
-               'ref', 
-               'alt', 
-               'annotation',
-               'dbsnp', 
-               'max_maf',
-               'is_common',
-               'clin_info',
-               'prob_s',
-               'prob_g',
-               'prob_a',
-               'predicted_class'
-              ]
+        "chr",
+        "pos",
+        "ref",
+        "alt",
+        "annotation",
+        "dbsnp",
+        "max_maf",
+        "is_common",
+        "clin_info",
+        "prob_s",
+        "prob_g",
+        "prob_a",
+        "predicted_class",
+    ]
 
     header2 = [
-               'ref_count',
-               'alt_count',
-               'indel_complexity',
-               'dissimilarity',
-               'indel_size',
-               'repeat',
-               'is_uniq_mapped',
-               'is_near_boundary',
-               'is_bidirectional',
-               'is_multiallelic',
-               'is_truncating',
-               'is_nmd_insensitive',
-               'ipg',
-               'local_strength',
-               'is_at_ins',
-               'is_at_del'
-               ]
+        "ref_count",
+        "alt_count",
+        "indel_complexity",
+        "dissimilarity",
+        "indel_size",
+        "repeat",
+        "is_uniq_mapped",
+        "is_near_boundary",
+        "is_bidirectional",
+        "is_multiallelic",
+        "is_truncating",
+        "is_nmd_insensitive",
+        "ipg",
+        "local_strength",
+        "is_at_ins",
+        "is_at_del",
+    ]
     if reclf:
-        header1 = header1 + ['filter']
+        header1 = header1 + ["filter"]
 
     header = header1 + header2
 

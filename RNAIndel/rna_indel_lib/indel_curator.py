@@ -11,7 +11,7 @@ from .indel_sequence import PileupWithIndelNotFound
 
 
 random.seed(123)
-cigar_ptn = re.compile(r'[0-9]+[MIDNSHPX=]')
+cigar_ptn = re.compile(r"[0-9]+[MIDNSHPX=]")
 
 logger = logging.getLogger(__name__)
 
@@ -46,33 +46,33 @@ def curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq):
         Note that the right flanking sequence is not spliced.             
     """
     window = 50
-    
+
     # left flank seq
-    start, end  = pos - window, pos - 1
-    # retrieve left flank sequence in FASTA format 
-    lt_fasta = pysam.faidx(fasta, chr+':'+str(start)+'-'+str(end))
+    start, end = pos - window, pos - 1
+    # retrieve left flank sequence in FASTA format
+    lt_fasta = pysam.faidx(fasta, chr + ":" + str(start) + "-" + str(end))
     # extract the sequence string
-    lt_seq = lt_fasta.split('\n')[1]
-     
+    lt_seq = lt_fasta.split("\n")[1]
+
     # right flank seq
     # for insertion
-    if idl_type == 1:  
+    if idl_type == 1:
         start, end = pos, pos - 1 + window
 
         # retrieve right flank sequence in FASTA format
-        rt_fasta = pysam.faidx(fasta, chr+':'+str(start)+'-'+str(end))
+        rt_fasta = pysam.faidx(fasta, chr + ":" + str(start) + "-" + str(end))
         # extract the seqence string
-        rt_seq  = rt_fasta.split('\n')[1]
+        rt_seq = rt_fasta.split("\n")[1]
     # for deletion
     else:
         size = len(idl_seq)  # needed to adjust by the indel length
-        start, end = pos + size, pos - 1 + size + window  
-        
+        start, end = pos + size, pos - 1 + size + window
+
         # retrieve right flank sequence in FASTA format
-        rt_fasta = pysam.faidx(fasta, chr+':'+str(start)+'-'+str(end))
+        rt_fasta = pysam.faidx(fasta, chr + ":" + str(start) + "-" + str(end))
         # extract the seqence string
-        rt_seq = rt_fasta.split('\n')[1]
-    
+        rt_seq = rt_fasta.split("\n")[1]
+
     return SequenceWithIndel(chr, pos, idl_type, lt_seq, idl_seq, rt_seq)
 
 
@@ -103,14 +103,14 @@ def is_close_to_exon_boundary(cigarstring, idx):
 
     is_close = 0
     # dist to 5' exon boundary
-    if idx >= 2 and 'N' in cigarlst[idx-2]:
-        dist_to_lt_boundary = int(cigarlst[idx-1].replace('M', ''))
+    if idx >= 2 and "N" in cigarlst[idx - 2]:
+        dist_to_lt_boundary = int(cigarlst[idx - 1].replace("M", ""))
         if dist_to_lt_boundary <= 2:
             is_close = 1
 
-    # dist to 3' exon boundary                     
-    elif (idx+2) <= len(cigarlst)-1 and 'N' in cigarlst[idx+2]:
-        dist_to_rt_boundary = int(cigarlst[idx+1].replace('M', ''))      
+    # dist to 3' exon boundary
+    elif (idx + 2) <= len(cigarlst) - 1 and "N" in cigarlst[idx + 2]:
+        dist_to_rt_boundary = int(cigarlst[idx + 1].replace("M", ""))
         if dist_to_rt_boundary <= 2:
             is_close = 1
     else:
@@ -150,21 +150,20 @@ def extract_all_valid_reads(bam_data, chr, pos):
            Read_3     CGTATGACGTTC-G>>>>>>>>>>>>>>AAA
            Read_4            CGTTC-G>>>>>>>>>>>>>>AAATCGA (non-primary)   
            Read_5     >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    """  
-    all_reads = bam_data.fetch(chr, pos, pos+1, until_eof=True)
-    
+    """
+    all_reads = bam_data.fetch(chr, pos, pos + 1, until_eof=True)
+
     valid_reads = []
     for read in all_reads:
         # excludes duplicate or non-primary alignments
         if read.is_duplicate == False and read.is_secondary == False:
-            blocks = read.get_blocks()  
-            for block in blocks:                 
+            blocks = read.get_blocks()
+            for block in blocks:
                 # excludes skipping reads
-                if block[0] <= pos <= block[1]: 
+                if block[0] <= pos <= block[1]:
                     valid_reads.append(read)
 
     return valid_reads
-
 
 
 def extract_indel_reads(reads, pos, ins_or_del):
@@ -188,41 +187,41 @@ def extract_indel_reads(reads, pos, ins_or_del):
             The 'A' deletion at 8 is specified by '1D', whose idx = 4
             The first 2 bases are soft-clipped. adjust = 2.  
     """
-    parsed_indel_reads = []            
+    parsed_indel_reads = []
     for read in reads:
         ref_pos = read.reference_start
         cigarstring = read.cigarstring
 
         if ins_or_del in cigarstring:
             cigarlst = cigar_ptn.findall(cigarstring)
-            
+
             # adjust ref_start if the read starts with soft-clipping
             # Pos on Genome:   0 1 2 3 4 5 6 7 8
             # reference:           A A A C C C G
             # read:                a a A C C - G (first 2 small 'a' soft-clipped)
-            # ref_pos = 4 (before adjustment) 
-            # adjusted ref_pos = 2 
-            adjust = 0 
-            if cigarlst[0].endswith('S'):
-                adjust = int(cigarlst[0].replace('S', ''))
+            # ref_pos = 4 (before adjustment)
+            # adjusted ref_pos = 2
+            adjust = 0
+            if cigarlst[0].endswith("S"):
+                adjust = int(cigarlst[0].replace("S", ""))
                 ref_pos = ref_pos - adjust
 
             for idx, cigartoken in enumerate(cigarlst):
                 # cigartoken example :'34M' (34 bases mapped)
                 # cigartoken value = 34
                 # cigartoken operation = 'M' (mapped)
-                val = int(cigartoken.replace(cigartoken[-1], ''))  # cigartoken value  
+                val = int(cigartoken.replace(cigartoken[-1], ""))  # cigartoken value
                 ope = cigartoken[-1]  # cigartoken operation
-                
+
                 if ref_pos == pos and ope == ins_or_del:
-                    parsed_indel_reads.append((read, idx, adjust))                    
-                elif ope == 'I':   # if ins, no move on reference
+                    parsed_indel_reads.append((read, idx, adjust))
+                elif ope == "I":  # if ins, no move on reference
                     ref_pos = ref_pos
                 else:
                     ref_pos = ref_pos + val
 
     return parsed_indel_reads
-      
+
 
 def decompose_indel_read(parsed_indel_read):
     """Decompose read and ref sequences 
@@ -256,55 +255,55 @@ def decompose_indel_read(parsed_indel_read):
     cigarlst = cigar_ptn.findall(read.cigarstring)
     cigarlst_up_to_the_indel = cigarlst[:idx]
     ins_or_del = cigarlst[idx][-1]
-    last_move = int(cigarlst[idx].replace(ins_or_del, ''))
-    
+    last_move = int(cigarlst[idx].replace(ins_or_del, ""))
+
     # read (actual sequence)
     read_seq = read.query_sequence
-    # reference sequence 
-    ref_seq = read.get_reference_sequence() 
+    # reference sequence
+    ref_seq = read.get_reference_sequence()
 
     i = 0  # pos on read_seq
     j = 0 - adjust  # pos on ref_seq
     for cigartoken in cigarlst_up_to_the_indel:
-        val = int(cigartoken.replace(cigartoken[-1], ''))
-        ope = cigartoken[-1]     
-                
-        if ope == 'N':  # if spliced, no move
+        val = int(cigartoken.replace(cigartoken[-1], ""))
+        ope = cigartoken[-1]
+
+        if ope == "N":  # if spliced, no move
             i = i
-            j = j  
-        elif ope == 'D':  # if del, move on ref_seq
+            j = j
+        elif ope == "D":  # if del, move on ref_seq
             i = i
-            j = j + val 
-        elif ope == 'I':
+            j = j + val
+        elif ope == "I":
             i = i + val  # if ins, move on read_seq
             j = j
         else:
             i = i + val
-            j = j + val 
-     
-    if ins_or_del == 'I':
+            j = j + val
+
+    if ins_or_del == "I":
         lt_read = read_seq[:i].upper()
-        rt_read = read_seq[i+last_move:].upper()
+        rt_read = read_seq[i + last_move :].upper()
 
         lt_ref = ref_seq[:j].upper()
         rt_ref = ref_seq[j:].upper()
-        
-        idl_seq = read_seq[i:i+last_move]
+
+        idl_seq = read_seq[i : i + last_move]
     else:
         lt_read = read_seq[:i].upper()
         rt_read = read_seq[i:].upper()
 
         lt_ref = ref_seq[:j].upper()
-        rt_ref = ref_seq[j+last_move:].upper()
-        
-        idl_seq = ref_seq[j:j+last_move]
-    
+        rt_ref = ref_seq[j + last_move :].upper()
+
+        idl_seq = ref_seq[j : j + last_move]
+
     read_flank = [lt_read, rt_read]
     ref_flank = [lt_ref, rt_ref]
 
     return (read, idl_seq, read_flank, ref_flank)
-    
-   
+
+
 def decompose_non_indel_read(read, pos, ins_or_del, idl_seq):
     """Decompose non-indel reads into flanking and
     sequence observed at the indel event locus.
@@ -340,53 +339,53 @@ def decompose_non_indel_read(read, pos, ins_or_del, idl_seq):
     read_seq = read.query_sequence
     cigarstring = read.cigarstring
     cigarlst = cigar_ptn.findall(cigarstring)
-       
+
     # adjust if the read starts with softclipping
     adjust = 0
-    if cigarlst[0].endswith('S'):
-        adjust = int(cigarlst[0].replace('S', '')) 
+    if cigarlst[0].endswith("S"):
+        adjust = int(cigarlst[0].replace("S", ""))
         ref_pos = ref_pos - adjust
-        
-    i = 0 
+
+    i = 0
     ref_pos
     for cigartoken in cigarlst:
-        val = int(cigartoken.replace(cigartoken[-1], '')) 
+        val = int(cigartoken.replace(cigartoken[-1], ""))
         ope = cigartoken[-1]
-           
+
         if ref_pos < pos:
-            if ope == 'I':
+            if ope == "I":
                 ref_pos = ref_pos
             else:
                 ref_pos = ref_pos + val
 
-            if ope == 'N':
+            if ope == "N":
                 i = i
-            elif ope == 'D':
+            elif ope == "D":
                 i = i
-            elif ope == 'I':
+            elif ope == "I":
                 i = i + val
             else:
                 i = i + val
         else:
             break
-    
+
     diff = pos - ref_pos
-    if ins_or_del == 'I':
-        lt = read_seq[:i+diff]
-        rt = read_seq[i+diff:]
-        idl_seq = '-'
+    if ins_or_del == "I":
+        lt = read_seq[: i + diff]
+        rt = read_seq[i + diff :]
+        idl_seq = "-"
     else:
         size = len(idl_seq)
-        lt = read_seq[:i+diff]
-        rt = read_seq[i+diff+size:]
+        lt = read_seq[: i + diff]
+        rt = read_seq[i + diff + size :]
         # recover deleted sequnece from the data
-        idl_seq = read_seq[i+diff:i+diff+size]
-    
+        idl_seq = read_seq[i + diff : i + diff + size]
+
     non_idl_flanks = [lt, rt]
 
     return read, idl_seq, non_idl_flanks
-    
-   
+
+
 def is_near_exon_boundary(parsed_indel_read):
     """Checks if the dist to the exon boundary is
     within threshold.
@@ -414,8 +413,8 @@ def is_near_exon_boundary(parsed_indel_read):
     read = parsed_indel_read[0]
     idx = parsed_indel_read[1]
     cigarlst = cigar_ptn.findall(read.cigarstring)
-    idl_size = int(cigarlst[idx].replace(cigarlst[idx][-1], ''))
-    
+    idl_size = int(cigarlst[idx].replace(cigarlst[idx][-1], ""))
+
     if idl_size <= 2:
         threshold = 2
     else:
@@ -423,14 +422,14 @@ def is_near_exon_boundary(parsed_indel_read):
 
     is_near = 0
     # dist to 5' exon boundary
-    if idx >= 2 and 'N' in cigarlst[idx-2]:
-        dist_to_lt_boundary = int(cigarlst[idx-1].replace('M', ''))
+    if idx >= 2 and "N" in cigarlst[idx - 2]:
+        dist_to_lt_boundary = int(cigarlst[idx - 1].replace("M", ""))
         if dist_to_lt_boundary <= threshold:
             is_near = 1
 
-    # dist to 3' exon boundary                     
-    elif (idx+2) <= len(cigarlst)-1 and 'N' in cigarlst[idx+2]:
-        dist_to_rt_boundary = int(cigarlst[idx+1].replace('M', ''))      
+    # dist to 3' exon boundary
+    elif (idx + 2) <= len(cigarlst) - 1 and "N" in cigarlst[idx + 2]:
+        dist_to_rt_boundary = int(cigarlst[idx + 1].replace("M", ""))
         if dist_to_rt_boundary <= threshold:
             is_near = 1
     else:
@@ -461,35 +460,39 @@ def infer_del_seq_from_data(decomposed_non_idl_reads, idl_flanks, del_seq):
     inferred_seq = del_seq
     size = len(del_seq)
     reads = [decomp[0] for decomp in decomposed_non_idl_reads]
-    recovered_del_seq = [decomp[1] for decomp in decomposed_non_idl_reads] 
+    recovered_del_seq = [decomp[1] for decomp in decomposed_non_idl_reads]
     non_idl_flanks = [decomp[2] for decomp in decomposed_non_idl_reads]
 
     # comparison with reference (del_seq)
-    lt_comparison_with_ref = [del_seq == flank[0][-size:] \
-                              for flank in idl_flanks]
-    rt_comparison_with_ref = [del_seq == flank[1][:size] \
-                              for flank in idl_flanks]
-                                   
+    lt_comparison_with_ref = [del_seq == flank[0][-size:] for flank in idl_flanks]
+    rt_comparison_with_ref = [del_seq == flank[1][:size] for flank in idl_flanks]
+
     if True in lt_comparison_with_ref or True in rt_comparison_with_ref:
         return inferred_seq
-    
+
     inferred_ptn = []
     for recovered, flank, read in zip(recovered_del_seq, non_idl_flanks, reads):
 
-        lt_comparison_with_data = [recovered == flank[0][-size:] \
-                                   for flank in idl_flanks]
+        lt_comparison_with_data = [
+            recovered == flank[0][-size:] for flank in idl_flanks
+        ]
         lt_flank_len = len(flank[0])
-        
-        rt_comparison_with_data = [recovered == flank[0][:size] \
-                                   for flank in idl_flanks] 
+
+        rt_comparison_with_data = [recovered == flank[0][:size] for flank in idl_flanks]
         rt_flank_len = len(flank[1])
-        
-        if True in lt_comparison_with_data and lt_flank_len > 9 \
-        and not 'S' in read.cigarstring:
+
+        if (
+            True in lt_comparison_with_data
+            and lt_flank_len > 9
+            and not "S" in read.cigarstring
+        ):
             inferred_ptn.append(recovered)
 
-        elif True in rt_comparison_with_data and rt_flank_len > 9 \
-        and not 'S' in read.cigarstring:
+        elif (
+            True in rt_comparison_with_data
+            and rt_flank_len > 9
+            and not "S" in read.cigarstring
+        ):
             inferred_ptn.append(recovered)
 
         else:
@@ -498,8 +501,8 @@ def infer_del_seq_from_data(decomposed_non_idl_reads, idl_flanks, del_seq):
     if inferred_ptn:
         inferred_seq = most_common(inferred_ptn)
 
-    return inferred_seq      
-     
+    return inferred_seq
+
 
 def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq):
     """Generates an object describing what indel looks like
@@ -523,94 +526,90 @@ def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq):
 
     # convert indel type to CIGAR token
     if idl_type == 1:
-        ins_or_del = 'I'  # as specified by input
-        del_or_ins = 'D'  # the other pattern
+        ins_or_del = "I"  # as specified by input
+        del_or_ins = "D"  # the other pattern
     else:
-        ins_or_del = 'D'
-        del_or_ins = 'I'
-   
+        ins_or_del = "D"
+        del_or_ins = "I"
+
     # extract all good reads covering the locus of interest
     all_reads = extract_all_valid_reads(bam_data, chr, pos)
-    
 
     ###########################
     # Analysis of indel reads #
     ###########################
 
-
     # extract all indel reads at the specified pos
-    # this may contain indel reads with indel sequences 
+    # this may contain indel reads with indel sequences
     # other than specified by the input 'idl_seq'
     idl_reads = extract_indel_reads(all_reads, pos, ins_or_del)
-    
+
     #
     # sanity check by position and pattern
     #
     if idl_reads == []:
-       
-        notfound = 'NotFoundAsSpecified: '
-        if idl_type == 'I':
-            msg = notfound + chr + '|' + str(pos+1) + '|' + '-' + '|' + idl_seq
+
+        notfound = "NotFoundAsSpecified: "
+        if idl_type == "I":
+            msg = notfound + chr + "|" + str(pos + 1) + "|" + "-" + "|" + idl_seq
         else:
-            msg = notfound + chr + '|' + str(pos+1) + '|' + idl_seq + '|' + '-'
-        
+            msg = notfound + chr + "|" + str(pos + 1) + "|" + idl_seq + "|" + "-"
+
         logging.info(msg)
-        
+
         # retuns NotFound obj
         return PileupWithIndelNotFound(chr, pos, idl_type, idl_seq)
-    
-    
-    # decompose indel read into indel sequence and flanking sequences 
-    decomposed_idl_reads = [decompose_indel_read(idl_read) \
-                            for idl_read in idl_reads]
-    
-    # filter decomposed indels by 'idl_seq'   
-    filtered_decomposed_idl_reads = [decomp for decomp in decomposed_idl_reads \
-                                     if decomp[1] == idl_seq]
-    
+
+    # decompose indel read into indel sequence and flanking sequences
+    decomposed_idl_reads = [decompose_indel_read(idl_read) for idl_read in idl_reads]
+
+    # filter decomposed indels by 'idl_seq'
+    filtered_decomposed_idl_reads = [
+        decomp for decomp in decomposed_idl_reads if decomp[1] == idl_seq
+    ]
+
     #
     # sanity check by indel sequence
     #
     if filtered_decomposed_idl_reads == []:
-        
-        notfound = 'NotFoundAsSpecified: '
-        if idl_type == 'I':
-            msg = notfound + chr + '|' + str(pos+1) + '|' + '-' + '|' + idl_seq
+
+        notfound = "NotFoundAsSpecified: "
+        if idl_type == "I":
+            msg = notfound + chr + "|" + str(pos + 1) + "|" + "-" + "|" + idl_seq
         else:
-            msg = notfound + chr + '|' + str(pos+1) + '|' + idl_seq + '|' + '-'
-        
+            msg = notfound + chr + "|" + str(pos + 1) + "|" + idl_seq + "|" + "-"
+
         logging.info(msg)
-        
+
         # retuns NotFound obj
         return PileupWithIndelNotFound(chr, pos, idl_type, idl_seq)
-     
-                                                               
-    # extract indel read flanking 
+
+    # extract indel read flanking
     idl_flanks = [decomp[2] for decomp in filtered_decomposed_idl_reads]
- 
-    # extract reference flanking 
-    ref_flanks = [decomp[3] for decomp in filtered_decomposed_idl_reads]       
-    
+
+    # extract reference flanking
+    ref_flanks = [decomp[3] for decomp in filtered_decomposed_idl_reads]
+
     is_multiallelic = 0
     # check for multiallelic by heterogeneous indel sequences
     if len(decomposed_idl_reads) > len(filtered_decomposed_idl_reads):
         is_multiallelic = 1
-    
+
     # check for multiallelic by co-occurrence of insertion and deletion
-    idl_reads_with_the_other_pattern \
-    = extract_indel_reads(all_reads, pos, del_or_ins) # note the last arg!
+    idl_reads_with_the_other_pattern = extract_indel_reads(
+        all_reads, pos, del_or_ins
+    )  # note the last arg!
     if idl_reads_with_the_other_pattern:
-        is_multiallelic = 1 
-   
+        is_multiallelic = 1
+
     # check for nearness to the exon boundary
     exon_boundary = [is_near_exon_boundary(idl_read) for idl_read in idl_reads]
-    
+
     # collect mapping quality
     map_qual = [idl_read[0].mapping_quality for idl_read in idl_reads]
 
     # check bidirectionality
     bidirectional = [idl_read[0].is_reverse for idl_read in idl_reads]
-
 
     ###############################
     # Analysis of non-indel reads #
@@ -621,42 +620,38 @@ def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq):
 
     # collect non-indel read by name
     all_read_names = [read.query_name for read in all_reads]
-    idl_read_names = [decomp[0].query_name \
-                      for decomp in filtered_decomposed_idl_reads]
+    idl_read_names = [decomp[0].query_name for decomp in filtered_decomposed_idl_reads]
 
     non_idl_read_names = list(set(all_read_names) - set(idl_read_names))
     non_idl_read_names.sort()
-        
+
     # sample 10 non-indel reads if too many
     if len(non_idl_read_names) > 10:
         non_idl_read_names = random.sample(non_idl_read_names, 10)
-    
+
     # decompose non-indel reads
-    decomposed_non_idl_reads = [decompose_non_indel_read(reads_by_name[name],
-                                                         pos,
-                                                         ins_or_del,
-                                                         idl_seq) \
-                                for name in non_idl_read_names]
-    
+    decomposed_non_idl_reads = [
+        decompose_non_indel_read(reads_by_name[name], pos, ins_or_del, idl_seq)
+        for name in non_idl_read_names
+    ]
+
     # collect non indel flankings
     if non_idl_read_names == [] and len(ref_flanks) > 10:
         non_idl_flanks = random.sample(ref_flanks, 10)
-    elif  non_idl_read_names == []:
+    elif non_idl_read_names == []:
         non_idl_flanks = ref_flanks
     else:
         non_idl_flanks = [decomp[2] for decomp in decomposed_non_idl_reads]
-    
+
     # infer deleted seq from data
-    if ins_or_del == 'D':
-        del_seq = idl_seq 
-        idl_seq = infer_del_seq_from_data(decomposed_non_idl_reads,
-                                          idl_flanks,
-                                          del_seq)
-    
+    if ins_or_del == "D":
+        del_seq = idl_seq
+        idl_seq = infer_del_seq_from_data(decomposed_non_idl_reads, idl_flanks, del_seq)
+
     ########################
     # Summarize the result #
     ########################
-    
+
     # fragment count by unifiying the read name
     total_count, alt_count = len(set(all_read_names)), len(set(idl_read_names))
     ref_count = total_count - alt_count
@@ -668,7 +663,7 @@ def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq):
     is_uniq_mapped = 0
     if most_common(map_qual) == mapq:
         is_uniq_mapped = 1
-   
+
     # decide if bidirectionally supported
     is_bidirectional = 0
     if len(set(bidirectional)) == 2:
@@ -677,9 +672,18 @@ def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq):
     # back to 1-based coordinate
     pos = pos + 1
 
-    return PileupWithIndel(chr, pos, idl_type, idl_seq,
-                           ref_flanks, idl_flanks,
-                           ref_count, alt_count,
-                           is_multiallelic, is_near_boundary,
-                           is_bidirectional, is_uniq_mapped,
-                           non_idl_flanks) 
+    return PileupWithIndel(
+        chr,
+        pos,
+        idl_type,
+        idl_seq,
+        ref_flanks,
+        idl_flanks,
+        ref_count,
+        alt_count,
+        is_multiallelic,
+        is_near_boundary,
+        is_bidirectional,
+        is_uniq_mapped,
+        non_idl_flanks,
+    )

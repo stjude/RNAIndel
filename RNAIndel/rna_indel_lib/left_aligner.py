@@ -34,11 +34,11 @@ def shift_to_left(idl, fa):
         idl (Indel obj)
     """
     left_base = peek_left_base(idl, fa)
-    # shift to the left by 1 nucleotide 
+    # shift to the left by 1 nucleotide
     idl.idl_seq = left_base + idl.idl_seq[:-1]
     idl.pos = idl.pos - 1
-    
-    return idl 
+
+    return idl
 
 
 def peek_left_base(idl, fa):
@@ -58,5 +58,5 @@ def peek_left_base(idl, fa):
         left_base (str)
     """
     left_base = fa.fetch(idl.chr, idl.pos - 2, idl.pos - 1)
-    
+
     return left_base
