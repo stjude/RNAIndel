@@ -13,6 +13,7 @@ to edit the meta info.
 import re
 import pysam
 import datetime
+import pandas as pd
 from functools import partial
 from .indel_vcf import IndelVcfReport
 from .left_aligner import peek_left_base
@@ -166,8 +167,14 @@ def vcf_template(bam, fasta, info_dict, format_dict):
               'Type='+info_dict[i]['Type']+','\
               'Description="'+info_dict[i]['Description']+'">'\
                for i in info_order] 
-    
+ 
     format_order = ['AD']
+    
+    meta_3 = ['##FORMAT=<ID='+i+','\
+              'Number='+format_dict[i]['Number']+','\
+              'Type='+format_dict[i]['Type']+','\
+              'Description="'+format_dict[i]['Description']+'">'\
+               for i in format_order] 
 
     meta = meta_1 + meta_2 + meta_3
 
