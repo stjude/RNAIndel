@@ -19,7 +19,7 @@ from .indel_protein_processor import acc_len_dict
 mrna = re.compile(r"NM_[0-9]+")
 
 
-def indel_equivalence_solver(df, fasta, refgene, output):
+def indel_equivalence_solver(df, fasta, refgene):
     """Solve indel equivalence and calculates 
     indels_per_gene (ipg)
     
@@ -30,14 +30,9 @@ def indel_equivalence_solver(df, fasta, refgene, output):
     Returns:
         df (pandas.DataFrame)
     """
-    # intermediate file to store indel equivalence info
-    p = pathlib.Path(output)
-    out_dir = p.parents[0].as_posix()
-    imd_file = os.path.join(out_dir, "equivalent_indels.txt")
-
     # finds and merge equivalent indels
-    df = solve_equivalence(df, fasta, imd_file)
-    dfe = df.groupby("equivalence_id")
+    df = solve_equivalence(df, fasta)
+    dfe = df.groupby('equivalence_id')
     df = dfe.apply(merge_equivalents)
 
     # counts indels per transcript in an equivalent aware way
@@ -50,33 +45,29 @@ def indel_equivalence_solver(df, fasta, refgene, output):
     return df
 
 
-def solve_equivalence(df, fasta, imd_file):
+def solve_equivalence(df, fasta):
     """Finds equivalent indels and assigns IDs based on equivalnece
        Equivalent indels are assigned the same ID numbers.
 
     Args: 
        df (pandas dataframe)
        fasta (str): complete path to FASTA file
-       imd_file (file): .txt to store indel equivalene info
     Returns:
        df (pandas datagrame): 'equivalence_id' column added
     """
     # generate indel objects
-    df["indel_obj"] = df.apply(partial(generate_indel, fasta=fasta), axis=1)
-
-    # find equivalent indels and outputs an intermediate file
-    df["eq"] = df.apply(partial(check_equivalence, df=df), axis=1)
-    dfe = df[["eq"]].drop_duplicates(["eq"])
-    dfe.to_csv(imd_file, sep="\t", index=False, header=False)
-
-    # generate dict and assigns IDs
-    d = equivalence_id_dict(imd_file)
-    df["equivalence_id"] = df.apply(partial(assign_id, d=d), axis=1)
-    df.drop(["indel_obj", "eq"], axis=1, inplace=True)
-
-    # clean intermediate file
-    sp.call(["rm", imd_file])
-
+    df['indel_obj'] = df.apply(partial(generate_indel, fasta=fasta), axis=1)
+    
+    # find equivalent indels and assign id
+    df['eq'] = df.apply(partial(check_equivalence, df=df), axis=1)
+    data_array = df[['eq']].drop_duplicates(['eq']).values
+    lst_of_equivalent_indels = [i[0] for i in data_array]
+    d = assign_id(lst_of_equivalent_indels)
+   
+    # annotate equivalence by id
+    df['equivalence_id'] = df.apply(partial(annotate_by_id, d=d), axis=1)
+    df.drop(['indel_obj', 'eq'], axis=1, inplace=True)
+    
     return df
 
 
@@ -133,14 +124,14 @@ def check_equivalence(row, df):
               ...
               indel n ~ indel n
               
-     Outputs is a string (chr:pos:indel_type:indel_seq), comma-delimited 
+     Outputs is a string (chr:pos:indel_type:indel_seq), underscore-delimited 
      if multiple equivalent indels exist.
      outout
               chr1:100:1:G
-              chr1:200:0:T,chr1:204:0:T
-              chr1:200:0:T,chr1:204:0:T
+              chr1:200:0:T_chr1:204:0:T
+              chr1:200:0:T_chr1:204:0:T
               chr2:90:1:ATT
-              chr3:300:1:GC,chr3:302:1:CG,chr3:303:1:GC
+              chr3:300:1:GC_chr3:302:1:CG_chr3:303:1:GC
               ...
               chrn:nnn:1:ACTG             
     """
@@ -163,34 +154,54 @@ def check_equivalence(row, df):
                 + idl2.idl_seq
             )
             res.append(msg)
-    return ",".join(res)
+    return '_'.join(res)
 
 
-def equivalence_id_dict(imd_file):
-    """Make dict {chr:pos:indel_type:indel_seq : id}
-       the ID number is same for equivalents
+def assign_id(lst_of_equivalent_indels):
+    """Assign ID to equivalent indels. 
+    Equivalent ones share the same ID.
 
     Args:
-       None
-          The hard-coded filename 'equivalent_indels.txt'
-          is an intermediate file generated within this module, 
-
+        lst_of_equivalent_indels (list): deduplicated list of 
+                                         indels with equivalents grouped 
+                                         into the same element
     Returns:
-         dict 
-    """
-    with open(imd_file) as f:
-        d = {}
-        i = 1
-        for line in f:
-            lst = line.rstrip().split(",")
-            for key in lst:
-                d[key] = i
-            i += 1
+        d (dict): {chr:pos:ins/del:indel_seq: ID(int)}
+
+    Example:
+       Equivalent indels are in the same list element delimited by '_'.
+       
+       lst_of_equivalent_indels = [chr1:100:1:G,
+                                   chr1:200:0:T_chr1:204:0:T
+                                   chr2:90:1:ATT,
+                                   ...]
+       Return the dist:
+
+       d = {
+            chr1:100:1:G: 1, 
+            chr1:200:0:T: 2 (same ID), 
+            chr1:204:0:T: 2 (same ID),
+            chr2:90:1:ATT: 3,
+            ...
+           } 
+    """  
+    d = {}
+    i = 1
+    for idls in lst_of_equivalent_indels:
+        for key in idls.split('_'):
+            d[key] = i
+        i += 1
     return d
+         
 
-
-def assign_id(row, d):
-    """Assigns equivalence ID to each indel object
+def annotate_by_id(row, d):
+    """Annotate indels by equivalence id
+    
+    Args:
+        row (pandas.Series)
+        d (dict): {chr:pos:ins/del:indel_seq: ID(int)}
+    Returns:
+        ID (int)
     """
     chr = row["chr"]
     pos = str(row["pos"])
@@ -283,8 +294,7 @@ def indels_per_gene(df, d):
 
 def are_equivalent(idl1, idl2):
     """Checks if two indels are equivalent.
-       A python implementation of Steve Rive's 
-       algorithm.
+    A python implementation of Steve Rive's algorithm.
 
     Args:
        idl1 (SequenceWithIndel obj)

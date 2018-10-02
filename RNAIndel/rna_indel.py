@@ -40,7 +40,7 @@ def main():
         )
 
     df = ri.indel_annotator(df, refgene, args.fasta)
-    df = ri.indel_sequence_processor(df, args.fasta, args.bam, args.uniq_mapq)
+    df, df_filtered = ri.indel_sequence_processor(df, args.fasta, args.bam, args.uniq_mapq)
     df = ri.indel_protein_processor(df, refgene)
     df = ri.indel_equivalence_solver(df, args.fasta, refgene, args.output_vcf)
     df = ri.indel_snp_annotator(df, args.fasta, dbsnp, clinvar)
@@ -50,7 +50,7 @@ def main():
         df = ri.indel_reclassifier(df, args.fasta, args.non_somatic_panel)
 
     df = ri.indel_postprocessor(df, refgene, args.fasta, args.non_somatic_panel)
-    ri.indel_vcf_writer(df, args.bam, args.fasta, args.output_vcf)
+    ri.indel_vcf_writer(df, df_filtered, args.bam, args.fasta, args.output_vcf)
     print("rna_indel completed successfully", file=sys.stderr)
 
 

@@ -50,23 +50,28 @@ def indel_sequence_processor(df, fasta, bam, mapq):
     # df['lc'] = df.apply(lambda x: x['s'].lc, axis=1)
     # df['local_lc'] = df.apply(lambda x: x['s'].local_lc, axis=1)
     # df['strength'] = df.apply(lambda x: x['s'].strength, axis=1)
-    df["local_strength"] = df.apply(lambda x: x["s"].local_strength, axis=1)
-    df["repeat"] = df.apply(lambda x: x["s"].repeat, axis=1)
-    df["dissimilarity"] = df.apply(lambda x: x["s"].dissimilarity, axis=1)
-    df["indel_complexity"] = df.apply(lambda x: x["s"].indel_complexity, axis=1)
-    df["ref_count"] = df.apply(lambda x: x["s"].ref_count, axis=1)
-    df["alt_count"] = df.apply(lambda x: x["s"].alt_count, axis=1)
-    df["is_multiallelic"] = df.apply(lambda x: x["s"].is_multiallelic, axis=1)
-    df["is_near_boundary"] = df.apply(lambda x: x["s"].is_near_boundary, axis=1)
-    df["is_bidirectional"] = df.apply(lambda x: x["s"].is_bidirectional, axis=1)
-    df["is_uniq_mapped"] = df.apply(lambda x: x["s"].is_uniq_mapped, axis=1)
-
-    df.drop(["a", "s"], axis=1, inplace=True)
-
-    # remove any row with NA
+    df['local_strength'] = df.apply(lambda x: x['s'].local_strength, axis=1) 
+    df['repeat'] = df.apply(lambda x: x['s'].repeat, axis=1)
+    df['dissimilarity'] = df.apply(lambda x: x['s'].dissimilarity, axis=1)
+    df['indel_complexity'] = df.apply(lambda x: x['s'].indel_complexity, axis=1)
+    df['ref_count'] = df.apply(lambda x: x['s'].ref_count, axis=1)
+    df['alt_count'] = df.apply(lambda x: x['s'].alt_count, axis=1)
+    df['is_multiallelic'] = df.apply(lambda x: x['s'].is_multiallelic, axis=1)
+    df['is_near_boundary'] = df.apply(lambda x: x['s'].is_near_boundary, axis=1)
+    df['is_bidirectional'] = df.apply(lambda x: x['s'].is_bidirectional, axis=1)
+    df['is_uniq_mapped'] = df.apply(lambda x: x['s'].is_uniq_mapped, axis=1)
+    
+    df.drop(['a', 's'], axis=1, inplace=True)
+    
+    df.to_csv('test_2.txt', sep='\t', index=False)
+    df['filtered'] = df.apply(flag_invalid_entry, axis=1)
+    
+    df, df_filtered = df[df['filtered'] == '-'], df[df['filtered'] != '-']  
+    
+    # drop original calls rescued by equivalence
     df.dropna(inplace=True)
-
-    return df
+    
+    return df, df_filtered
 
 
 def is_gc_ins(row):
@@ -287,12 +292,12 @@ def sam_features(row, fasta, bam_data, mapq):
     try:
         ref_count = idl_bam.ref_count
     except:
-        ref_count = "NA"
-
+        ref_count = None
+    
     try:
         alt_count = idl_bam.alt_count
     except:
-        alt_count = "NA"
+        alt_count = None
 
     try:
         is_multiallelic = idl_bam.is_multiallelic
@@ -314,20 +319,64 @@ def sam_features(row, fasta, bam_data, mapq):
     except:
         is_uniq_mapped = 0
 
-    return SamFeatures(
-        gc,
-        lc,
-        strength,
-        local_gc,
-        local_lc,
-        local_strength,
-        repeat,
-        dissimilarity,
-        indel_complexity,
-        ref_count,
-        alt_count,
-        is_multiallelic,
-        is_near_boundary,
-        is_bidirectional,
-        is_uniq_mapped,
-    )
+    return SamFeatures(gc, lc, strength,
+                       local_gc, local_lc, local_strength,
+                       repeat, dissimilarity, indel_complexity,
+                       ref_count, alt_count,
+                       is_multiallelic, is_near_boundary,
+                       is_bidirectional, is_uniq_mapped)
+
+
+def flag_invalid_entry(row):
+    """Flag entries to be filtered
+   
+    Args:
+        row (pandas.Series)
+    Returns:
+        filtered (str): '-' for valid entrr, otherwise invalid.
+
+    Example:
+        
+       Case 1:
+            chr  pos  rescued         ref_count alt_count
+            chrN 123  by_equivalence  30        1
+         ->      
+            chr  pos  rescued         ref_count alt_count filtered
+            chrN 123  by_equivalence  30        1         lt2count
+
+       Case 2:
+            chr  pos  rescued ref_count alt_count
+            chrN 123  - 
+       ->
+            chr  pos  rescued ref_count alt_count filtered
+            chrN 123  -                           notfound
+            
+       Case 3:
+       The indel at chrN:123 was rescued by the nearest indel chrN:125.
+            chr  pos  rescued               ref_count  alt_count
+            chrN 123  rescued_by:chrN:125
+            chrN 125                        10         5
+       
+       ->   chr  pos  rescued               ref_count  alt_count filtereed
+            chrN 123  rescued_by:chrN:125                        by_nearest
+            chrN 125                        10         5         -   
+    """                                          
+    filtered = '-'
+    
+    # Case 1
+    if row['alt_count'] < 2:
+        filtered = 'lt2count'
+    # Case 2
+    # not rescued and not found in the bam
+    elif row['rescued'] == '-' and row['alt_count'] != row['alt_count']:
+        filtered = 'notfound'
+    # Case 3
+    # original call that is rescued by nearest indel 
+    # (they are not found as specified)
+    elif row['rescued'].startswith('rescued_by:') \
+    and row['alt_count'] != row['alt_count']:
+        filtered = 'by_nearest'
+    else:
+        pass
+        
+    return filtered  

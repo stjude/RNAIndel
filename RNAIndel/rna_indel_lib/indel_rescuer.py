@@ -5,6 +5,7 @@ import pandas as pd
 from functools import partial
 from multiprocessing import Pool
 from .most_common import most_common
+from .indel_vcf import IndelVcfReport
 from .indel_curator import extract_indel_reads
 from .indel_curator import decompose_indel_read
 from .indel_curator import curate_indel_in_genome
@@ -37,24 +38,25 @@ def indel_rescuer(df, fasta, bam, **kwargs):
 
     # rescue by nearest
     if external_vcf:
-        rqxnr = partial(rescue_by_nearest, fasta=fasta, bam=bam, search_window=10)
-        df["rescued_indels"] = df.apply(
-            lambda x: rqxnr(x) if x["rescued_indels"] == [] else x["rescued_indels"],
-            axis=1,
-        )
-    df["rescued"] = df.apply(flag_indel_rescued_by_nearest, axis=1)
+        rqxnr = partial(rescue_by_nearest,
+                        fasta=fasta,
+                        bam=bam,
+                        search_window=10)
+        df['rescued_indels'] = df.apply(lambda x: rqxnr(x)\
+                                            if x['rescued_indels'] == []\
+                                            else x['rescued_indels'], axis=1)
+    df['rescued'] = df.apply(flag_indel_rescued_by_nearest, axis=1)
 
-    data_in_list_of_dict = df["rescued_indels"].sum()
-    df_rescued = pd.DataFrame(data_in_list_of_dict)
-
-    df = df[["chr", "pos", "ref", "alt", "rescued"]]
-
+    list_of_data_dict = df['rescued_indels'].sum()
+    df_rescued = pd.DataFrame(list_of_data_dict)
+    
+    df = df[['chr', 'pos', 'ref', 'alt', 'rescued']]
+    
     df = pd.concat([df, df_rescued], axis=0, sort=True)
 
     df = sort_positionally(df)
-    df = df.drop_duplicates(["chr", "pos", "ref", "alt"])
-    df.reset_index(drop=True, inplace=True)
-
+    df = df.drop_duplicates(['chr', 'pos', 'ref', 'alt'])     
+    df.reset_index(drop=True, inplace=True) 
     return df
 
 
@@ -154,22 +156,24 @@ def rescue_by_nearest(row, fasta, bam, search_window):
     if not idl_found:
         return []
     else:
-        return [
-            {
-                "chr": idl_found.chr,
-                "pos": idl_found.pos,
-                "ref": idl_found.ref,
-                "alt": idl_found.alt,
-                "rescued": "by_nearest",
-            }
-        ]
-
-
+        chr = idl_found.chr
+        pos = idl_found.pos
+        ref = idl_found.ref
+        alt = idl_found.alt
+        fa = pysam.FastaFile(fasta)
+        idl_vcf = IndelVcfReport(fa, chr, pos, ref, alt)
+        in_vcf_style = idl_vcf.CHROM + ':' + str(idl_vcf.POS) + ':'\
+                     + idl_vcf.REF + ':' + idl_vcf.ALT
+        return [{'chr':chr,
+                 'pos':pos,
+                 'ref':ref,
+                 'alt':alt,
+                 'rescued':'rescued_by:'+in_vcf_style}]
+             
 def flag_indel_rescued_by_nearest(row):
-    flag = row["rescued"]
-    if row["rescued_indels"] != [] and flag != "by_equivalence":
-        flag = "by_nearest"
-
+    flag = row['rescued']
+    if row['rescued_indels'] != [] and flag != 'by_equivalence':
+        flag = row['rescued_indels'][0]['rescued']
     return flag
 
 

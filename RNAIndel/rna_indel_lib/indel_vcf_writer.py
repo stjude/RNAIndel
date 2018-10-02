@@ -15,11 +15,13 @@ import pysam
 import datetime
 from functools import partial
 from .indel_vcf import IndelVcfReport
+from .left_aligner import peek_left_base
+from .indel_rescuer import sort_positionally
 
 metaID = re.compile(r"ID=([A-Za-z]+)")
 
 
-def indel_vcf_writer(df, bam, fasta, vcfname):
+def indel_vcf_writer(df, df_filtered, bam, fasta, vcfname):
     """Output result in .vcf
     
     Args:
@@ -31,17 +33,20 @@ def indel_vcf_writer(df, bam, fasta, vcfname):
         None: a vcf file will be written out
     """
     fa = pysam.FastaFile(fasta)
+    df = pd.concat([df, df_filtered], axis=0, ignore_index=True, sort=True)
+    
+    df = sort_positionally(df)
 
     info = define_info_dict()
     fmt = define_format_dict()
     vcf = partial(generate_indel_vcf, info_dict=info, format_dict=fmt, fa=fa)
 
-    df["vcf"] = df.apply(vcf, axis=1)
-    vcf_records = df.apply(lambda x: x["vcf"].vcf_record, axis=1).values
-
-    with open(vcfname, "w") as f:
-        f.write(vcf_template(bam, info, fmt) + "\n")
-        f.write("\n".join(vcf_records))
+    df['vcf'] = df.apply(vcf, axis=1)
+    vcf_records = df.apply(lambda x: x['vcf'].vcf_record, axis=1).values
+    
+    with open(vcfname, 'w') as f:
+        f.write(vcf_template(bam, fasta, info, fmt) + '\n')
+        f.write('\n'.join(vcf_records))
 
 
 def generate_indel_vcf(row, info_dict, format_dict, fa):
@@ -57,14 +62,14 @@ def generate_indel_vcf(row, info_dict, format_dict, fa):
     idl_vcf = IndelVcfReport(fa, row["chr"], row["pos"], row["ref"], row["alt"])
 
     # dbSNP ID
-    idl_vcf.ID = row["dbsnp"]
-
-    # reclassification info if applicable
-    try:
-        idl_vcf.FILTER = row["filter"]
-    except:
-        pass
-
+    if row['dbsnp'] == row['dbsnp']:
+        idl_vcf.ID = row['dbsnp']
+    else:
+        idl_vcf.ID = None
+    
+    # FILTER 
+    idl_vcf.FILTER = row['filtered']
+    
     # fill INFO field
     info = link_datadict_to_dataframe(row, info_dict)
     idl_vcf.INFO = info
@@ -87,10 +92,12 @@ def link_datadict_to_dataframe(row, dict):
     """
     d = {}
     for k, v in dict.items():
-        d[k] = [row[c] for c in v["COLUMN"]]
-
+        d[k] = [row[c] if row[c] == row[c] else None for c in v['COLUMN'] ]
+        
         if len(d[k]) == 1:
             d[k] = d[k][0]
+        elif None in d[k]:
+            d[k] = None
 
     return d
 
@@ -127,7 +134,7 @@ def get_samplename(bam):
     return samplename
 
 
-def vcf_template(bam, info_dict, format_dict):
+def vcf_template(bam, fasta, info_dict, format_dict):
     """Prepare VCF meta info lines and header lines 
     https://samtools.github.io/hts-specs/VCFv4.2.pdf
   
@@ -138,55 +145,29 @@ def vcf_template(bam, info_dict, format_dict):
    Returns:
        template (str): representing VCF template
    """
-    meta_1 = [
-        "##fileformat=VCFv4.2",
-        "##filedate=" + get_today(),
-        "##source=RNAIndel",
-        "##reference=GRCh38",
-        '##FILTER=<ID=reclassified,Description="Reclassified by user-defined panel">',
+    meta_1 = \
+    [
+     '##fileformat=VCFv4.2', 
+     '##filedate='+get_today(), 
+     '##source=RNAIndel',
+     '##reference='+fasta,
+     '##FILTER=<ID=NtF,Description="Not found as specified in the input VCF">',
+     '##FILTER=<ID=Lt2,Description="Less than 2 alt allele count">',
+     '##FILTER=<ID=ReN,Description="Rescued with nearest indel">'
     ]
+     
+    info_order = ['PRED', 'PROB', 'DB', 'ANNO', 'MAXMAF', 'COMMON',\
+                  'CLIN', 'ICP', 'DSM', 'ISZ', 'REP', 'UQM',\
+                  'NEB', 'BID', 'MTA', 'TRC', 'NMD',\
+                  'IPG', 'LSG', 'ATI', 'ATD', 'RCF', 'RQB']
 
-    info_order = [
-        "PRED",
-        "PROB",
-        "DB",
-        "ANNO",
-        "MAXMAF",
-        "COMMON",
-        "CLIN",
-        "ICP",
-        "DSM",
-        "ISZ",
-        "REP",
-        "UQM",
-        "NEB",
-        "BID",
-        "MTA",
-        "TRC",
-        "NMD",
-        "IPG",
-        "LSG",
-        "ATI",
-        "ATD",
-    ]
-
-    meta_2 = [
-        "##INFO=<ID=" + i + ","
-        "Number=" + info_dict[i]["Number"] + ","
-        "Type=" + info_dict[i]["Type"] + ","
-        'Description="' + info_dict[i]["Description"] + '">'
-        for i in info_order
-    ]
-
-    format_order = ["AD"]
-
-    meta_3 = [
-        "##FORMAT=<ID=" + i + ","
-        "Number=" + format_dict[i]["Number"] + ","
-        "Type=" + format_dict[i]["Type"] + ","
-        'Description="' + format_dict[i]["Description"] + '">'
-        for i in format_order
-    ]
+    meta_2 = ['##INFO=<ID='+i+','\
+              'Number='+info_dict[i]['Number']+','\
+              'Type='+info_dict[i]['Type']+','\
+              'Description="'+info_dict[i]['Description']+'">'\
+               for i in info_order] 
+    
+    format_order = ['AD']
 
     meta = meta_1 + meta_2 + meta_3
 
@@ -231,138 +212,149 @@ def define_info_dict():
                     }
     """
     d = {
-        "PRED": {
-            "COLUMN": ["predicted_class"],
-            "Number": "1",
-            "Type": "String",
-            "Description": "Predicted class: somatic, germline, artifact",
-        },
-        "PROB": {
-            "COLUMN": ["prob_s", "prob_g", "prob_a"],
-            "Number": "3",
-            "Type": "Float",
-            "Description": "Prediction probability of "
-            "being somatic, germline, artifact in this order",
-        },
-        "DB": {
-            "COLUMN": ["dbsnp"],
-            "Number": "0",
-            "Type": "Flag",
-            "Description": "Flagged if on dbSNP",
-        },
-        "ANNO": {
-            "COLUMN": ["annotation"],
-            "Number": ".",
-            "Type": "String",
-            "Description": "Indel annotation in "
-            "GeneSymbol|RefSeqAccession|CodonPos|IndelEffect. "
-            "Delimited by comma for multiple isoforms",
-        },
-        "MAXMAF": {
-            "COLUMN": ["max_maf"],
-            "Number": "1",
-            "Type": "Float",
-            "Description": "Maximum minor allele frequency (MAF) "
-            "reported in dbSNP or ClinVar",
-        },
-        "COMMON": {
-            "COLUMN": ["is_common"],
-            "Number": "0",
-            "Type": "Flag",
-            "Description": "Flagged if curated Common on dbSNP or MAXMAF > 0.01",
-        },
-        "CLIN": {
-            "COLUMN": ["clin_info"],
-            "Number": "1",
-            "Type": "String",
-            "Description": "Clinical Significance|Condition curated in ClinVar",
-        },
-        "ICP": {
-            "COLUMN": ["indel_complexity"],
-            "Number": "1",
-            "Type": "Integer",
-            "Description": "Indel complexity",
-        },
-        "DSM": {
-            "COLUMN": ["dissimilarity"],
-            "Number": "1",
-            "Type": "Float",
-            "Description": "Dissimilarity",
-        },
-        "ISZ": {
-            "COLUMN": ["indel_size"],
-            "Number": "1",
-            "Type": "Integer",
-            "Description": "Indel size",
-        },
-        "REP": {
-            "COLUMN": ["repeat"],
-            "Number": "1",
-            "Type": "Integer",
-            "Description": "Repeat",
-        },
-        "UQM": {
-            "COLUMN": ["is_uniq_mapped"],
-            "Number": "0",
-            "Type": "Flag",
-            "Description": "Flagged if supported by uniquely mapped reads",
-        },
-        "NEB": {
-            "COLUMN": ["is_near_boundary"],
-            "Number": "0",
-            "Type": "Flag",
-            "Description": "Flagged if near exon boundary",
-        },
-        "BID": {
-            "COLUMN": ["is_bidirectional"],
-            "Number": "0",
-            "Type": "Flag",
-            "Description": "Flagged if supported by forward and reverse reads",
-        },
-        "MTA": {
-            "COLUMN": ["is_multiallelic"],
-            "Number": "0",
-            "Type": "Flag",
-            "Description": "Flagged if multialleleic",
-        },
-        "TRC": {
-            "COLUMN": ["is_truncating"],
-            "Number": "0",
-            "Type": "Flag",
-            "Description": "Flagged if truncating indel",
-        },
-        "NMD": {
-            "COLUMN": ["is_nmd_insensitive"],
-            "Number": "0",
-            "Type": "Flag",
-            "Description": "Flagged if insensitive to nonsense mediated decay",
-        },
-        "IPG": {
-            "COLUMN": ["ipg"],
-            "Number": "1",
-            "Type": "Float",
-            "Description": "Indels per gene",
-        },
-        "LSG": {
-            "COLUMN": ["local_strength"],
-            "Number": "1",
-            "Type": "Float",
-            "Description": "Local strength of nucleotide sequence",
-        },
-        "ATI": {
-            "COLUMN": ["is_at_ins"],
-            "Number": "0",
-            "Type": "Flag",
-            "Description": "Flagged if insertion of A or T",
-        },
-        "ATD": {
-            "COLUMN": ["is_at_del"],
-            "Number": "0",
-            "Type": "Flag",
-            "Description": "Flagged if deletion of A or T",
-        },
-    }
-
+         'PRED':{
+                 'COLUMN':['predicted_class'], 
+                 'Number':'1', 
+                 'Type':'String', 
+                 'Description':'Predicted class: somatic, germline, artifact'
+                 },
+         'PROB':{
+                 'COLUMN':['prob_s', 'prob_g', 'prob_a'], 
+                 'Number':'3', 
+                 'Type':'Float', 
+                 'Description':'Prediction probability of '
+                               'being somatic, germline, artifact in this order'
+                },
+         'DB':{
+               'COLUMN':['dbsnp'],
+               'Number':'0',
+               'Type':'Flag',
+               'Description':'Flagged if on dbSNP'
+               },
+         'ANNO':{
+                 'COLUMN':['annotation'],
+                 'Number':'.',
+                 'Type':'String',
+                 'Description':'Indel annotation in '
+                               'GeneSymbol|RefSeqAccession|CodonPos|IndelEffect. '
+                               'Delimited by comma for multiple isoforms'
+                },
+         'MAXMAF':{
+                   'COLUMN':['max_maf'],
+                   'Number':'1',
+                   'Type':'Float',
+                   'Description':'Maximum minor allele frequency (MAF) '
+                                 'reported in dbSNP or ClinVar'
+                   },
+         'COMMON':{
+                   'COLUMN':['is_common'],
+                   'Number':'0',
+                   'Type':'Flag',
+                   'Description':'Flagged if curated Common on dbSNP or MAXMAF > 0.01'
+                  },
+         'CLIN':{
+                 'COLUMN':['clin_info'],
+                 'Number':'1',
+                 'Type':'String',
+                 'Description':'Clinical Significance|Condition curated in ClinVar'
+                },
+         'ICP':{
+                'COLUMN':['indel_complexity'],
+                'Number':'1',
+                'Type':'Integer',
+                'Description':'Indel complexity'
+               },
+         'DSM':{
+                'COLUMN':['dissimilarity'],
+                'Number':'1',
+                'Type':'Float',
+                'Description':'Dissimilarity',
+               },
+         'ISZ':{
+                'COLUMN':['indel_size'],
+                'Number':'1',
+                'Type':'Integer',
+                'Description':'Indel size'
+               },
+         'REP':{
+                'COLUMN':['repeat'],
+                'Number':'1',
+                'Type':'Integer',
+                'Description':'Repeat'
+               },
+         'UQM':{
+                'COLUMN':['is_uniq_mapped'],
+                'Number':'0',
+                'Type':'Flag',
+                'Description':'Flagged if supported by uniquely mapped reads'
+               },
+         'NEB':{
+                'COLUMN':['is_near_boundary'],
+                'Number':'0',
+                'Type':'Flag',
+                'Description':'Flagged if near exon boundary'
+               },
+         'BID':{
+                'COLUMN':['is_bidirectional'],
+                'Number':'0',
+                'Type':'Flag',
+                'Description':'Flagged if supported by forward and reverse reads'
+               },    
+         'MTA':{
+                'COLUMN':['is_multiallelic'],
+                'Number':'0',
+                'Type':'Flag',
+                'Description':'Flagged if multialleleic'
+               }, 
+         'TRC':{
+                'COLUMN':['is_truncating'],
+                'Number':'0',
+                'Type':'Flag',
+                'Description':'Flagged if truncating indel'
+               },
+         'NMD':{
+                'COLUMN':['is_nmd_insensitive'],
+                'Number':'0',
+                'Type':'Flag',
+                'Description':'Flagged if insensitive to nonsense mediated decay'
+               },
+         'IPG':{
+                'COLUMN':['ipg'],
+                'Number':'1',
+                'Type':'Float',
+                'Description':'Indels per gene'
+               },
+         'LSG':{
+                'COLUMN':['local_strength'],
+                'Number':'1',
+                'Type':'Float',
+                'Description':'Local strength of nucleotide sequence'
+               },
+         'ATI':{
+                'COLUMN':['is_at_ins'],
+                'Number':'0',
+                'Type':'Flag',
+                'Description':'Flagged if insertion of A or T'
+               },
+         'ATD':{
+                'COLUMN':['is_at_del'],
+                'Number':'0',
+                'Type':'Flag',
+                'Description':'Flagged if deletion of A or T'
+               },
+         'RCF':{
+                'COLUMN':['reclassified'],
+                'Number':'0',
+                'Type':'Flag',
+                'Description':'Flagged if reclassified'
+               },
+         'RQB':{
+                'COLUMN':['filtered', 'rescued'],
+                'Number':'1',
+                'Type':'String',
+                'Description':'Rescued by indel nearest to this entry'
+               }
+        }
     return d
 
 

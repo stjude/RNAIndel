@@ -47,10 +47,9 @@ def indel_annotator(df, refgene, fasta):
     df["gene_symbol"] = df.apply(get_gene_symbol, axis=1)
 
     # formats the header
-    df = df[
-        ["chr", "pos", "ref", "alt", "indel_seq", "annotation", "gene_symbol", "is_ins"]
-    ]
-
+    df = df[['chr', 'pos', 'ref', 'alt', 'rescued', 
+             'indel_seq', 'annotation', 'gene_symbol', 
+             'is_ins']]
     return df
 
 
