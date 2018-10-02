@@ -19,6 +19,7 @@ the SAM/BAM Format. Bioinformatics 27.6 (2011): 865–866.
 DOI: [10.1093/bioinformatics/btr032](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3051333/)
 2. (To do) RNAIndel. Submitted.
 
+
 ## Prerequisites
 * [python>=3.5.2](https://www.python.org/downloads/)
     * [pandas>=0.22.0](https://pandas.pydata.org/)
@@ -28,10 +29,12 @@ DOI: [10.1093/bioinformatics/btr032](https://www.ncbi.nlm.nih.gov/pmc/articles/P
     * [pyvcf=0.6.8](https://pyvcf.readthedocs.io/en/latest/index.html)
 * [java=1.8.0_66](https://www.java.com/en/download/) (required for Bambino only)
 
+
 ## Download
 ```
 git clone https://github.com/adamdingliang/RNAIndel/tree/master  # Clone the repo
 ```
+
 
 ## Installation
 It is highly recommended to setup a virtual python environment using [conda](https://conda.io/docs/) and install 
@@ -50,11 +53,14 @@ bambino -h                  # Check if bambino works correctly
 rna_indel -h                # Check if rna_indel works correctly
 ```
 
+
 ## Run on the command line
+
 ### Indel calling using Bambino
 ```
 bambino -i BAM -f REF_FASTA -o BAMBINO_OUTPUT
 ```
+
 #### Bambino options
 * ```-b``` input bam file (required)
 * ```-f``` reference genome FASTA file (required)
@@ -65,10 +71,12 @@ bambino -i BAM -f REF_FASTA -o BAMBINO_OUTPUT
 ```
 rna_indel -b BAM -i BAMBINO_OUTPUT -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [other options]
 ```
+
 ### Run RNAIndel with indels from other callers
 ```
 rna_indel -b BAM -c INDEL_CALL_VCF -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [other options]
 ```
+
 #### RNAIndel options
 * ```-b``` input bam file (required)
 * ```-i``` Bambino output file (required for using Bambino as the indel caller)
@@ -84,6 +92,7 @@ rna_indel -b BAM -c INDEL_CALL_VCF -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [other
 * ```-d``` indels on [dbSNP database](https://www.ncbi.nlm.nih.gov/snp) in vcf format
 * ```-l``` [ClinVar database](https://www.ncbi.nlm.nih.gov/clinvar/)
 * ```-m``` directory with trained random forest models -->
+
 
 ## Run Bambino and RNAIndel as a workflow
 ### Use CWl scripts (recommended)
