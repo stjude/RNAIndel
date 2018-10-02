@@ -6,7 +6,12 @@ import sys
 import pathlib
 import logging
 import argparse
-import RNAIndel.rna_indel_lib as ri
+
+try:
+    import RNAIndel.rna_indel_lib as ri
+except ImportError:
+    # try import rna_indel_lib package directly
+    import rna_indel_lib as ri
 
 
 def main():
