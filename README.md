@@ -1,10 +1,11 @@
 # RNAIndel
 Somatic indel detector for tumor RNA-Seq data.
 
-RNAIndel only works with hg38 (GRCh38).
+Currently, RNAIndel only works with hg38 (GRCh38).
 
 ## Citations
-1. Edmonson, M.N., Zhang, J., Yan, C., Finney, R.P., Meerzaman, D.M., and Buetow, K.H.. Bambino: A Variant Detector and Alignment Viewer for next-Generation Sequencing Data in 
+1. Edmonson, M.N., Zhang, J., Yan, C., Finney, R.P., Meerzaman, D.M., and Buetow, K.H.. Bambino: A Variant Detector 
+and Alignment Viewer for next-Generation Sequencing Data in 
 the SAM/BAM Format. Bioinformatics 27.6 (2011): 865–866. 
 DOI: [10.1093/bioinformatics/btr032](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3051333/)
 2. RNAIndel. Submitted.
@@ -75,5 +76,13 @@ rna_indel -b BAM -c INDEL_CALL_VCF -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [other
 * ```-l``` [ClinVar database](https://www.ncbi.nlm.nih.gov/clinvar/)
 * ```-m``` directory with trained random forest models -->
 
-## Run as a Workflow
-Run Bambino and RNAIndel as a workflow
+## Run Bambino and RNAIndel as a Workflow
+### Use CWl scripts (recommended)
+To do
+
+### Use BASH wrapper
+This requires that `bambino` and `rna_indel` executables are installed.
+```
+bambino_rna_indel.sh BAM FASTA DATA_DIR OUTPUT_VCF
+```
+See above sections for the explanations of the options.
