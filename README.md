@@ -17,16 +17,16 @@ Currently, RNAIndel only works with hg38 (GRCh38).
 and Alignment Viewer for next-Generation Sequencing Data in 
 the SAM/BAM Format. Bioinformatics 27.6 (2011): 865–866. 
 DOI: [10.1093/bioinformatics/btr032](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3051333/)
-2. RNAIndel. Submitted.
+2. (To do) RNAIndel. Submitted.
 
 ## Prerequisites
-* python>=3.5.2
-    * pandas>=0.22.0
-    * numpy>=1.12.0
-    * sklearn>=0.18.1
-    * pysam=0.15.1
-    * pyvcf=0.6.8
-* java=1.8.0_66 (required for Bambino only)
+* [python>=3.5.2](https://www.python.org/downloads/)
+    * [pandas>=0.22.0](https://pandas.pydata.org/)
+    * [numpy>=1.12.0](https://www.scipy.org/scipylib/download.html)
+    * [scikit-learn>=0.18.1](http://scikit-learn.org/stable/install.html#)
+    * [pysam=0.15.1](https://pysam.readthedocs.io/en/latest/index.html)
+    * [pyvcf=0.6.8](https://pyvcf.readthedocs.io/en/latest/index.html)
+* [java=1.8.0_66](https://www.java.com/en/download/) (required for Bambino only)
 
 ## Download
 ```
@@ -85,13 +85,13 @@ rna_indel -b BAM -c INDEL_CALL_VCF -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [other
 * ```-l``` [ClinVar database](https://www.ncbi.nlm.nih.gov/clinvar/)
 * ```-m``` directory with trained random forest models -->
 
-## Run Bambino and RNAIndel as a Workflow
+## Run Bambino and RNAIndel as a workflow
 ### Use CWl scripts (recommended)
 To do
 
 ### Use BASH wrapper
-This requires that `bambino` and `rna_indel` executables are installed.
+This requires the [installation](#installation) of `bambino` and `rna_indel` executables.
 ```
-bambino_rna_indel.sh BAM FASTA DATA_DIR OUTPUT_VCF
+bambino_rna_indel.sh BAM REF_FASTA DATA_DIR OUTPUT_VCF
 ```
-See above sections for the explanations of the options.
+See [RNAIndel options](#rnaindel-options) for the explanations of the options.
