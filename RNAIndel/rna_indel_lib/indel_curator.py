@@ -546,14 +546,14 @@ def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq):
     # sanity check by position and pattern
     #
     if idl_reads == []:
-        #notfound = 'NotFoundAsSpecified: '
-        #if idl_type == 'I':
+        # notfound = 'NotFoundAsSpecified: '
+        # if idl_type == 'I':
         #    msg = notfound + chr + '|' + str(pos+1) + '|' + '-' + '|' + idl_seq
-        #else:
+        # else:
         #    msg = notfound + chr + '|' + str(pos+1) + '|' + idl_seq + '|' + '-'
-        
-        #logging.info(msg)
-        
+
+        # logging.info(msg)
+
         # retuns NotFound obj
         return PileupWithIndelNotFound(chr, pos, idl_type, idl_seq)
 
@@ -569,14 +569,14 @@ def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq):
     # sanity check by indel sequence
     #
     if filtered_decomposed_idl_reads == []:
-        #notfound = 'NotFoundAsSpecified: '
-        #if idl_type == 'I':
+        # notfound = 'NotFoundAsSpecified: '
+        # if idl_type == 'I':
         #    msg = notfound + chr + '|' + str(pos+1) + '|' + '-' + '|' + idl_seq
-        #else:
+        # else:
         #    msg = notfound + chr + '|' + str(pos+1) + '|' + idl_seq + '|' + '-'
-        
-        #logging.info(msg)
-        
+
+        # logging.info(msg)
+
         # retuns NotFound obj
         return PileupWithIndelNotFound(chr, pos, idl_type, idl_seq)
 

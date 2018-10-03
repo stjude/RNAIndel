@@ -33,7 +33,7 @@ def indel_classifier(df, model_dir, **kwargs):
     df["predicted_class"] = df.apply(predict_class, axis=1)
 
     # used in later step
-    df['reclassified'] = '-'
+    df["reclassified"] = "-"
 
     return df
 

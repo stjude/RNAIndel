@@ -40,7 +40,9 @@ def main():
         )
 
     df = ri.indel_annotator(df, refgene, args.fasta)
-    df, df_filtered = ri.indel_sequence_processor(df, args.fasta, args.bam, args.uniq_mapq)
+    df, df_filtered = ri.indel_sequence_processor(
+        df, args.fasta, args.bam, args.uniq_mapq
+    )
     df = ri.indel_protein_processor(df, refgene)
     df = ri.indel_equivalence_solver(df, args.fasta, refgene)
     df = ri.indel_snp_annotator(df, args.fasta, dbsnp, clinvar)

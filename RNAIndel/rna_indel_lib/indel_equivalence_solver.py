@@ -32,7 +32,7 @@ def indel_equivalence_solver(df, fasta, refgene):
     """
     # finds and merge equivalent indels
     df = solve_equivalence(df, fasta)
-    dfe = df.groupby('equivalence_id')
+    dfe = df.groupby("equivalence_id")
     df = dfe.apply(merge_equivalents)
 
     # counts indels per transcript in an equivalent aware way
@@ -56,18 +56,18 @@ def solve_equivalence(df, fasta):
        df (pandas datagrame): 'equivalence_id' column added
     """
     # generate indel objects
-    df['indel_obj'] = df.apply(partial(generate_indel, fasta=fasta), axis=1)
-    
+    df["indel_obj"] = df.apply(partial(generate_indel, fasta=fasta), axis=1)
+
     # find equivalent indels and assign id
-    df['eq'] = df.apply(partial(check_equivalence, df=df), axis=1)
-    data_array = df[['eq']].drop_duplicates(['eq']).values
+    df["eq"] = df.apply(partial(check_equivalence, df=df), axis=1)
+    data_array = df[["eq"]].drop_duplicates(["eq"]).values
     lst_of_equivalent_indels = [i[0] for i in data_array]
     d = assign_id(lst_of_equivalent_indels)
-   
+
     # annotate equivalence by id
-    df['equivalence_id'] = df.apply(partial(annotate_by_id, d=d), axis=1)
-    df.drop(['indel_obj', 'eq'], axis=1, inplace=True)
-    
+    df["equivalence_id"] = df.apply(partial(annotate_by_id, d=d), axis=1)
+    df.drop(["indel_obj", "eq"], axis=1, inplace=True)
+
     return df
 
 
@@ -154,7 +154,7 @@ def check_equivalence(row, df):
                 + idl2.idl_seq
             )
             res.append(msg)
-    return '_'.join(res)
+    return "_".join(res)
 
 
 def assign_id(lst_of_equivalent_indels):
@@ -184,15 +184,15 @@ def assign_id(lst_of_equivalent_indels):
             chr2:90:1:ATT: 3,
             ...
            } 
-    """  
+    """
     d = {}
     i = 1
     for idls in lst_of_equivalent_indels:
-        for key in idls.split('_'):
+        for key in idls.split("_"):
             d[key] = i
         i += 1
     return d
-         
+
 
 def annotate_by_id(row, d):
     """Annotate indels by equivalence id

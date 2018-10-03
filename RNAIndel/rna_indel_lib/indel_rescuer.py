@@ -38,25 +38,23 @@ def indel_rescuer(df, fasta, bam, **kwargs):
 
     # rescue by nearest
     if external_vcf:
-        rqxnr = partial(rescue_by_nearest,
-                        fasta=fasta,
-                        bam=bam,
-                        search_window=10)
-        df['rescued_indels'] = df.apply(lambda x: rqxnr(x)\
-                                            if x['rescued_indels'] == []\
-                                            else x['rescued_indels'], axis=1)
-    df['rescued'] = df.apply(flag_indel_rescued_by_nearest, axis=1)
+        rqxnr = partial(rescue_by_nearest, fasta=fasta, bam=bam, search_window=10)
+        df["rescued_indels"] = df.apply(
+            lambda x: rqxnr(x) if x["rescued_indels"] == [] else x["rescued_indels"],
+            axis=1,
+        )
+    df["rescued"] = df.apply(flag_indel_rescued_by_nearest, axis=1)
 
-    list_of_data_dict = df['rescued_indels'].sum()
+    list_of_data_dict = df["rescued_indels"].sum()
     df_rescued = pd.DataFrame(list_of_data_dict)
-    
-    df = df[['chr', 'pos', 'ref', 'alt', 'rescued']]
-    
+
+    df = df[["chr", "pos", "ref", "alt", "rescued"]]
+
     df = pd.concat([df, df_rescued], axis=0, sort=True)
 
     df = sort_positionally(df)
-    df = df.drop_duplicates(['chr', 'pos', 'ref', 'alt'])     
-    df.reset_index(drop=True, inplace=True) 
+    df = df.drop_duplicates(["chr", "pos", "ref", "alt"])
+    df.reset_index(drop=True, inplace=True)
     return df
 
 
@@ -162,18 +160,30 @@ def rescue_by_nearest(row, fasta, bam, search_window):
         alt = idl_found.alt
         fa = pysam.FastaFile(fasta)
         idl_vcf = IndelVcfReport(fa, chr, pos, ref, alt)
-        in_vcf_style = idl_vcf.CHROM + ':' + str(idl_vcf.POS) + ':'\
-                     + idl_vcf.REF + ':' + idl_vcf.ALT
-        return [{'chr':chr,
-                 'pos':pos,
-                 'ref':ref,
-                 'alt':alt,
-                 'rescued':'rescued_by:'+in_vcf_style}]
-             
+        in_vcf_style = (
+            idl_vcf.CHROM
+            + ":"
+            + str(idl_vcf.POS)
+            + ":"
+            + idl_vcf.REF
+            + ":"
+            + idl_vcf.ALT
+        )
+        return [
+            {
+                "chr": chr,
+                "pos": pos,
+                "ref": ref,
+                "alt": alt,
+                "rescued": "rescued_by:" + in_vcf_style,
+            }
+        ]
+
+
 def flag_indel_rescued_by_nearest(row):
-    flag = row['rescued']
-    if row['rescued_indels'] != [] and flag != 'by_equivalence':
-        flag = row['rescued_indels'][0]['rescued']
+    flag = row["rescued"]
+    if row["rescued_indels"] != [] and flag != "by_equivalence":
+        flag = row["rescued_indels"][0]["rescued"]
     return flag
 
 

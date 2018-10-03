@@ -37,9 +37,10 @@ def indel_postprocessor(df, refgene, fasta, reclf=False):
 
     # re-classify common indels to germline
     # DO NOT DELETE '\' (does run but incorrect result)
-    df['predicted_class'],\
-    df['reclassified'] = zip(*df.apply(reclassify_common_indels, axis=1))
-    
+    df["predicted_class"], df["reclassified"] = zip(
+        *df.apply(reclassify_common_indels, axis=1)
+    )
+
     # reannotate afer left-alignment
     exon_data = pysam.TabixFile(refgene)
     anno = partial(annotate_indels, exon_data=exon_data, fasta=fasta, postprocess=True)
@@ -121,15 +122,17 @@ def reclassify_common_indels(row):
         row (pandas.Series)
     Returns:
     """
-    pred = row['predicted_class']
-    proba_somatic = row['prob_s']
-    proba_germline = row['prob_g']
-    proba_artifact = row['prob_a']
-    msg = row['reclassified']
-    
-    if pred == 'somatic' and row['is_common'] == 1:
-        if 'Pathogenic' not in row['clin_info'] \
-        and 'Likely_pathogenic' not in row['clin_info']:
-            pred, msg = 'germline', 'reclassified' 
-    
+    pred = row["predicted_class"]
+    proba_somatic = row["prob_s"]
+    proba_germline = row["prob_g"]
+    proba_artifact = row["prob_a"]
+    msg = row["reclassified"]
+
+    if pred == "somatic" and row["is_common"] == 1:
+        if (
+            "Pathogenic" not in row["clin_info"]
+            and "Likely_pathogenic" not in row["clin_info"]
+        ):
+            pred, msg = "germline", "reclassified"
+
     return pred, msg
