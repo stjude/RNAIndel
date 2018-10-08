@@ -74,18 +74,18 @@ rna_indel -b BAM -i BAMBINO_OUTPUT -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [other
 
 ### Run RNAIndel with indels from other callers
 ```
-rna_indel -b BAM -c INDEL_CALL_VCF -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [other options]
+rna_indel -b BAM -c INPUT_VCF -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [other options]
 ```
 
 #### RNAIndel options
 * ```-b``` input bam file (required)
-* ```-i``` Bambino output file (required for using Bambino as the indel caller)
-* ```-c``` vcf file with indel calls (required for using other callers, e.g. [GATK](https://software.broadinstitute.org/gatk/))
+* ```-i``` input file with Bambino calls (required for using Bambino as the caller)
+* ```-c``` input vcf file (required for using other callers, e.g. [GATK](https://software.broadinstitute.org/gatk/))
 * ```-o``` output vcf file (required)
 * ```-f``` reference genome (GRCh38) FASTA file (required)
 * ```-d``` data directory contains refgene, dbsnp and clivar databases
 * ```-q``` STAR mapping quality MAPQ for unique mappers (default=255)
-* ```-p``` number of cores (default=1)
+* ```-p``` number of processes (default=1)
 * ```-n``` user-defined panel of non-somatic indel list in vcf format
 <!--
 * ```-r``` [refgene](https://www.ncbi.nlm.nih.gov/refseq/) coding exon database
@@ -95,7 +95,7 @@ rna_indel -b BAM -c INDEL_CALL_VCF -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [other
 
 
 ## Run Bambino and RNAIndel as a workflow
-### Use CWl scripts (recommended)
+### Use [CWL](https://www.commonwl.org/) scripts (recommended)
 To do
 
 ### Use BASH wrapper
