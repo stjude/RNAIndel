@@ -10,7 +10,6 @@ from .indel_curator import extract_indel_reads
 from .indel_curator import decompose_indel_read
 from .indel_curator import curate_indel_in_genome
 from .indel_curator import extract_all_valid_reads
-from .indel_equivalence_solver import are_equivalent
 
 
 def indel_rescuer(df, fasta, bam, **kwargs):
@@ -212,7 +211,7 @@ def extract_indel(pos, fasta, bam, chr, idl_type, **kwargs):
         )
 
         if idl_to_compare:
-            if not are_equivalent(idl_to_compare, idl_at_this_locus):
+            if idl_to_compare != idl_at_this_locus:
                 idl_at_this_locus = None
 
     return idl_at_this_locus
