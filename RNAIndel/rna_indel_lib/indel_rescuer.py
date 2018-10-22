@@ -115,7 +115,7 @@ def rescue_by_equivalence(row, fasta, bam, search_window, pool, left_aligned):
             "rescued": "by_equivalence",
         }
         for eq in equivalents
-        if eq != None
+        if eq
     ]
 
     return equivalents

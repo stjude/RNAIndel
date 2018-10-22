@@ -29,7 +29,7 @@ def main():
             df, args.fasta, args.bam, num_of_processes=args.process_num
         )
     else:
-        df = ri.indel_vcf_preprocessor(args.input_vcf, args.refgene, args.fasta)
+        df = ri.indel_vcf_preprocessor(args.input_vcf, refgene, args.fasta)
         df = ri.indel_rescuer(
             df,
             args.fasta,
