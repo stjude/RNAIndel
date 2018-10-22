@@ -6,6 +6,7 @@ import sys
 import pathlib
 import logging
 import argparse
+from functools import partial
 
 try:
     import RNAIndel.rna_indel_lib as ri
@@ -19,7 +20,7 @@ def main():
     create_logger(args.log_dir)
     data_dir = args.data_dir.rstrip("/")
     refgene = "{}/refgene/refCodingExon.bed.gz".format(data_dir)
-    dbsnp = "{}/dbsnp/00-All.151.indel.vcf.gz".format(data_dir)
+    dbsnp = "{}/dbsnp/dbsnp.indel.vcf.gz".format(data_dir)
     clinvar = "{}/clinvar/clinvar.indel.vcf.gz".format(data_dir)
     model_dir = "{}/models".format(data_dir)
 
@@ -59,7 +60,12 @@ def main():
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-b", "--bam", metavar="FILE", required=True, help="input tumor bam file"
+        "-b",
+        "--bam",
+        metavar="FILE",
+        required=True,
+        type=partial(check_file, file_name="BAM file (.bam)"),
+        help="input tumor bam file"
     )
 
     # input indel calls required either: bambino output or a vcf file
@@ -68,39 +74,43 @@ def get_args():
         "-i",
         "--input-bambino",
         metavar="FILE",
-        help="input file with indel calls from Bambino",
+        type=partial(check_file, file_name="Bambino Call Format file"),
+        help="input file with indel calls from Bambino"
     )
     group.add_argument(
         "-c",
         "--input-vcf",
         metavar="FILE",
-        help="input vcf file with indel calls from other callers",
+        type=partial(check_file, file_name="VCF (.vcf) file"),
+        help="input vcf file with indel calls from other callers"
     )
 
     parser.add_argument(
         "-o", "--output-vcf", metavar="FILE", required=True, help="output vcf file"
     )
+
     parser.add_argument(
         "-f",
         "--fasta",
         metavar="FILE",
         required=True,
-        help="reference genome (GRCh38) FASTA file",
+        type=partial(check_file, file_name="FASTA file"),
+        help="reference genome (GRCh38) FASTA file"
     )
     parser.add_argument(
         "-d",
         "--data-dir",
         metavar="DIR",
         required=True,
-        type=check_folder_existence,
-        help="data directory contains refgene, dbsnp and clivar databases",
+        help="data directory contains refgene, dbsnp and clinvar databases and models",
+        type=check_folder_existence
     )
     parser.add_argument(
         "-q",
         "--uniq-mapq",
         metavar="INT",
         default=255,
-        type=int,
+        type=check_mapq,
         help="STAR mapping quality MAPQ for unique mappers",
     )
     parser.add_argument(
@@ -115,7 +125,7 @@ def get_args():
         "-n",
         "--non-somatic-panel",
         metavar="FILE",
-        type=check_panel_of_non_somatic,
+        type=partial(check_file, file_name="Panel of non-somatic (.vcf)"),
         help="user-defined panel of non-somatic indel list in vcf format",
     )
     parser.add_argument(
@@ -155,6 +165,12 @@ def check_pos_int(val):
     return val
 
 
+def check_mapq(val):
+    val = int(val)
+    if not 0 <= val <= 255:
+        sys.exit("Error: the MAPQ value must be between 0 and 255.")
+    return val
+
 def check_folder_existence(folder):
     p = pathlib.Path(folder)
     if not p.exists():
@@ -162,9 +178,9 @@ def check_folder_existence(folder):
     return folder
 
 
-def check_panel_of_non_somatic(file_path):
+def check_file(file_path, file_name):
     if not os.path.isfile(file_path):
-        sys.exit("Error: Panel of non somatic (.vcf) Not Found.")
+        sys.exit("Error: {} Not Found.".format(file_name))
     return file_path
 
 
