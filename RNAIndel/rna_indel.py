@@ -20,7 +20,7 @@ def main():
     create_logger(args.log_dir)
     data_dir = args.data_dir.rstrip("/")
     refgene = "{}/refgene/refCodingExon.bed.gz".format(data_dir)
-    dbsnp = "{}/dbsnp/dbsnp.indel.vcf.gz".format(data_dir)
+    dbsnp = "{}/dbsnp/00-All.151.indel.vcf.gz".format(data_dir)
     clinvar = "{}/clinvar/clinvar.indel.vcf.gz".format(data_dir)
     model_dir = "{}/models".format(data_dir)
 
