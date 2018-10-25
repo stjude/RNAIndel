@@ -111,7 +111,7 @@ def get_args():
         metavar="INT",
         default=255,
         type=check_mapq,
-        help="STAR mapping quality MAPQ for unique mappers",
+        help="STAR mapping quality MAPQ for unique mappers (default: 255)",
     )
     parser.add_argument(
         "-p",
@@ -119,14 +119,14 @@ def get_args():
         metavar="INT",
         default=1,
         type=check_pos_int,
-        help="number of processes (default is 1)",
+        help="number of processes (default: 1)",
     )
     parser.add_argument(
         "-n",
         "--non-somatic-panel",
         metavar="FILE",
         type=partial(check_file, file_name="Panel of non-somatic (.vcf)"),
-        help="user-defined panel of non-somatic indel list in vcf format",
+        help="user-defined panel of non-somatic indels in VCF format",
     )
     parser.add_argument(
         "-l",
