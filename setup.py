@@ -13,7 +13,7 @@ setup(
     author_email="kohei.hagiwara@stjude.org, liang.ding@stjude.org",
     license="Apache License 2.0",
     install_requires=[
-        "pandas >= 0.22.0",
+        "pandas >= 0.23.0",
         "numpy >= 1.12.0",
         "scikit-learn >= 0.18",
         "pysam == 0.13",

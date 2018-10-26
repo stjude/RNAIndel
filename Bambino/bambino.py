@@ -26,13 +26,6 @@ def main():
         help="reference genome FASTA file",
     )
     parser.add_argument(
-        "-d",
-        "--dbsnp",
-        metavar="FILE",
-        required=True,
-        help="indels on dbSNP database (https://www.ncbi.nlm.nih.gov/snp) in vcf format",
-    )
-    parser.add_argument(
         "-o",
         "--output-file",
         metavar="FILE",
@@ -52,11 +45,11 @@ def main():
     # Unpaired Bambino command
     cmd_str = (
         "java -Xmx6000m Ace2.SAMStreamingSNPFinder -of {} -fasta {} -min-mapq 1 "
-        "-optional-tags XT!=R -bam {} -tn N -dbsnp-file {} -min-quality 20 "
+        "-optional-tags XT!=R -bam {} -tn N -min-quality 20 "
         "-min-flanking-quality 20 -min-alt-allele-count 3 -min-minor-frequency 0 -broad-min-quality 10 "
         "-mmf-max-hq-mismatches 6 -mmf-max-hq-mismatches-xt-u 10 -mmf-min-quality 15 -mmf-max-any-mismatches 6 "
         "-unique-filter-coverage 2 -no-strand-skew-filter -illumina-q2 1".format(
-            args.output_file, args.fasta, args.bam, args.dbsnp
+            args.output_file, args.fasta, args.bam
         )
     )
     stdout, stderr, return_code = run_shell_command(cmd_str)
