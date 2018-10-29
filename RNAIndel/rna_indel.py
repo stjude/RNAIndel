@@ -52,7 +52,9 @@ def main():
     if args.non_somatic_panel:
         df = ri.indel_reclassifier(df, args.fasta, args.non_somatic_panel)
 
-    df = ri.indel_postprocessor(df, refgene, args.fasta, args.non_somatic_panel)
+    df, df_filtered = ri.indel_postprocessor(
+        df, df_filtered, refgene, args.fasta, args.non_somatic_panel
+    )
     ri.indel_vcf_writer(df, df_filtered, args.bam, args.fasta, args.output_vcf)
     print("rna_indel completed successfully", file=sys.stderr)
 
@@ -84,11 +86,9 @@ def get_args():
         type=partial(check_file, file_name="VCF (.vcf) file"),
         help="input vcf file with indel calls from other callers"
     )
-
     parser.add_argument(
         "-o", "--output-vcf", metavar="FILE", required=True, help="output vcf file"
     )
-
     parser.add_argument(
         "-f",
         "--fasta",
