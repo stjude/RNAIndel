@@ -15,7 +15,7 @@ setup(
     install_requires=[
         "pandas >= 0.23.0",
         "numpy >= 1.12.0",
-        "scikit-learn >= 0.18.1",
+        "scikit-learn == 0.18.1",
         "pysam == 0.13",
         "pyvcf == 0.6.8",
     ],

@@ -37,7 +37,7 @@ def main():
         metavar="FILE",
         required=True,
         type=partial(check_file, file_name="FASTA file"),
-        help="reference genome FASTA file (the same FASTA file used for mapping)",
+        help="reference genome (GRCh38) FASTA file. Use the same FASTA file used for mapping.",
     )
     parser.add_argument(
         "-o",

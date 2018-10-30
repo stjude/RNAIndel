@@ -95,7 +95,7 @@ def get_args():
         metavar="FILE",
         required=True,
         type=partial(check_file, file_name="FASTA file"),
-        help="reference genome (GRCh38) FASTA file"
+        help="reference genome (GRCh38) FASTA file. Use the same FASTA file used for mapping"
     )
     parser.add_argument(
         "-d",
