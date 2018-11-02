@@ -1,5 +1,5 @@
 # RNAIndel
-Somatic indel detector for tumor RNA-Seq data.
+Predicting somatic indels from a tumor RNA-Seq data.
 
 Currently, RNAIndel only works with hg38 (GRCh38).
 
@@ -22,9 +22,9 @@ DOI: [10.1093/bioinformatics/btr032](https://www.ncbi.nlm.nih.gov/pmc/articles/P
 
 ## Prerequisites
 * [python>=3.5.2](https://www.python.org/downloads/)
-    * [pandas>=0.22.0](https://pandas.pydata.org/)
+    * [pandas>=0.23.0](https://pandas.pydata.org/)
     * [numpy>=1.12.0](https://www.scipy.org/scipylib/download.html)
-    * [scikit-learn>=0.18.1](http://scikit-learn.org/stable/install.html#)
+    * [scikit-learn=0.18.1](http://scikit-learn.org/stable/install.html#)
     * [pysam=0.15.1](https://pysam.readthedocs.io/en/latest/index.html)
     * [pyvcf=0.6.8](https://pyvcf.readthedocs.io/en/latest/index.html)
 * [java=1.8.0_66](https://www.java.com/en/download/) (required for Bambino only)

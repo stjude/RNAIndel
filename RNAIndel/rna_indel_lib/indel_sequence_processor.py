@@ -375,7 +375,7 @@ def flag_invalid_entry(row):
     filtered = "-"
 
     # Case 1
-    if row["alt_count"] < 2:
+    if row["alt_count"] < 2 and row["rescued"] != "by_equivalence":
         filtered = "lt2count"
     # Case 2
     # not rescued and not found in the bam

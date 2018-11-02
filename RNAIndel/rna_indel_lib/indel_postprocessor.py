@@ -17,7 +17,7 @@ from .indel_annotator import annotate_indels
 logger = logging.getLogger(__name__)
 
 
-def indel_postprocessor(df, refgene, fasta, reclf=False):
+def indel_postprocessor(df, df_filtered, refgene, fasta, reclf=False):
     """Main routine to perform left-alingment, unification, and formatting
      
     Args:
@@ -35,8 +35,14 @@ def indel_postprocessor(df, refgene, fasta, reclf=False):
     df["lt"] = df.apply(lt_aln_indel_generator, axis=1)
     df["pos"], df["ref"], df["alt"] = zip(*df.apply(left_align_report, axis=1))
 
+    if not df_filtered.empty:
+        df_filtered["lt"] = df_filtered.apply(lt_aln_indel_generator, axis=1)
+        df_filtered["pos"], df_filtered["ref"], df_filtered["alt"] = zip(
+            *df_filtered.apply(left_align_report, axis=1)
+        )
+        df_filtered = df_filtered.drop_duplicates(["chr", "pos", "ref", "alt"])
+
     # re-classify common indels to germline
-    # DO NOT DELETE '\' (does run but incorrect result)
     df["predicted_class"], df["reclassified"] = zip(
         *df.apply(reclassify_common_indels, axis=1)
     )
@@ -54,8 +60,8 @@ def indel_postprocessor(df, refgene, fasta, reclf=False):
         sys.exit(0)
 
     df = unify_equivalent_indels(df)
-    return df
-
+    
+    return df, df_filtered
 
 def generate_lt_aln_indel(row, fa):
     """Generates a left-aligned Indel object

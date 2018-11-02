@@ -144,6 +144,99 @@ class SequenceWithIndel(Indel):
 
         return dissimilarity(self.lt_seq, self.idl_seq, self.rt_seq)
 
+    def __eq__(self, other):
+        """Equality for equivalent indels
+
+        Args: 
+            self, other: SequenceWithIndel objects
+        Returns:
+            True/False (bool): True if they are equivalent
+            
+        Example:
+            Pos       12345678
+            Refernce  ATGATACC
+            Indel 1   ATG--ACC
+            Indel 2   ATGA--CC
+            
+            Indel 1 ('AT' del at 4) and Indel 2 ('TA' del at 5)
+            are alternaive alignments of the same sequence.
+            The objects created from Indel 1 and 2 should
+            be identical.
+        """
+        idl1, idl2 = self, other
+
+        # assume idl2 is on the left side
+        if idl1.pos > idl2.pos:
+            idl1, idl2 = idl2, idl1
+
+        chr1 = idl1.chr
+        chr2 = idl2.chr
+        idl_type1 = idl1.idl_type
+        idl_type2 = idl2.idl_type
+        idl_seq1 = idl1.idl_seq
+        idl_seq2 = idl2.idl_seq
+
+        # rejects trivial cases
+        if idl1.chr != idl2.chr:
+            return False
+        if idl_type1 != idl_type2:
+            return False
+        if len(idl_seq1) != len(idl_seq2):
+            return False
+
+        # here after the two indels are
+        # of same type (ins or del) with
+        # the same indel length, and
+        # indel 2 pos >= indel 1 pos.
+
+        n = len(idl_seq1)
+        m = idl2.pos - idl1.pos
+
+        # insertion cases
+        if idl_type1 == 1:
+            s = idl1.rt_seq[0:m]
+
+            if m > n:
+                if idl_seq1 == s[:n] and s[: (m - n)] == s[n:] and idl_seq2 == s[-n:]:
+                    return True
+                else:
+                    return False
+
+            elif m == n:
+                if idl_seq1 == s == idl_seq2:
+                    return True
+                else:
+                    return False
+
+            elif m > 0 and m < n:
+                if (
+                    idl_seq1[:m] == s == idl_seq2[-m:]
+                    and idl_seq1[-(n - m) :] == idl_seq2[: (n - m)]
+                ):
+                    return True
+                else:
+                    return False
+
+            else:
+                if idl_seq1 == idl_seq2:
+                    return True
+                else:
+                    return False
+
+        # deletion cases
+        else:
+            if m == 0:
+                if idl_seq1 == idl_seq2:
+                    return True
+                else:
+                    return False
+            else:
+                s = (idl_seq1 + idl1.rt_seq)[:m] + idl_seq2
+                if s[:m] == s[n : (m + n)]:
+                    return True
+                else:
+                    return False
+    
 
 class PileupWithIndelNotFound(Indel):
     """Represents indels not aligned/found as specified by caller

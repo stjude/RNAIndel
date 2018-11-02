@@ -2,9 +2,10 @@
 
 from  unittest import TestCase
 
-import sys
-sys.path.append('../rna_indel_lib')
-import sequence_properties as sp
+try:
+    from RNAIndel.rna_indel_lib import sequence_properties as sp
+except:
+    from ..rna_indel_lib import sequence_properties as sp
 
 
 class SequenceProperties(TestCase):

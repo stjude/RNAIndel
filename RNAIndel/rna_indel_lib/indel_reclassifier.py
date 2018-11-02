@@ -10,7 +10,6 @@ for indels predicted somatic.
 import pysam
 from functools import partial
 from .indel_snp_annotator import vcf2bambino
-from .indel_snp_annotator import are_equivalent
 from .indel_curator import curate_indel_in_genome
 
 
@@ -88,7 +87,7 @@ def relassify_by_panel_of_non_somatic(row, fasta, pons):
                     fasta, chr, bb.pos, bb.idl_type, bb.idl_seq
                 )
 
-                if are_equivalent(idl, pons_idl):
+                if idl == pons_idl:
                     if row["prob_a"] >= row["prob_g"]:
 
                         return "artifact", "reclassified"
