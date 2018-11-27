@@ -25,7 +25,7 @@ def indel_sequence_processor(df, fasta, bam, mapq):
         fasta (str): path to fasta
         bam (str): path to bam
     Returns:
-        df (pandas.DataFrame)
+        df, df_filtered_premerge (pandas.DataFrame)
     """
     # features derived from Bambino output
     # df['is_gc_ins'] = df.apply(is_gc_ins, axis=1)
@@ -66,12 +66,12 @@ def indel_sequence_processor(df, fasta, bam, mapq):
     df.to_csv("test_2.txt", sep="\t", index=False)
     df["filtered"] = df.apply(flag_invalid_entry, axis=1)
 
-    df, df_filtered = df[df["filtered"] == "-"], df[df["filtered"] != "-"]
+    df, df_filtered_premerge = df[df["filtered"] == "-"], df[df["filtered"] != "-"]
 
     # drop original calls rescued by equivalence
     df.dropna(inplace=True)
 
-    return df, df_filtered
+    return df, df_filtered_premerge
 
 
 def is_gc_ins(row):

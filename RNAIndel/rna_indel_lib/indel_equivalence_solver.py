@@ -42,7 +42,19 @@ def indel_equivalence_solver(df, fasta, refgene):
 
     df.drop(["gene_symbol", "equivalence_id"], axis=1, inplace=True)
 
-    return df
+    df["filtered"] = df.apply(flag_entry_with_one_read, axis=1)
+    
+    df, df_filtered_postmerge = df[df["filtered"] == "-"], df[df["filtered"] != "-"]
+    
+    return df, df_filtered_postmerge
+
+
+def flag_entry_with_one_read(row):
+    filtered = "-"
+    if row["alt_count"] < 2:
+        filtered = "lt2count"
+
+    return filtered
 
 
 def solve_equivalence(df, fasta):

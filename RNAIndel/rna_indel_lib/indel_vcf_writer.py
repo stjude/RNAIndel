@@ -36,7 +36,7 @@ def indel_vcf_writer(df, df_filtered, bam, fasta, vcfname):
     fa = pysam.FastaFile(fasta)
     
     if not df_filtered.empty:
-        df = pd.concat([df, df_filtered], axis=0, ignore_index=True, sort=True)
+        df = pd.concat([df, df_filtered], axis=0, ignore_index=True)
 
     df = sort_positionally(df)
 
