@@ -28,7 +28,10 @@ def indel_equivalence_solver(df, fasta, refgene):
         fasta (str): path to .fa
         refgene (str): path to refCodingExon.bed.gz
     Returns:
-        df (pandas.DataFrame)
+        df (pandas.DataFrame): dataframe with valid entries
+        df_filtered_postmerge (pandas.DataFrame):
+                               dataframe with entries with alt_count == 1
+                               after the merge of equivalen indels
     """
     # finds and merge equivalent indels
     df = solve_equivalence(df, fasta)

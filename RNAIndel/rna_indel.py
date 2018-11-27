@@ -24,7 +24,8 @@ def main():
     dbsnp = "{}/dbsnp/00-All.151.indel.vcf.gz".format(data_dir)
     clinvar = "{}/clinvar/clinvar.indel.vcf.gz".format(data_dir)
     model_dir = "{}/models".format(data_dir)
-
+    
+    # Preprocessing
     if args.input_bambino:
         df = ri.indel_preprocessor(args.input_bambino, refgene, args.fasta)
         df = ri.indel_rescuer(
@@ -41,26 +42,39 @@ def main():
             external_vcf=True,
         )
 
+    # Analysis 1: indel annotation
     df = ri.indel_annotator(df, refgene, args.fasta)
+    
+    # Analysis 2: feature calculation using  
     df, df_filtered_premerge = ri.indel_sequence_processor(
         df, args.fasta, args.bam, args.uniq_mapq
     )
     df = ri.indel_protein_processor(df, refgene)
+    
+    # Analysis 3: mergeing equivalent indels
     df, df_filtered_postmerge = ri.indel_equivalence_solver(
        df, args.fasta, refgene
     )
+    
+    # Analysis 4: dbSNP annotation
     df = ri.indel_snp_annotator(df, args.fasta, dbsnp, clinvar)
+    
+    # Analysis 5: prediction
     df = ri.indel_classifier(df, model_dir, num_of_processes=args.process_num)
     
+    # Analysis 6: concatenating invalid(filtered) entries
     df_filtered = pd.concat([df_filtered_premerge, df_filtered_postmerge], axis=0, ignore_index=True)
     
+    # Analysis 7(Optional): custom refinement of somatic prediction
     if args.non_somatic_panel:
         df = ri.indel_reclassifier(df, args.fasta, args.non_somatic_panel)
 
+    # PostProcessing & VCF formatting
     df, df_filtered = ri.indel_postprocessor(
         df, df_filtered, refgene, args.fasta, args.non_somatic_panel
     )
     ri.indel_vcf_writer(df, df_filtered, args.bam, args.fasta, args.output_vcf)
+    
     print("rna_indel completed successfully", file=sys.stderr)
 
 
