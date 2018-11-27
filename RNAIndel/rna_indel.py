@@ -6,6 +6,7 @@ import sys
 import pathlib
 import logging
 import argparse
+import pandas as pd
 from functools import partial
 
 try:
