@@ -31,7 +31,7 @@ def indel_rescuer(df, fasta, bam, **kwargs):
         pool=pool,
         left_aligned=left_aligned,
     )
-    print("ok here")
+    
     df["rescued_indels"] = df.apply(rqxeq, axis=1)
     df["rescued"] = df.apply(flag_indel_rescued_by_equivalence, axis=1)
 
