@@ -39,7 +39,7 @@ def main():
             args.bam,
             num_of_processes=args.process_num,
             left_aligned=True,
-            external_vcf=True,
+            external_vcf=True
         )
 
     # Analysis 1: indel annotation
@@ -63,7 +63,12 @@ def main():
     df = ri.indel_classifier(df, model_dir, num_of_processes=args.process_num)
     
     # Analysis 6: concatenating invalid(filtered) entries
-    df_filtered = pd.concat([df_filtered_premerge, df_filtered_postmerge], axis=0, ignore_index=True)
+    df_filtered = pd.concat(
+        [df_filtered_premerge, df_filtered_postmerge], 
+        axis=0, 
+        ignore_index=True,
+        sort=True
+    )
     
     # Analysis 7(Optional): custom refinement of somatic prediction
     if args.non_somatic_panel:
