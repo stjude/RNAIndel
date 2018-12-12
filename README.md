@@ -65,7 +65,7 @@ rna_indel -h                # Check if rna_indel works correctly
 describing the wrappers
 ```
 
-#### The indel calling and classification can be run seprarately.
+#### Indel calling and classification can be perform seprarately.
 ### Indel calling using Bambino
 ```
 bambino -i BAM -f REF_FASTA -o BAMBINO_OUTPUT
