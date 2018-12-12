@@ -72,6 +72,7 @@ bambino -i BAM -f REF_FASTA -o BAMBINO_OUTPUT
 ```
 
 #### Bambino options
+* ```-m``` maximum heap space (default 6000m)
 * ```-b``` input BAM file (required)
 * ```-f``` reference genome FASTA file (required)
 * ```-o``` Bambino output file (required)
