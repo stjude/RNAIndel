@@ -19,7 +19,6 @@ Currently, RNAIndel supports RNA-Seq BAM files mapped by STAR to GRCh38.
 ## Citations
 1. RNAIndel (in preparation).
 
-(Bambino caller) 
 2. Edmonson, M.N., Zhang, J., Yan, C., Finney, R.P., Meerzaman, D.M., and Buetow, K.H.. Bambino: A Variant Detector 
 and Alignment Viewer for next-Generation Sequencing Data in 
 the SAM/BAM Format. Bioinformatics 27.6 (2011): 865–866. 
@@ -66,7 +65,7 @@ rna_indel -h                # Check if rna_indel works correctly
 describing the wrappers
 ```
 
-The indel calling and classification moduels can be run seprarately.
+#### The indel calling and classification can be run seprarately.
 ### Indel calling using Bambino
 ```
 bambino -i BAM -f REF_FASTA -o BAMBINO_OUTPUT
