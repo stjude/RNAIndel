@@ -61,7 +61,7 @@ rna_indel -h                # Check if rna_indel works correctly
 Currently, RNAIndel only supports STAR-mapped BAM files (GRCh38).<br>
 Please prepare your input as follows:<br>
 
-Step 1. Map your reads with the STAR 2-pass mode.<br>
+Step 1. Map your reads with the STAR 2-pass mode to GRCh38.<br>
 Step 2. Sort, mark duplicates, index the BAM file with Picard.<br>
 
 Please input the BAM file from Step 2 without additional processing.<br>
