@@ -101,14 +101,14 @@ def get_args():
         "--input-bambino",
         metavar="FILE",
         type=partial(check_file, file_name="Bambino Call Format file"),
-        help="input file with indel calls from Bambino"
+        help="input file with calls from Bambino"
     )
     group.add_argument(
         "-c",
         "--input-vcf",
         metavar="FILE",
         type=partial(check_file, file_name="VCF (.vcf) file"),
-        help="input vcf file with indel calls from other callers"
+        help="input vcf file from other callers"
     )
     parser.add_argument(
         "-o", "--output-vcf", metavar="FILE", required=True, help="output vcf file"
