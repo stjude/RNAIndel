@@ -108,7 +108,6 @@ else
     MAPQ=255
 fi 
 
-
 if [ $PROCESS ]; then
     if [[ ! $PROCESS =~ ^-?[0-9]+$ ]] || [ $PROCESS -le 0 ]; then
         >&2 echo "Error: the number of cores must be a positive integer."
