@@ -3,7 +3,6 @@
 # Wrapper script to chain bambino and rna_indel executables
 # Only rna_indel will be run when an input VCF file is supplied
 #
-# Author: Kohei Hagiwara
 #
 
 usage() {
