@@ -116,7 +116,12 @@ To do
 
 ### Use BASH wrapper
 This requires the [installation](#installation) of `bambino` and `rna_indel` executables.
+This pipeline calls indels by Bambino and classifies them.
 ```
-bambino_rna_indel.sh BAM REF_FASTA DATA_DIR OUTPUT_VCF
+rna_indel_pipeline.sh -b BAM -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [other options]
 ```
-See [RNAIndel options](#rnaindel-options) for the explanations of the options.
+When a VCF file is supplied by -c,  indel entries in the VCF file is used for classification.
+```
+rna_indel_piepline.sh -b BAM -c INPUT_VCF -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [other options]
+```
+See [Bambino options](#bambino-options) and [RNAIndel options](#rnaindel-options) for the explanations of the options.
