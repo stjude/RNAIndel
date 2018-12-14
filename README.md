@@ -38,7 +38,6 @@ DOI: [10.1093/bioinformatics/btr032](https://www.ncbi.nlm.nih.gov/pmc/articles/P
 git clone https://github.com/adamdingliang/RNAIndel/tree/master  # Clone the repo
 ```
 
-
 ## Installation
 It is highly recommended to setup a virtual python environment using [conda](https://conda.io/docs/) and install 
 the python dependencies in the virtual environment:
@@ -54,6 +53,13 @@ cd RNAIndel                 # Switch to source directory
 python setup.py install     # Install bambino and rna_indel from source
 bambino -h                  # Check if bambino works correctly
 rna_indel -h                # Check if rna_indel works correctly
+```
+
+## Data directory set up
+Download [data_dir.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir.tar.gz) <br>
+Place the gziped file under your working directory and unpack it.<br>
+```
+tar xzvf data_dir.tar.gz
 ```
 
 ## Input BAM file
@@ -98,7 +104,7 @@ rna_indel -b BAM -c INPUT_VCF -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [other opti
 * ```-c``` VCF file from other caller (required for using other callers, e.g., [GATK](https://software.broadinstitute.org/gatk/))
 * ```-o``` output VCF file (required)
 * ```-f``` reference genome (GRCh38) FASTA file (required)
-* ```-d``` data directory contains refgene, dbsnp and clinvar databases
+* ```-d``` path to data directory contains refgene, dbsnp and clinvar databases [Data directory set up](#data-direcotry-set-up) 
 * ```-q``` STAR mapping quality MAPQ for unique mappers (default=255)
 * ```-p``` number of cores (default=1)
 * ```-n``` user-defined panel of non-somatic indels in VCF format
