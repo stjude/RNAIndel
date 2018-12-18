@@ -31,7 +31,7 @@ def indel_rescuer(df, fasta, bam, **kwargs):
         pool=pool,
         left_aligned=left_aligned,
     )
-
+    
     df["rescued_indels"] = df.apply(rqxeq, axis=1)
     df["rescued"] = df.apply(flag_indel_rescued_by_equivalence, axis=1)
 
@@ -54,6 +54,7 @@ def indel_rescuer(df, fasta, bam, **kwargs):
     df = sort_positionally(df)
     df = df.drop_duplicates(["chr", "pos", "ref", "alt"])
     df.reset_index(drop=True, inplace=True)
+    
     return df
 
 
@@ -117,7 +118,7 @@ def rescue_by_equivalence(row, fasta, bam, search_window, pool, left_aligned):
         for eq in equivalents
         if eq
     ]
-
+    
     return equivalents
 
 
@@ -183,6 +184,7 @@ def flag_indel_rescued_by_nearest(row):
     flag = row["rescued"]
     if row["rescued_indels"] != [] and flag != "by_equivalence":
         flag = row["rescued_indels"][0]["rescued"]
+    
     return flag
 
 

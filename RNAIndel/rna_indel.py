@@ -6,6 +6,7 @@ import sys
 import pathlib
 import logging
 import argparse
+import pandas as pd
 from functools import partial
 
 try:
@@ -23,7 +24,8 @@ def main():
     dbsnp = "{}/dbsnp/00-All.151.indel.vcf.gz".format(data_dir)
     clinvar = "{}/clinvar/clinvar.indel.vcf.gz".format(data_dir)
     model_dir = "{}/models".format(data_dir)
-
+    
+    # Preprocessing
     if args.input_bambino:
         df = ri.indel_preprocessor(args.input_bambino, refgene, args.fasta)
         df = ri.indel_rescuer(
@@ -37,25 +39,47 @@ def main():
             args.bam,
             num_of_processes=args.process_num,
             left_aligned=True,
-            external_vcf=True,
+            external_vcf=True
         )
 
+    # Analysis 1: indel annotation
     df = ri.indel_annotator(df, refgene, args.fasta)
-    df, df_filtered = ri.indel_sequence_processor(
+    
+    # Analysis 2: feature calculation using  
+    df, df_filtered_premerge = ri.indel_sequence_processor(
         df, args.fasta, args.bam, args.uniq_mapq
     )
     df = ri.indel_protein_processor(df, refgene)
-    df = ri.indel_equivalence_solver(df, args.fasta, refgene)
+    
+    # Analysis 3: mergeing equivalent indels
+    df, df_filtered_postmerge = ri.indel_equivalence_solver(
+       df, args.fasta, refgene
+    )
+    
+    # Analysis 4: dbSNP annotation
     df = ri.indel_snp_annotator(df, args.fasta, dbsnp, clinvar)
+    
+    # Analysis 5: prediction
     df = ri.indel_classifier(df, model_dir, num_of_processes=args.process_num)
-
+    
+    # Analysis 6: concatenating invalid(filtered) entries
+    df_filtered = pd.concat(
+        [df_filtered_premerge, df_filtered_postmerge], 
+        axis=0, 
+        ignore_index=True,
+        sort=True
+    )
+    
+    # Analysis 7(Optional): custom refinement of somatic prediction
     if args.non_somatic_panel:
         df = ri.indel_reclassifier(df, args.fasta, args.non_somatic_panel)
 
+    # PostProcessing & VCF formatting
     df, df_filtered = ri.indel_postprocessor(
         df, df_filtered, refgene, args.fasta, args.non_somatic_panel
     )
     ri.indel_vcf_writer(df, df_filtered, args.bam, args.fasta, args.output_vcf)
+    
     print("rna_indel completed successfully", file=sys.stderr)
 
 
@@ -77,14 +101,14 @@ def get_args():
         "--input-bambino",
         metavar="FILE",
         type=partial(check_file, file_name="Bambino Call Format file"),
-        help="input file with indel calls from Bambino"
+        help="input file with calls from Bambino"
     )
     group.add_argument(
         "-c",
         "--input-vcf",
         metavar="FILE",
         type=partial(check_file, file_name="VCF (.vcf) file"),
-        help="input vcf file with indel calls from other callers"
+        help="input vcf file from other callers"
     )
     parser.add_argument(
         "-o", "--output-vcf", metavar="FILE", required=True, help="output vcf file"
