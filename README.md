@@ -12,8 +12,7 @@ supplying a VCF file.
 **[Input BAM file](#input-bam-file)**<br>
 **[Run on the command line](#run-on-the-command-line)**<br>
 **[Run Bambino and RNAIndel as a Workflow](#run-bambino-and-rnaindel-as-a-workflow)**<br>
-**[Run RNAIndel with GATK](#run-rnaindel-with-gatk)**<br>
-
+**[Preparation of non-somatic indel panel](#preparation-of-non-somatic-indel-panel)**<br>
 
 ## Citations
 1. RNAIndel (in preparation).
@@ -69,7 +68,7 @@ Please prepare your input as follows:<br>
 Step 1. Map your reads with the STAR 2-pass mode to GRCh38.<br>
 Step 2. Add read groups, sort, mark duplicates, and index the BAM file with Picard.<br>
 
-Please input the BAM file from Step 2 without additional processing.<br>
+Please input the BAM file from Step 2 without additional caller specific preprocessing such as indel realignment.<br>
 Additional processing steps may prevent desired behavior.
 
 ## Run on the command line
@@ -78,7 +77,7 @@ Additional processing steps may prevent desired behavior.
 A separate Bambino executable is provided with parameters optimized for RNA-Seq variant calling.
 The output is a flat tab-delimited file contains SNVs and indels. 
 ```
-bambino -i BAM -f REF_FASTA -o BAMBINO_OUTPUT
+bambino -i BAM -f REF_FASTA -o BAMBINO_OUTPUT [optional argument (-m)]
 ```
 
 #### Bambino options
@@ -90,12 +89,12 @@ bambino -i BAM -f REF_FASTA -o BAMBINO_OUTPUT
 ### Run RNAIndel for classification
 #### Classification of Bambino calls
 ```
-rna_indel -b BAM -i BAMBINO_OUTPUT -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [other options]
+rna_indel -b BAM -i BAMBINO_OUTPUT -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [optional arguments]
 ```
 #### Classification of calls from other callers
 The input VCF file may contain SNVs.
 ```
-rna_indel -b BAM -c INPUT_VCF -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [other options]
+rna_indel -b BAM -c INPUT_VCF -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [optional arguments]
 ```
 
 #### RNAIndel options
@@ -130,3 +129,17 @@ When a VCF file is supplied by -c,  indel entries in the VCF file are used for c
 rna_indel_piepline.sh -b BAM -c INPUT_VCF -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [other options]
 ```
 See [Bambino options](#bambino-options) and [RNAIndel options](#rnaindel-options) for the explanations of the options.
+
+## Preparation of non-somatic indel panel
+Somatic prediction can be refined by applying a user-defined exclusion panel. RNAIndel reclassifies indels predicted as somatic if <br>
+they are found on the panel to either germline or artifact class with a higher probability. This panel is especially useful to <br>
+remove recurrent artifacts. Users can compile their panel as follows: <br>
+1. Prepare a dataset with RNA-Seq and DNA-Seq performed. <br>
+2. Apply RNAIndel and collect indels predicted somatic. <br>
+3. Validate the indels with the DNA-Seq data. <br>
+4. Collect indels which are validated as germline or artifact in N samples or more. <br>   
+5. Format the recurrent non-somatic indels in VCF format.<br>
+6. Index the VCF file with Tabix.<br>     
+7. Apply the panel to your new sample. <br>
+<br>
+The panel described in the RNAIndel manuscript can be download here.<br> 
