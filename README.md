@@ -68,12 +68,14 @@ Please prepare your input as follows:<br>
 Step 1. Map your reads with the STAR 2-pass mode to GRCh38.<br>
 Step 2. Add read groups, sort, mark duplicates, and index the BAM file with Picard.<br>
 
-Please input the BAM file from Step 2 without additional caller specific preprocessing such as indel realignment.<br>
+Please input the BAM file from Step 2 without caller-specific preprocessing such as indel realignment.<br>
 Additional processing steps may prevent desired behavior.
 
 ## Run on the command line
+The RNAIndel pipeline consists of indel calling and classification components, which are performed by two separate excutables.<br>
+These excutables are chained in [BASH](#use-bash-wrapper) or [CWL](#use-cwl-scripts).<br>
 
-### Indel calling using Bambino
+### Indel calling
 A separate Bambino executable is provided with parameters optimized for RNA-Seq variant calling.
 The output is a flat tab-delimited file contains SNVs and indels. 
 ```
@@ -86,7 +88,7 @@ bambino -i BAM -f REF_FASTA -o BAMBINO_OUTPUT [optional argument (-m)]
 * ```-f``` reference genome FASTA file (required)
 * ```-o``` Bambino output file (required)
 
-### Run RNAIndel for classification
+### Indel classification
 #### Classification of Bambino calls
 ```
 rna_indel -b BAM -i BAMBINO_OUTPUT -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [optional arguments]
@@ -131,13 +133,12 @@ rna_indel_piepline.sh -b BAM -c INPUT_VCF -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR
 See [Bambino options](#bambino-options) and [RNAIndel options](#rnaindel-options) for the explanations of the options.
 
 ## Preparation of non-somatic indel panel
-Somatic prediction can be refined by applying a user-defined exclusion panel. RNAIndel reclassifies indels predicted as somatic to either germline 
-or artifact class with a higher probability, if they are found in the panel. This panel is particularly useful to <br>
-remove recurrent artifacts. We strongly recommend to use this option for fewer false positives. <br>
-
-A sample panel compiled from a cohort of 330 samples with RNA-Seq and tumor/normal-paired WGS&WES <br>
-(described in the RNAIndel manuscript) is included in [data_dir.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir.tar.gz).<br> 
-This panel can be applied by appending the following [option](#rnaindel-options) to RNAIndel command: <br>
+Users may want to prevent a certain set of indels from being classified as somatic. Users can prepare such a user-define exlusion panel to improve 
+somatic prediction. RNAIndel reclassifies indels predicted as somatic to either germline or artifact class, whichever has the higher probability, if 
+they are found in the panel. As an example, a panel of recurrent non-somatic indels compiled from 
+a cohort of 330 samples with RNA-Seq and tumor/normal-paired WGS&WES is provided in [data_dir.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir.tar.gz).<br> 
+<br>
+This panel can be applied by appending the following [option](#rnaindel-options) to the RNAIndel command: <br>
 ```
 -n <path_to_data_dir>/data_dir/non_somatic/non_somatic.vcf.gz
 ```
@@ -154,6 +155,5 @@ Alternatively, you can complie your own panel as follows:<br>
 4. Collect indels which are validated as germline or artifact in N samples or more (recurrent non-somatic indels). <br>   
 5. Format the recurrent non-somatic indels in VCF format.<br>
 6. Index the VCF file with Tabix.<br>     
-7. Apply the panel to your new sample. <br>
 <br>
 
