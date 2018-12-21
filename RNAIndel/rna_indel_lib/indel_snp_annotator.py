@@ -11,7 +11,6 @@ import pysam
 from functools import partial
 from .indel_features import IndelSnpFeatures
 from .indel_curator import curate_indel_in_genome
-from .indel_equivalence_solver import are_equivalent
 
 
 def indel_snp_annotator(df, fasta, dbsnp, clnvr):
@@ -80,7 +79,7 @@ def annotate_indel_on_db(row, fasta, dbsnp, clnvr):
                 db_idl = curate_indel_in_genome(
                     fasta, chr, bb.pos, bb.idl_type, bb.idl_seq
                 )
-                if are_equivalent(idl, db_idl):
+                if idl == db_idl:
                     rs = record[2]
                     report.add_dbsnp_id(rs)
                     report.add_dbsnp_freq(dbsnp_freq(record))
@@ -94,7 +93,7 @@ def annotate_indel_on_db(row, fasta, dbsnp, clnvr):
                 db_idl = curate_indel_in_genome(
                     fasta, chr, bb.pos, bb.idl_type, bb.idl_seq
                 )
-                if are_equivalent(idl, db_idl):
+                if idl == db_idl:
                     id = record[2]
                     report.add_clnvr_id(id)
                     report.add_clnvr_freq(clnvr_freq(record))

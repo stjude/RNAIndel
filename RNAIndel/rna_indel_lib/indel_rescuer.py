@@ -10,7 +10,6 @@ from .indel_curator import extract_indel_reads
 from .indel_curator import decompose_indel_read
 from .indel_curator import curate_indel_in_genome
 from .indel_curator import extract_all_valid_reads
-from .indel_equivalence_solver import are_equivalent
 
 
 def indel_rescuer(df, fasta, bam, **kwargs):
@@ -32,7 +31,7 @@ def indel_rescuer(df, fasta, bam, **kwargs):
         pool=pool,
         left_aligned=left_aligned,
     )
-
+    
     df["rescued_indels"] = df.apply(rqxeq, axis=1)
     df["rescued"] = df.apply(flag_indel_rescued_by_equivalence, axis=1)
 
@@ -55,6 +54,7 @@ def indel_rescuer(df, fasta, bam, **kwargs):
     df = sort_positionally(df)
     df = df.drop_duplicates(["chr", "pos", "ref", "alt"])
     df.reset_index(drop=True, inplace=True)
+    
     return df
 
 
@@ -116,9 +116,9 @@ def rescue_by_equivalence(row, fasta, bam, search_window, pool, left_aligned):
             "rescued": "by_equivalence",
         }
         for eq in equivalents
-        if eq != None
+        if eq
     ]
-
+    
     return equivalents
 
 
@@ -184,6 +184,7 @@ def flag_indel_rescued_by_nearest(row):
     flag = row["rescued"]
     if row["rescued_indels"] != [] and flag != "by_equivalence":
         flag = row["rescued_indels"][0]["rescued"]
+    
     return flag
 
 
@@ -212,7 +213,7 @@ def extract_indel(pos, fasta, bam, chr, idl_type, **kwargs):
         )
 
         if idl_to_compare:
-            if not are_equivalent(idl_to_compare, idl_at_this_locus):
+            if idl_to_compare != idl_at_this_locus:
                 idl_at_this_locus = None
 
     return idl_at_this_locus

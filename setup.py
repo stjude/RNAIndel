@@ -13,23 +13,22 @@ setup(
     author_email="kohei.hagiwara@stjude.org, liang.ding@stjude.org",
     license="Apache License 2.0",
     install_requires=[
-        "pandas >= 0.22.0",
+        "pandas >= 0.23.0",
         "numpy >= 1.12.0",
-        "scikit-learn >= 0.18",
+        "scikit-learn == 0.18.1",
         "pysam == 0.13",
         "pyvcf == 0.6.8",
     ],
     python_requires=">=3.5.2",
     packages=find_packages(exclude=["contrib", "docs", "tests"]),
     package_data={
-        "RNAIndel": ["testdata/inputs/*", "testdata/outputs/*"],
+        "RNAIndel": ["sample_data/*"],
         "Bambino": [
             "bambino-1.0.jar",
             "mysql-connector-java-5.1.10.jar",
             "picard.jar",
             "third_party.jar",
-            "testdata/inputs/*",
-            "testdata/outputs/*",
+            "sample_data/*"
         ],
     },
     include_package_data=True,

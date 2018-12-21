@@ -28,7 +28,10 @@ def indel_equivalence_solver(df, fasta, refgene):
         fasta (str): path to .fa
         refgene (str): path to refCodingExon.bed.gz
     Returns:
-        df (pandas.DataFrame)
+        df (pandas.DataFrame): dataframe with valid entries
+        df_filtered_postmerge (pandas.DataFrame):
+                               dataframe with entries with alt_count == 1
+                               after the merge of equivalen indels
     """
     # finds and merge equivalent indels
     df = solve_equivalence(df, fasta)
@@ -42,7 +45,19 @@ def indel_equivalence_solver(df, fasta, refgene):
 
     df.drop(["gene_symbol", "equivalence_id"], axis=1, inplace=True)
 
-    return df
+    df["filtered"] = df.apply(flag_entry_with_one_read, axis=1)
+    
+    df, df_filtered_postmerge = df[df["filtered"] == "-"], df[df["filtered"] != "-"]
+    
+    return df, df_filtered_postmerge
+
+
+def flag_entry_with_one_read(row):
+    filtered = "-"
+    if row["alt_count"] < 2:
+        filtered = "lt2count"
+
+    return filtered
 
 
 def solve_equivalence(df, fasta):
@@ -143,7 +158,8 @@ def check_equivalence(row, df):
 
     res = []
     for idl2 in search_space:
-        if are_equivalent(idl1, idl2):
+        # equality by equivalence
+        if idl1 == idl2:
             msg = (
                 idl2.chr
                 + ":"
@@ -290,89 +306,3 @@ def indels_per_gene(df, d):
         df["ipg"] = equivalence_corrected_num_of_indels / median_cds_len
 
     return df
-
-
-def are_equivalent(idl1, idl2):
-    """Checks if two indels are equivalent.
-    A python implementation of Steve Rive's algorithm.
-
-    Args:
-       idl1 (SequenceWithIndel obj)
-       idl2 (SequenceWithIndel obj)
-    
-    Returns:
-       bool: True for idl1 and idl2 are equivalent
-             False otherwise 
-    """
-
-    # assume idl2 is on the left side
-    if idl1.pos > idl2.pos:
-        idl1, idl2 = idl2, idl1
-
-    chr1 = idl1.chr
-    chr2 = idl2.chr
-    idl_type1 = idl1.idl_type
-    idl_type2 = idl2.idl_type
-    idl_seq1 = idl1.idl_seq
-    idl_seq2 = idl2.idl_seq
-
-    # rejects trivial cases
-    if idl1.chr != idl2.chr:
-        return False
-    if idl_type1 != idl_type2:
-        return False
-    if len(idl_seq1) != len(idl_seq2):
-        return False
-
-    # here after the two indels are
-    # of same type (ins or del) with
-    # the same indel length, and
-    # indel 2 pos >= indel 1 pos.
-
-    n = len(idl_seq1)
-    m = idl2.pos - idl1.pos
-
-    # insertion cases
-    if idl_type1 == 1:
-        s = idl1.rt_seq[0:m]
-
-        if m > n:
-            if idl_seq1 == s[:n] and s[: (m - n)] == s[n:] and idl_seq2 == s[-n:]:
-                return True
-            else:
-                return False
-
-        elif m == n:
-            if idl_seq1 == s == idl_seq2:
-                return True
-            else:
-                return False
-
-        elif m > 0 and m < n:
-            if (
-                idl_seq1[:m] == s == idl_seq2[-m:]
-                and idl_seq1[-(n - m) :] == idl_seq2[: (n - m)]
-            ):
-                return True
-            else:
-                return False
-
-        else:
-            if idl_seq1 == idl_seq2:
-                return True
-            else:
-                return False
-
-    # deletion cases
-    else:
-        if m == 0:
-            if idl_seq1 == idl_seq2:
-                return True
-            else:
-                return False
-        else:
-            s = (idl_seq1 + idl1.rt_seq)[:m] + idl_seq2
-            if s[:m] == s[n : (m + n)]:
-                return True
-            else:
-                return False

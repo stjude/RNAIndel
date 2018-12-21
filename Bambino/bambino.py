@@ -2,9 +2,10 @@
 
 import os
 import sys
-import argparse
 import shlex
+import argparse
 import subprocess
+from functools import partial
 
 
 def main():
@@ -16,28 +17,34 @@ def main():
         description=head_description,
     )
     parser.add_argument(
-        "-b", "--bam", metavar="FILE", required=True, help="input tumor bam file"
+        "-m",
+        "---heap-memory",
+        metavar="STR",
+        default="6000m",
+        help="maximum heap space (default: 6000m)"
+    )
+    parser.add_argument(
+        "-b", 
+        "--bam", 
+        metavar="FILE", 
+        required=True, 
+        type=partial(check_file, file_name="BAM file (.bam)"),
+        help="input tumor bam file"
     )
     parser.add_argument(
         "-f",
         "--fasta",
         metavar="FILE",
         required=True,
-        help="reference genome FASTA file",
-    )
-    parser.add_argument(
-        "-d",
-        "--dbsnp",
-        metavar="FILE",
-        required=True,
-        help="indels on dbSNP database (https://www.ncbi.nlm.nih.gov/snp) in vcf format",
+        type=partial(check_file, file_name="FASTA file"),
+        help="reference genome (GRCh38) FASTA file. Use the same FASTA file used for mapping.",
     )
     parser.add_argument(
         "-o",
         "--output-file",
         metavar="FILE",
         required=True,
-        help="output file with Bambino indel calls",
+        help="Bambino output file",
     )
     args = parser.parse_args()
 
@@ -51,12 +58,15 @@ def main():
 
     # Unpaired Bambino command
     cmd_str = (
-        "java -Xmx6000m Ace2.SAMStreamingSNPFinder -of {} -fasta {} -min-mapq 1 "
-        "-optional-tags XT!=R -bam {} -tn N -dbsnp-file {} -min-quality 20 "
-        "-min-flanking-quality 20 -min-alt-allele-count 3 -min-minor-frequency 0 -broad-min-quality 10 "
-        "-mmf-max-hq-mismatches 6 -mmf-max-hq-mismatches-xt-u 10 -mmf-min-quality 15 -mmf-max-any-mismatches 6 "
-        "-unique-filter-coverage 2 -no-strand-skew-filter -illumina-q2 1".format(
-            args.output_file, args.fasta, args.bam, args.dbsnp
+        "java -Xmx{} Ace2.SAMStreamingSNPFinder -of {} -fasta {} -min-mapq 1 "
+        "-optional-tags XT!=R -bam {} -tn T -min-quality 20 "
+        "-min-flanking-quality 20 -min-alt-allele-count 3 "
+        "-min-minor-frequency 0 -broad-min-quality 10 "
+        "-mmf-max-hq-mismatches 8 -mmf-max-hq-mismatches-xt-u 10 "
+        "-mmf-min-hq-quality 15 -mmf-max-lq-mismatches 8 "
+        "-unique-filter-coverage 2 -no-strand-skew-filter -illumina-q2 1 "
+        "-poly-x-min-run-length 10 -autotune -query-mode".format(
+            args.heap_memory, args.output_file, args.fasta, args.bam
         )
     )
     stdout, stderr, return_code = run_shell_command(cmd_str)
@@ -87,6 +97,10 @@ def run_shell_command(command_string):
 
     return stdout, stderr, return_code
 
+def check_file(file_path, file_name):
+    if not os.path.isfile(file_path):
+        sys.exit("Error: {} Not Found.".format(file_name))
+    return file_path
 
 if __name__ == "__main__":
     main()

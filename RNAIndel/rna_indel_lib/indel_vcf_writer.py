@@ -34,7 +34,9 @@ def indel_vcf_writer(df, df_filtered, bam, fasta, vcfname):
         None: a vcf file will be written out
     """
     fa = pysam.FastaFile(fasta)
-    df = pd.concat([df, df_filtered], axis=0, ignore_index=True, sort=True)
+    
+    if not df_filtered.empty:
+        df = pd.concat([df, df_filtered], axis=0, ignore_index=True, sort=True)
 
     df = sort_positionally(df)
 
@@ -152,8 +154,8 @@ def vcf_template(bam, fasta, info_dict, format_dict):
         "##source=RNAIndel",
         "##reference=" + fasta,
         '##FILTER=<ID=NtF,Description="Not found as specified in the input VCF">',
-        '##FILTER=<ID=Lt2,Description="Less than 2 alt allele count">',
-        '##FILTER=<ID=ReN,Description="Rescued with nearest indel">',
+        '##FILTER=<ID=Lt2,Description="Less than 2 ALT allele count">',
+        '##FILTER=<ID=RqN,Description="Rescued with nearest indel">',
     ]
 
     info_order = [

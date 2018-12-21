@@ -6,6 +6,8 @@ import sys
 import pathlib
 import logging
 import argparse
+import pandas as pd
+from functools import partial
 
 try:
     import RNAIndel.rna_indel_lib as ri
@@ -22,44 +24,74 @@ def main():
     dbsnp = "{}/dbsnp/00-All.151.indel.vcf.gz".format(data_dir)
     clinvar = "{}/clinvar/clinvar.indel.vcf.gz".format(data_dir)
     model_dir = "{}/models".format(data_dir)
-
+    
+    # Preprocessing
     if args.input_bambino:
         df = ri.indel_preprocessor(args.input_bambino, refgene, args.fasta)
         df = ri.indel_rescuer(
             df, args.fasta, args.bam, num_of_processes=args.process_num
         )
     else:
-        df = ri.indel_vcf_preprocessor(args.input_vcf, args.refgene, args.fasta)
+        df = ri.indel_vcf_preprocessor(args.input_vcf, refgene, args.fasta)
         df = ri.indel_rescuer(
             df,
             args.fasta,
             args.bam,
             num_of_processes=args.process_num,
             left_aligned=True,
-            external_vcf=True,
+            external_vcf=True
         )
 
+    # Analysis 1: indel annotation
     df = ri.indel_annotator(df, refgene, args.fasta)
-    df, df_filtered = ri.indel_sequence_processor(
+    
+    # Analysis 2: feature calculation using  
+    df, df_filtered_premerge = ri.indel_sequence_processor(
         df, args.fasta, args.bam, args.uniq_mapq
     )
     df = ri.indel_protein_processor(df, refgene)
-    df = ri.indel_equivalence_solver(df, args.fasta, refgene)
+    
+    # Analysis 3: mergeing equivalent indels
+    df, df_filtered_postmerge = ri.indel_equivalence_solver(
+       df, args.fasta, refgene
+    )
+    
+    # Analysis 4: dbSNP annotation
     df = ri.indel_snp_annotator(df, args.fasta, dbsnp, clinvar)
+    
+    # Analysis 5: prediction
     df = ri.indel_classifier(df, model_dir, num_of_processes=args.process_num)
-
+    
+    # Analysis 6: concatenating invalid(filtered) entries
+    df_filtered = pd.concat(
+        [df_filtered_premerge, df_filtered_postmerge], 
+        axis=0, 
+        ignore_index=True,
+        sort=True
+    )
+    
+    # Analysis 7(Optional): custom refinement of somatic prediction
     if args.non_somatic_panel:
         df = ri.indel_reclassifier(df, args.fasta, args.non_somatic_panel)
 
-    df = ri.indel_postprocessor(df, refgene, args.fasta, args.non_somatic_panel)
+    # PostProcessing & VCF formatting
+    df, df_filtered = ri.indel_postprocessor(
+        df, df_filtered, refgene, args.fasta, args.non_somatic_panel
+    )
     ri.indel_vcf_writer(df, df_filtered, args.bam, args.fasta, args.output_vcf)
+    
     print("rna_indel completed successfully", file=sys.stderr)
 
 
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-b", "--bam", metavar="FILE", required=True, help="input tumor bam file"
+        "-b",
+        "--bam",
+        metavar="FILE",
+        required=True,
+        type=partial(check_file, file_name="BAM file (.bam)"),
+        help="input tumor bam file"
     )
 
     # input indel calls required either: bambino output or a vcf file
@@ -68,15 +100,16 @@ def get_args():
         "-i",
         "--input-bambino",
         metavar="FILE",
-        help="input file with indel calls from Bambino",
+        type=partial(check_file, file_name="Bambino Call Format file"),
+        help="input file with calls from Bambino"
     )
     group.add_argument(
         "-c",
         "--input-vcf",
         metavar="FILE",
-        help="input vcf file with indel calls from other callers",
+        type=partial(check_file, file_name="VCF (.vcf) file"),
+        help="input vcf file from other callers"
     )
-
     parser.add_argument(
         "-o", "--output-vcf", metavar="FILE", required=True, help="output vcf file"
     )
@@ -85,23 +118,24 @@ def get_args():
         "--fasta",
         metavar="FILE",
         required=True,
-        help="reference genome (GRCh38) FASTA file",
+        type=partial(check_file, file_name="FASTA file"),
+        help="reference genome (GRCh38) FASTA file. Use the same FASTA file used for mapping"
     )
     parser.add_argument(
         "-d",
         "--data-dir",
         metavar="DIR",
         required=True,
-        type=check_folder_existence,
-        help="data directory contains refgene, dbsnp and clivar databases",
+        help="data directory contains refgene, dbsnp and clinvar databases and models",
+        type=check_folder_existence
     )
     parser.add_argument(
         "-q",
         "--uniq-mapq",
         metavar="INT",
         default=255,
-        type=int,
-        help="STAR mapping quality MAPQ for unique mappers",
+        type=check_mapq,
+        help="STAR mapping quality MAPQ for unique mappers (default: 255)",
     )
     parser.add_argument(
         "-p",
@@ -109,14 +143,14 @@ def get_args():
         metavar="INT",
         default=1,
         type=check_pos_int,
-        help="number of processes (default is 1)",
+        help="number of processes (default: 1)",
     )
     parser.add_argument(
         "-n",
         "--non-somatic-panel",
         metavar="FILE",
-        type=check_panel_of_non_somatic,
-        help="user-defined panel of non-somatic indel list in vcf format",
+        type=partial(check_file, file_name="Panel of non-somatic (.vcf)"),
+        help="user-defined panel of non-somatic indels in VCF format",
     )
     parser.add_argument(
         "-l",
@@ -155,6 +189,12 @@ def check_pos_int(val):
     return val
 
 
+def check_mapq(val):
+    val = int(val)
+    if not 0 <= val <= 255:
+        sys.exit("Error: the MAPQ value must be between 0 and 255.")
+    return val
+
 def check_folder_existence(folder):
     p = pathlib.Path(folder)
     if not p.exists():
@@ -162,9 +202,9 @@ def check_folder_existence(folder):
     return folder
 
 
-def check_panel_of_non_somatic(file_path):
+def check_file(file_path, file_name):
     if not os.path.isfile(file_path):
-        sys.exit("Error: Panel of non somatic (.vcf) Not Found.")
+        sys.exit("Error: {} Not Found.".format(file_name))
     return file_path
 
 
