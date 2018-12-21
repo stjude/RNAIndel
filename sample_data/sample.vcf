@@ -3,8 +3,8 @@
 ##source=RNAIndel
 ##reference=/research/rgs01/project_space/zhanggrp/MethodDevelopment/common/RNAIndel/fasta/GRCh38_no_alt_ERCC92_SpikeIn.fa
 ##FILTER=<ID=NtF,Description="Not found as specified in the input VCF">
-##FILTER=<ID=Lt2,Description="Less than 2 alt allele count">
-##FILTER=<ID=ReN,Description="Rescued with nearest indel">
+##FILTER=<ID=Lt2,Description="Less than 2 ALT allele count">
+##FILTER=<ID=RqN,Description="Rescued with nearest indel">
 ##INFO=<ID=PRED,Number=1,Type=String,Description="Predicted class: somatic, germline, artifact">
 ##INFO=<ID=PROB,Number=3,Type=Float,Description="Prediction probability of being somatic, germline, artifact in this order">
 ##INFO=<ID=DB,Number=0,Type=Flag,Description="Flagged if on dbSNP">
