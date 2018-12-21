@@ -40,14 +40,14 @@ $ ./rna_indel_pipeline.sh -b sample_data/inputs/sample.bam \
 bambino completed successfully.
 rna_indel completed successfully
 ```
-Fifteen coding indels are reported in the ouput [VCF](sample.vcf) file: 2 somatic, 1 germline, and 12 artifact indels.
+Fifteen coding indels are reported in the ouput [VCF](./outputs/sample.vcf) file: 2 somatic, 1 germline, and 12 artifact indels.
 The two *PTEN* indels are predicted as somatic. The first indel is a complex indel in which a 2-nt deletion and a 9-nt insertion 
-are involved. This indel is detected as a 7-nt insertion at codon 233 with indel complexity = 2 (See INFO field in [VCF](sample.vcf)). The second indel
+are involved. This indel is detected as a 7-nt insertion at codon 233 with indel complexity = 2 (See INFO field in [VCF](./outputs/sample.vcf)). The second indel
 is detected as a 7-nt insertion at codon 246, not as a 39-nt insertion, due to the soft-clipped alignment. 
 
 ### Working with GATK-HaplotypeCaller
 The sample BAM file was preprocessed following GATK RNA-Seq Variant Calling [BestPractice](https://software.broadinstitute.org/gatk/documentation/article.php?id=3891). 
-GATK-HC (ver 4.0.2.1) called variants in the preprocessed BAM file (sample.gatk.bam) and generated a VCF file (sample_gatk.vcf).
+GATK-HC (ver 4.0.2.1) called variants in the preprocessed BAM file (./inputs/sample.gatk.bam) and generated a VCF file (./inputs/sample_gatk.vcf).
 Now, the indels in the GATK VCF file are classified. **Please input the original BAM file (sample.bam), not the preprocessed one (sample.gatk.bam)**.
 ```
 $ ./rna_indel_pipeline.sh -b sample_data/inputs/sample.bam \
@@ -58,12 +58,12 @@ $ ./rna_indel_pipeline.sh -b sample_data/inputs/sample.bam \
 
 rna_indel completed successfully
 ```
-Four coding indels are reported in the output [VCF](sample_gatk_classified.vcf) file: 2 somatic, 1 germline, and 1 artifact. 
+Four coding indels are reported in the output [VCF](./outputs/sample_gatk_classified.vcf) file: 2 somatic, 1 germline, and 1 artifact. 
 Both *PTEN* indels are predicated as somatic. The 39-insertion at codon 246 is also detected as a 7-nt insertion by GATK-HC. 
-However, the first indel at codon 234 is detected by GATK as a combination of two insertions: 
-the GGCCC insertion at chr10:87957916 and the TG insertion at chr10:87957917. In the output [VCF](sample_gatk_classified.vcf), 
+However, the indel at codon 234 is detected as a combination of two insertions: 
+the GGCCC insertion at chr10:87957916 and the TG insertion at chr10:87957917. In the output [VCF](./outputs/sample_gatk_classified.vcf), 
 these two are annotated as "RQB=chr10:87957916:G:GGGCCCAT". This means that RNAIndel could not find these two indels in the BAM 
-file as represented by the input [VCF](sample_gatk.vcf) file and, instead, found the GGCCCAT insertion at chr10:87957916 in the BAM file and 
+file as specified by the input [VCF](./inputs/sample_gatk.vcf) file and, instead, found the GGCCCAT insertion at chr10:87957916 in the BAM file and 
 used this for prediction. 
 
 ## Reference
