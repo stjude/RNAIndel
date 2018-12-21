@@ -185,3 +185,19 @@ Alternatively, you can complie your own panel as follows:<br>
 6. Index the VCF file with Tabix.<br>     
 <br>
 
+=======
+## Run Bambino and RNAIndel as a workflow
+### Use [CWL](https://www.commonwl.org/) scripts (recommended)
+To do
+
+### Use BASH wrapper
+This requires the [installation](#installation) of `bambino` and `rna_indel` executables.<br>
+This pipeline calls indels by Bambino and classifies them.
+```
+rna_indel_pipeline.sh -b BAM -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [other options]
+```
+When a VCF file is supplied by -c,  indel entries in the VCF file are used for classification (variant calling by Bambino will not be performed).
+```
+rna_indel_piepline.sh -b BAM -c INPUT_VCF -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [other options]
+```
+See [Bambino options](#bambino-options) and [RNAIndel options](#rnaindel-options) for the explanations of the options.
