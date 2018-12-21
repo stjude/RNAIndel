@@ -6,14 +6,43 @@ class: CommandLineTool
 baseCommand: bambino
 
 inputs:
+  bam:
+    type: File
+    secondaryFiles: .bai
+    inputBinding:
+      prefix: -b
+    doc: input bam file
+
+  reference_fasta:
+    type: File
+    secondaryFiles: .fai
+    inputBinding:
+      prefix: -f
+    doc: reference genome (GRCh38) FASTA file
+
+  bambino_output:
+    type: string
+    inputBinding:
+      prefix: -o
+    doc: Bambino output file
+
+  heap_memory:
+    type: string
+    default: 6000m
+    inputBinding:
+      prefix: -m
+    doc: maximum heap space
 
 outputs:
-
+  out_calls:
+    type: File
+    outputBinding:
+      glob: $(inputs.bambino_output)
 
 s:author:
   class: s:Person
-  s:name: Kohei Hagiwara, Liang Ding
-  s:email: mailto:Liang.Ding@stjude.org, kohei.hagiwara@stjude.org
+  s:name: Liang Ding
+  s:email: mailto:Liang.Ding@stjude.org
   s:worksFor:
   - class: s:Organization
     s:name: St.Jude Children's Research Hospital

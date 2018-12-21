@@ -20,19 +20,20 @@ inputs:
     doc: Bambino output file (required for using Bambino as the indel caller)
 
   input_vcf:
-    type: File
+    type: File?
     inputBinding:
       prefix: -c
     doc: vcf file with indel calls (required for using other callers, e.g. GATK)
 
   output_vcf:
-    type: File
+    type: string
     inputBinding:
       prefix: -o
-    doc: output vcf file
+    doc: output vcf file name
 
   reference_fasta:
     type: File
+    secondaryFiles: .fai
     inputBinding:
       prefix: -f
     doc: reference genome (GRCh38) FASTA file
@@ -45,12 +46,14 @@ inputs:
 
   star_mapq:
     type: int
+    default: 255
     inputBinding:
       prefix: -q
     doc: STAR mapping quality MAPQ for unique mappers (default=255)
 
   process_num:
     type: int?
+    default: 1
     inputBinding:
       prefix: -p
     doc: number of cores (default=1)
@@ -62,15 +65,15 @@ inputs:
     doc: user-defined panel of non-somatic indel list in vcf format
 
 outputs:
-  output_vcf:
+  out_vcf:
     type: File
     outputBinding:
       glob: $(inputs.output_vcf)
 
 s:author:
   class: s:Person
-  s:name: Kohei Hagiwara, Liang Ding
-  s:email: mailto:Liang.Ding@stjude.org, kohei.hagiwara@stjude.org
+  s:name: Liang Ding
+  s:email: mailto:Liang.Ding@stjude.org
   s:worksFor:
   - class: s:Organization
     s:name: St.Jude Children's Research Hospital
