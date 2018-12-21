@@ -22,14 +22,13 @@ setup(
     python_requires=">=3.5.2",
     packages=find_packages(exclude=["contrib", "docs", "tests"]),
     package_data={
-        "RNAIndel": ["testdata/inputs/*", "testdata/outputs/*"],
+        "RNAIndel": ["sample_data/*"],
         "Bambino": [
             "bambino-1.0.jar",
             "mysql-connector-java-5.1.10.jar",
             "picard.jar",
             "third_party.jar",
-            "testdata/inputs/*",
-            "testdata/outputs/*",
+            "sample_data/*"
         ],
     },
     include_package_data=True,
