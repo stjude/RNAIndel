@@ -10,8 +10,7 @@ supplying a VCF file.
 **[Download](#download)**<br>
 **[Installation](#installation)**<br>
 **[Input BAM file](#input-bam-file)**<br>
-**[Run on the command line](#run-on-the-command-line)**<br>
-**[Run Bambino and RNAIndel as a Workflow](#run-bambino-and-rnaindel-as-a-workflow)**<br>
+**[Usage](#usage)**<br>
 **[Preparation of non-somatic indel panel](#preparation-of-non-somatic-indel-panel)**<br>
 
 ## Citations
@@ -62,7 +61,6 @@ tar xzvf data_dir.tar.gz
 ```
 
 ## Input BAM file
-Currently, RNAIndel only supports STAR-mapped BAM files (GRCh38).<br>
 Please prepare your input as follows:<br>
 
 Step 1. Map your reads with the STAR 2-pass mode to GRCh38.<br>
@@ -71,32 +69,58 @@ Step 2. Add read groups, sort, mark duplicates, and index the BAM file with Pica
 Please input the BAM file from Step 2 without caller-specific preprocessing such as indel realignment.<br>
 Additional processing steps may prevent desired behavior.
 
-## Run on the command line
+## Usage
 The RNAIndel pipeline consists of indel calling and classification components, which are performed by two separate excutables.<br>
-These excutables are chained in [BASH](#use-bash-wrapper) or [CWL](#use-cwl-scripts).<br>
+The pipeline is provided in [BASH](#use-bash-wrapper) or [CWL](#use-cwl-wrapper).<br>
+Run-examples using sample data is [here](./sample_data).<br> 
+
+### Use BASH wrapper
+```
+rna_indel_pipeline.sh -b input.bam -o output.vcf -f reference.fa -d path/to/data_dir [other options]
+```
+When a VCF file is supplied by -c, indel entries in the VCF file are used for classification (indel calling will not be performed).
+```
+rna_indel_piepline.sh -b input.bam -c input.vcf -o output.vcf -f reference.fa -d path/to/data_dir [other options]
+```
+#### Options
+* ```-b``` input BAM file (required)
+* ```-c``` VCF file from other caller (required for using other callers, e.g., [GATK](https://software.broadinstitute.org/gatk/))
+* ```-o``` output VCF file (required)
+* ```-f``` reference genome (GRCh38) FASTA file (required)
+* ```-d``` data directory contains refgene, dbsnp and clinvar databases (required) [Data directory set up](#data-direcotry-set-up) 
+* ```-q``` STAR mapping quality MAPQ for unique mappers (default=255)
+* ```-p``` number of cores (default=1)
+* ```-m``` maximum heap space (default 6000m)
+* ```-n``` user-defined panel of non-somatic indels in VCF format
+* ```-l``` direcotry to store log files 
+* ```-h``` show usage message
+
+### Use CWL wrapper
+```
+To do
+```
+
+Users can run the executables separately.<br>
 
 ### Indel calling
-A separate Bambino executable is provided with parameters optimized for RNA-Seq variant calling.
-The output is a flat tab-delimited file contains SNVs and indels. 
 ```
-bambino -i BAM -f REF_FASTA -o BAMBINO_OUTPUT [optional argument (-m)]
+bambino -i input.bam -f reference.fa -o bambino_call.txt [optional argument (-m)]
 ```
-
 #### Bambino options
 * ```-m``` maximum heap space (default 6000m)
 * ```-b``` input BAM file (required)
 * ```-f``` reference genome FASTA file (required)
-* ```-o``` Bambino output file (required)
+* ```-o``` Bambino output file. Tab-delimited flat file (required)
 
 ### Indel classification
 #### Classification of Bambino calls
 ```
-rna_indel -b BAM -i BAMBINO_OUTPUT -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [optional arguments]
+rna_indel -b input.bam -i bambino_call.txt -o output.vcf -f reference.fa -d path/to/data_dir [optional arguments]
 ```
 #### Classification of calls from other callers
 The input VCF file may contain SNVs.
 ```
-rna_indel -b BAM -c INPUT_VCF -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [optional arguments]
+rna_indel -b input.bam -c input.vcf -o output.vcf -f reference.fa -d path/to/data_dir [optional arguments]
 ```
 
 #### RNAIndel options
@@ -109,28 +133,6 @@ rna_indel -b BAM -c INPUT_VCF -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [optional a
 * ```-q``` STAR mapping quality MAPQ for unique mappers (default=255)
 * ```-p``` number of cores (default=1)
 * ```-n``` user-defined panel of non-somatic indels in VCF format
-<!--
-* ```-r``` [refgene](https://www.ncbi.nlm.nih.gov/refseq/) coding exon database
-* ```-d``` indels on [dbSNP database](https://www.ncbi.nlm.nih.gov/snp) in vcf format
-* ```-l``` [ClinVar database](https://www.ncbi.nlm.nih.gov/clinvar/)
-* ```-m``` directory with trained random forest models -->
-
-
-## Run Bambino and RNAIndel as a workflow
-### Use CWl scripts (recommended)
-To do
-
-### Use BASH wrapper
-This requires the [installation](#installation) of `bambino` and `rna_indel` executables.<br>
-This pipeline calls indels by Bambino and classifies them.
-```
-rna_indel_pipeline.sh -b BAM -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [other options]
-```
-When a VCF file is supplied by -c,  indel entries in the VCF file are used for classification (variant calling by Bambino will not be performed).
-```
-rna_indel_piepline.sh -b BAM -c INPUT_VCF -o OUTPUT_VCF -f REF_FASTA -d DATA_DIR [other options]
-```
-See [Bambino options](#bambino-options) and [RNAIndel options](#rnaindel-options) for the explanations of the options.
 
 ## Preparation of non-somatic indel panel
 Users may want to prevent a certain set of indels from being classified as somatic. Users can prepare such a user-define exlusion panel to improve 
@@ -140,7 +142,7 @@ a cohort of 330 samples with RNA-Seq and tumor/normal-paired WGS&WES is provided
 <br>
 This panel can be applied by appending the following [option](#rnaindel-options) to the RNAIndel command: <br>
 ```
--n <path_to_data_dir>/data_dir/non_somatic/non_somatic.vcf.gz
+-n path/to/data_dir/non_somatic/non_somatic.vcf.gz
 ```
 
 Alternatively, you can complie your own panel as follows:<br>
