@@ -4,7 +4,7 @@ This cell line harbors two well characterized indels in the *PTEN* tumor suppres
 We apply the RNAIndel pipeline to the sample BAM file (sample.bam), which contains the GRCh38 region chr10:80,000,000-90,000,000 (the *PTEN* locus is chr10:87,863,113-87,971,930). 
 
 ## Setup
-**Step 1:** [Clone](https://github.com/adamdingliang/RNAIndel/blob/develop/README.md#download) the RNAIndel repository and [install](https://github.com/adamdingliang/RNAIndel/blob/develop/README.md#installation) RNAIndel. <br>
+**Step 1:** [Clone](../README.md#download) the RNAIndel repository and [install](../README.md#installation) RNAIndel. <br>
 Your direcotry will be structured:
 ```
 RNAIndel
@@ -32,8 +32,8 @@ RNAIndel
 ## Perform analysis
 ### Working with the built-in Bambino caller
 ```
-$ ./rna_indel_pipeline.sh -b sample_data/sample.bam \
-                          -o sample_data/sample.vcf \
+$ ./rna_indel_pipeline.sh -b sample_data/inputs/sample.bam \
+                          -o sample_data/outputs/sample.vcf \
                           -f path/to/your_GRCh38.fa \
                           -d ./data_dir
 
@@ -50,9 +50,9 @@ The sample BAM file was preprocessed following GATK RNA-Seq Variant Calling [Bes
 GATK-HC (ver 4.0.2.1) called variants in the preprocessed BAM file (sample.gatk.bam) and generated a VCF file (sample_gatk.vcf).
 Now, the indels in the GATK VCF file are classified. **Please input the original BAM file (sample.bam), not the preprocessed one (sample.gatk.bam)**.
 ```
-$ ./rna_indel_pipeline.sh -b sample_data/sample.bam \
-                          -c sample_gatk.vcf \
-                          -o sample_data/sample_gatk_classified.vcf
+$ ./rna_indel_pipeline.sh -b sample_data/inputs/sample.bam \
+                          -c sample_data/inputs/sample_gatk.vcf \
+                          -o sample_data/outputs/sample_gatk_classified.vcf
                           -f path/to/your_GRCh38.fa \
                           -d ./data_dir
 
