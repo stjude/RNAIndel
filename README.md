@@ -54,14 +54,14 @@ rna_indel -h                # Check if rna_indel works correctly
 ```
 
 ## Data directory set up
-Download [data_dir.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir.tar.gz) <br>
+Download [data_dir.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir.tar.gz).<br>
 Place the gziped file under your working directory and unpack it.<br>
 ```
 tar xzvf data_dir.tar.gz
 ```
 
 ## Input BAM file
-Please prepare your input as follows:<br>
+Please prepare your BAM file as follows:<br>
 
 Step 1. Map your reads with the STAR 2-pass mode to GRCh38.<br>
 Step 2. Add read groups, sort, mark duplicates, and index the BAM file with Picard.<br>
@@ -76,7 +76,11 @@ Run-examples using sample data is [here](./sample_data).<br>
 
 ### Use BASH wrapper
 ```
-rna_indel_pipeline.sh -b input.bam -o output.vcf -f reference.fa -d path/to/data_dir [other options]
+rna_indel_pipeline.sh -b input.bam \<br>
+                      -o output.vcf \<br>
+                      -f reference.fa \<br>
+                      -d path/to/data_dir\<br>
+                      [other options]
 ```
 When a VCF file is supplied by -c, indel entries in the VCF file are used for classification (indel calling will not be performed).
 ```
@@ -118,7 +122,6 @@ bambino -i input.bam -f reference.fa -o bambino_call.txt [optional argument (-m)
 rna_indel -b input.bam -i bambino_call.txt -o output.vcf -f reference.fa -d path/to/data_dir [optional arguments]
 ```
 #### Classification of calls from other callers
-The input VCF file may contain SNVs.
 ```
 rna_indel -b input.bam -c input.vcf -o output.vcf -f reference.fa -d path/to/data_dir [optional arguments]
 ```
