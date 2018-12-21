@@ -154,8 +154,8 @@ def vcf_template(bam, fasta, info_dict, format_dict):
         "##source=RNAIndel",
         "##reference=" + fasta,
         '##FILTER=<ID=NtF,Description="Not found as specified in the input VCF">',
-        '##FILTER=<ID=Lt2,Description="Less than 2 alt allele count">',
-        '##FILTER=<ID=ReN,Description="Rescued with nearest indel">',
+        '##FILTER=<ID=Lt2,Description="Less than 2 ALT allele count">',
+        '##FILTER=<ID=RqN,Description="Rescued with nearest indel">',
     ]
 
     info_order = [
