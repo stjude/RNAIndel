@@ -1,4 +1,9 @@
+# Data directory
+data_dir*
+fasta
+
 # Byte-compiled / optimized / DLL files
+data_dir
 __pycache__/
 *.py[cod]
 *$py.class
@@ -102,3 +107,6 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# PyCharm configs
+.idea

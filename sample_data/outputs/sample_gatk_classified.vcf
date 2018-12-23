@@ -1,0 +1,38 @@
+##fileformat=VCFv4.2
+##filedate=20181221
+##source=RNAIndel
+##reference=/research/rgs01/project_space/zhanggrp/MethodDevelopment/common/RNAIndel/fasta/GRCh38_no_alt_ERCC92_SpikeIn.fa
+##FILTER=<ID=NtF,Description="Not found as specified in the input VCF">
+##FILTER=<ID=Lt2,Description="Less than 2 ALT allele count">
+##FILTER=<ID=RqN,Description="Rescued with nearest indel">
+##INFO=<ID=PRED,Number=1,Type=String,Description="Predicted class: somatic, germline, artifact">
+##INFO=<ID=PROB,Number=3,Type=Float,Description="Prediction probability of being somatic, germline, artifact in this order">
+##INFO=<ID=DB,Number=0,Type=Flag,Description="Flagged if on dbSNP">
+##INFO=<ID=ANNO,Number=.,Type=String,Description="Indel annotation in GeneSymbol|RefSeqAccession|CodonPos|IndelEffect. Delimited by comma for multiple isoforms">
+##INFO=<ID=MAXMAF,Number=1,Type=Float,Description="Maximum minor allele frequency (MAF) reported in dbSNP or ClinVar">
+##INFO=<ID=COMMON,Number=0,Type=Flag,Description="Flagged if curated Common on dbSNP or MAXMAF > 0.01">
+##INFO=<ID=CLIN,Number=1,Type=String,Description="Clinical Significance|Condition curated in ClinVar">
+##INFO=<ID=ICP,Number=1,Type=Integer,Description="Indel complexity">
+##INFO=<ID=DSM,Number=1,Type=Float,Description="Dissimilarity">
+##INFO=<ID=ISZ,Number=1,Type=Integer,Description="Indel size">
+##INFO=<ID=REP,Number=1,Type=Integer,Description="Repeat">
+##INFO=<ID=UQM,Number=0,Type=Flag,Description="Flagged if supported by uniquely mapped reads">
+##INFO=<ID=NEB,Number=0,Type=Flag,Description="Flagged if near exon boundary">
+##INFO=<ID=BID,Number=0,Type=Flag,Description="Flagged if supported by forward and reverse reads">
+##INFO=<ID=MTA,Number=0,Type=Flag,Description="Flagged if multialleleic">
+##INFO=<ID=TRC,Number=0,Type=Flag,Description="Flagged if truncating indel">
+##INFO=<ID=NMD,Number=0,Type=Flag,Description="Flagged if insensitive to nonsense mediated decay">
+##INFO=<ID=IPG,Number=1,Type=Float,Description="Indels per gene">
+##INFO=<ID=LSG,Number=1,Type=Float,Description="Local strength of nucleotide sequence">
+##INFO=<ID=ATI,Number=0,Type=Flag,Description="Flagged if insertion of A or T">
+##INFO=<ID=ATD,Number=0,Type=Flag,Description="Flagged if deletion of A or T">
+##INFO=<ID=RCF,Number=0,Type=Flag,Description="Flagged if reclassified">
+##INFO=<ID=RQB,Number=1,Type=String,Description="Rescued by indel nearest to this entry">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths by fragment (not read) for the ref and alt alleles in the order listed">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SJTALL046430_C1-Jurkat
+chr10	80081665	rs113172526	C	CA	.	PASS	PRED=artifact;PROB=0.008300000000000004,0.42095000000000005,0.57075;DB;ANNO=TMEM254|NM_001270371|38|frameshiftTruncating,TMEM254|NM_001270374|13|frameshiftTruncating;MAXMAF=0.1366;COMMON;ISZ=1;REP=10.0;UQM;IPG=3.7984890926067396;LSG=5.833333333333333;ATI	AD	1,3
+chr10	87864103	rs71022512	CT	C	.	PASS	PRED=germline;PROB=0.025750000000000012,0.9700999999999999,0.004150000000000001;DB;ANNO=PTEN|NM_001304717|52|spliceShortIntron,PTEN|NM_001304717|52|spliceShortIntron;MAXMAF=1.0;COMMON;CLIN=Benign|not_specified;DSM=1.0;ISZ=1;UQM;BID;IPG=2.104174888892702;LSG=9.307692307692308;ATD	AD	1,105
+chr10	87957916	.	G	GGGCCCAT	.	PASS	PRED=somatic;PROB=0.9793499999999998,0.0012000000000000001,0.019450000000000005;ANNO=PTEN|NM_001304718|36|frameshiftTruncating,PTEN|NM_000314|233|frameshiftTruncating,PTEN|NM_001304717|406|frameshiftTruncating;ICP=2;DSM=0.5714285714285712;ISZ=7;UQM;BID;IPG=2.104174888892702;LSG=8.5	AD	176,49
+chr10	87957916	.	G	GGGCCC	.	RqN	ANNO=PTEN|NM_001304718|36|frameshiftTruncating|0,PTEN|NM_000314|233|frameshiftTruncating|0,PTEN|NM_001304717|406|frameshiftTruncating|0;ISZ=5;LSG=8.5;RQB=chr10:87957916:G:GGGCCCAT	
+chr10	87957917	.	A	ATG	.	RqN	ANNO=PTEN|NM_001304718|37|frameshiftTruncating|0,PTEN|NM_000314|234|frameshiftTruncating|0,PTEN|NM_001304717|407|frameshiftTruncating|0;ISZ=2;LSG=8.333333333333334;RQB=chr10:87957916:G:GGGCCCAT	
+chr10	87957955	.	C	CCTGGGTT	.	PASS	PRED=somatic;PROB=0.98145,0.0013000000000000004,0.017250000000000005;ANNO=PTEN|NM_001304718|49|frameshiftTruncating,PTEN|NM_000314|246|frameshiftTruncating,PTEN|NM_001304717|419|frameshiftTruncating;DSM=0.5714285714285713;ISZ=7;UQM;BID;IPG=2.104174888892702;LSG=8.083333333333334	AD	273,62
