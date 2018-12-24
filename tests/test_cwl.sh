@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
-#cwl-runner --preserve-environment CLASSPATH --outdir ./testdata/outputs ./bambino.cwl ./testdata/inputs/bambino.yml
-#cwl-runner --outdir ./testdata/outputs ./rna_indel.cwl ./testdata/inputs/rna_indel.yml
-cwl-runner --outdir ./testdata/outputs ./bambino_rna_indel.cwl ./testdata/inputs/bambino_rna_indel.yml
+#cwl-runner --preserve-environment CLASSPATH --outdir ./sample_data/outputs ./bambino.cwl ./sample_data/inputs/bambino.yml
+#cwl-runner --outdir ./sample_data/outputs ./rna_indel.cwl ./sample_data/inputs/rna_indel.yml
+cwl-runner --outdir ./sample_data/outputs ./bambino_rna_indel.cwl ./sample_data/inputs/bambino_rna_indel.yml

@@ -63,11 +63,11 @@ Additional processing steps may prevent desired behavior.
 
 ## Usage
 The RNAIndel pipeline consists of indel calling and classification components, which are performed by two separate excutables.<br>
-The pipeline is provided in [BASH](#use-bash-wrapper) or [CWL](#use-cwl-wrapper).<br>
+The pipeline is provided in [BASH](#use-bash-pipeline) or [CWL](#use-cwl-workflow). For a Docker image, see [Docker](#docker). <br>
 <br>
 Run Example using sample data is [HERE](./sample_data).<br> 
 
-### BASH
+### Use BASH pipeline
 Indels are called by the built-in caller and classified into somatic, germline, and artifact. 
 ```
 rna_indel_pipeline.sh -b input.bam \
@@ -99,9 +99,9 @@ rna_indel_piepline.sh -b input.bam \
 * ```-l``` direcotry to store log files 
 * ```-h``` show usage message
 
-### CWL
+### Use CWL Workflow
 ```
-To do
+cwl-runner --outdir OUT_DIR bambino_rna_indel.cwl INPUT_YML
 ```
 
 Users can run the executables separately.<br>
@@ -151,6 +151,18 @@ rna_indel -b input.bam \
 * ```-q``` STAR mapping quality MAPQ for unique mappers (default=255)
 * ```-p``` number of cores (default=1)
 * ```-n``` user-defined panel of non-somatic indels in VCF format
+
+### Docker
+RNAIndel has a `Dockerfile` to create a Docker image with all the dependencies installed for running `bambino` and `rna_indel`.
+To use this image, [install Docker](https://docs.docker.com/install/) for your platform. It is highly recommended to use
+the CWL script to pull the pre-built [docker images](https://cloud.docker.com/u/adamdingliang/repository/docker/adamdingliang/rnaindel)
+and run `bambino` and/or `rna_indel`. The docker image can also be used without the CWL script:
+```
+$ docker run -it adamdingliang/rnaindel:0.1.0 rna_indel
+usage: rna_indel [-h] -b FILE (-i FILE | -c FILE) -o FILE -f FILE -d DIR
+                 [-q INT] [-p INT] [-n FILE] [-l DIR]
+rna_indel: error: the following arguments are required: -b/--bam, -o/--output-vcf, -f/--fasta, -d/--data-dir
+```
 
 ## Panel of non-somatic indels (PONS)
 Somatic prediction can be refined by applying a user-defined indel panel. Putative somatic indels found in the panel will be 

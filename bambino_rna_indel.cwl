@@ -3,6 +3,10 @@
 cwlVersion: v1.0
 class: Workflow
 
+hints:
+  DockerRequirement:
+    dockerPull: adamdingliang/rnaindel:0.1.0
+
 inputs:
   bam:
     type: File
