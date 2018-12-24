@@ -107,9 +107,9 @@ rna_indel_piepline.sh -b input.bam \
 * ```-l``` direcotry to store log files 
 * ```-h``` show usage message
 
-### Use CWL wrapper
+### Use CWL Workflow
 ```
-To do
+cwl-runner --outdir OUT_DIR bambino_rna_indel.cwl INPUT_YML
 ```
 
 Users can run the executables separately.<br>
@@ -159,6 +159,18 @@ rna_indel -b input.bam \
 * ```-q``` STAR mapping quality MAPQ for unique mappers (default=255)
 * ```-p``` number of cores (default=1)
 * ```-n``` user-defined panel of non-somatic indels in VCF format
+
+#### Docker
+RNAIndel has a `Dockerfile` to create a Docker image with all the dependencies installed for running `bambino` and `rna_indel`.
+To use this image, [install Docker](https://docs.docker.com/install/) for your platform. It is highly recommended to use
+the CWL script to pull the pre-built [docker images](https://cloud.docker.com/u/adamdingliang/repository/docker/adamdingliang/rnaindel)
+and run `bambino` and/or `rna_indel`. The docker image can also be used without the CWL script. An example:
+```
+$ docker run -it adamdingliang/rnaindel:0.1.0 rna_indel
+usage: rna_indel [-h] -b FILE (-i FILE | -c FILE) -o FILE -f FILE -d DIR
+                 [-q INT] [-p INT] [-n FILE] [-l DIR]
+rna_indel: error: the following arguments are required: -b/--bam, -o/--output-vcf, -f/--fasta, -d/--data-dir
+```
 
 ## Preparation of non-somatic indel panel
 Users may want to prevent a certain set of indels from being classified as somatic. Users can prepare such a user-define exlusion panel to improve 
