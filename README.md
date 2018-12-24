@@ -164,7 +164,7 @@ rna_indel -b input.bam \
 RNAIndel has a `Dockerfile` to create a Docker image with all the dependencies installed for running `bambino` and `rna_indel`.
 To use this image, [install Docker](https://docs.docker.com/install/) for your platform. It is highly recommended to use
 the CWL script to pull the pre-built [docker images](https://cloud.docker.com/u/adamdingliang/repository/docker/adamdingliang/rnaindel)
-and run `bambino` and/or `rna_indel`. The docker image can also be used without the CWL script. An example:
+and run `bambino` and/or `rna_indel`. The docker image can also be used without the CWL script:
 ```
 $ docker run -it adamdingliang/rnaindel:0.1.0 rna_indel
 usage: rna_indel [-h] -b FILE (-i FILE | -c FILE) -o FILE -f FILE -d DIR
