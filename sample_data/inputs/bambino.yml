@@ -1,7 +1,7 @@
 bam:
   class: File
-  path: /research/rgs01/home/clusterHome/lding/Git/RNAIndel/RNAIndel/testdata/inputs/test.bam
+  path: /Users/lding/Git/RNAIndel/sample_data/inputs/sample.bam
 reference_fasta:
   class: File
-  path: /research/rgs01/project_space/zhanggrp/MethodDevelopment/common/RNAIndel/fasta/GRCh38_no_alt_ERCC92_SpikeIn.fa
+  path: /Users/lding/Git/RNAIndel/data_dir/GRCh38_no_alt_ERCC92_SpikeIn.fa
 bambino_output: bambino_calls.txt
