@@ -160,7 +160,7 @@ rna_indel -b input.bam \
 * ```-p``` number of cores (default=1)
 * ```-n``` user-defined panel of non-somatic indels in VCF format
 
-#### Docker
+### Docker
 RNAIndel has a `Dockerfile` to create a Docker image with all the dependencies installed for running `bambino` and `rna_indel`.
 To use this image, [install Docker](https://docs.docker.com/install/) for your platform. It is highly recommended to use
 the CWL script to pull the pre-built [docker images](https://cloud.docker.com/u/adamdingliang/repository/docker/adamdingliang/rnaindel)
