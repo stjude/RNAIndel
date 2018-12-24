@@ -12,14 +12,7 @@ supplying a VCF file.
 **[Input BAM file](#input-bam-file)**<br>
 **[Usage](#usage)**<br>
 **[Preparation of non-somatic indel panel](#preparation-of-non-somatic-indel-panel)**<br>
-
-## Citations
-1. RNAIndel (in preparation).
-
-2. Edmonson, M.N., Zhang, J., Yan, C., Finney, R.P., Meerzaman, D.M., and Buetow, K.H. (2011) Bambino: A Variant Detector 
-and Alignment Viewer for next-Generation Sequencing Data in 
-the SAM/BAM Format. Bioinformatics 27: 865–866. 
-DOI: [10.1093/bioinformatics/btr032](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3051333/)
+**[Citations](#citations)**<br>
 
 ## Prerequisites
 * [python>=3.5.2](https://www.python.org/downloads/)
@@ -29,7 +22,6 @@ DOI: [10.1093/bioinformatics/btr032](https://www.ncbi.nlm.nih.gov/pmc/articles/P
     * [pysam=0.15.1](https://pysam.readthedocs.io/en/latest/index.html)
     * [pyvcf=0.6.8](https://pyvcf.readthedocs.io/en/latest/index.html)
 * [java=1.8.0_66](https://www.java.com/en/download/) (required for Bambino only)
-
 
 ## Download
 ```
@@ -75,7 +67,7 @@ The pipeline is provided in [BASH](#use-bash-wrapper) or [CWL](#use-cwl-wrapper)
 <br>
 Run Example using sample data is [HERE](./sample_data).<br> 
 
-### Use BASH wrapper
+### BASH
 Indels are called by the built-in caller and classified into somatic, germline, and artifact. 
 ```
 rna_indel_pipeline.sh -b input.bam \
@@ -107,7 +99,7 @@ rna_indel_piepline.sh -b input.bam \
 * ```-l``` direcotry to store log files 
 * ```-h``` show usage message
 
-### Use CWL wrapper
+### CWL
 ```
 To do
 ```
@@ -160,26 +152,34 @@ rna_indel -b input.bam \
 * ```-p``` number of cores (default=1)
 * ```-n``` user-defined panel of non-somatic indels in VCF format
 
-## Preparation of non-somatic indel panel
-Users may want to prevent a certain set of indels from being classified as somatic. Users can prepare such a user-define exlusion panel to improve 
-somatic prediction. RNAIndel reclassifies indels predicted as somatic to either germline or artifact class, whichever has the higher probability, if 
-they are found in the panel. As an example, a panel of recurrent non-somatic indels compiled from 
-a cohort of 330 samples with RNA-Seq and tumor/normal-paired WGS&WES is provided in [data_dir.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir.tar.gz).<br> 
+## Panel of non-somatic indels (PONS)
+Somatic prediction can be refined by applying a user-defined indel panel. Putative somatic indels found in the panel will be 
+reclassified to germline or artifact, whichever has the higher probability. Indels predicted germline or artifact are not
+subject to reclassification by PONS.  
+Such panels can be compiled:
+## from (ideally matched) normal RNA-Seq data
+RNA-Seq data may be a sigle or a pooled dataset.<br>
+1. Perform variant calling on the RNA-Seq data and generate a VCF file.<br>
+2. Index the VCF with Tabix. <br>
+## from a cohort dataset of tumor RNA-Seq and tumo/normal-paired DNA-Seq
+In this approah, non-somatic indels recurrently predicted somatic are collected using a large cohort.<br>
+1. Apply RNAIndel on the RNA-Seq data. <br>
+2. Validate indels predicted as somatic (putative somatic indels) with the DNA-Seq data. <br>
+3. Collect putative somatic indels which are validated as germline or artifact in N samples or more (recurrent non-somatic indels). <br>
+4. Format the recurrent non-somatic indels in a VCF file and index with Tabix.<br>
 <br>
-This panel can be applied by appending the following [option](#rnaindel-options) to the RNAIndel command: <br>
+The first approach is recommended whenenver possible. The second approch requires a large cohort and manual work. A panel prepared from
+a cohort of 330 samples with RNA-Seq and tumor/normal-paired WES & PCR-free WGS is provided in [data_dir.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir.tar.gz).<br> 
+This sample panel can be applied by appending the following [option](#rnaindel-options) to the RNAIndel command: <br>
 ```
 -n path/to/data_dir/non_somatic/non_somatic.vcf.gz
 ```
 
-Alternatively, you can complie your own panel as follows:<br>
-### from normal RNA-Seq data
-1. Prepare a matched normal RNA-Seq dataset.<br>
-2. Perform variant calling and generate a VCF file.<br>
-3. Index the VCF file with Tabix.<br>
-### from tumor RNA-Seq and paired DNA-Seq data
-1. Prepare a dataset with RNA-Seq and DNA-Seq performed. <br>
-2. Apply RNAIndel and collect indels predicted somatic. <br>
-3. Validate the indels with the DNA-Seq data. <br>
-4. Collect indels which are validated as germline or artifact in N samples or more (recurrent non-somatic indels). <br>   
-5. Format the recurrent non-somatic indels in VCF format.<br>
-6. Index the VCF file with Tabix.<br>     
+## Citations
+1. Hagiwara, K., Ding, L., Edmonson, M.N., Rice, S.V., Newman, S., Meshinchi, S., Ries, R.E., Rusch, M., Zhang, J. RNAIndel: a machine-learning framework for discovery of somatic coding indels using tumor RNA-Seq data.    
+
+(the Built-in Bambino caller).
+2. Edmonson, M.N., Zhang, J., Yan, C., Finney, R.P., Meerzaman, D.M., and Buetow, K.H. (2011) Bambino: A Variant Detector 
+and Alignment Viewer for next-Generation Sequencing Data in 
+the SAM/BAM Format. Bioinformatics 27: 865–866. 
+DOI: [10.1093/bioinformatics/btr032](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3051333/)

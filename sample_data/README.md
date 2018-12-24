@@ -32,8 +32,8 @@ RNAIndel
 ## Perform analysis
 ### Working with the built-in Bambino caller
 ```
-$ ./rna_indel_pipeline.sh -b sample_data/inputs/sample.bam \
-                          -o sample_data/outputs/sample.vcf \
+$ ./rna_indel_pipeline.sh -b ./sample_data/inputs/sample.bam \
+                          -o ./sample_data/outputs/sample.vcf \
                           -f path/to/your_GRCh38.fa \
                           -d ./data_dir
 
@@ -50,9 +50,9 @@ The sample BAM file was preprocessed following GATK RNA-Seq Variant Calling [Bes
 GATK-HC (ver 4.0.2.1) called variants in the preprocessed BAM file (./inputs/sample.gatk.bam) and generated a VCF file (./inputs/sample_gatk.vcf).
 Now, the indels in the GATK VCF file are classified. **Please input the original BAM file (sample.bam), not the preprocessed one (sample.gatk.bam)**.
 ```
-$ ./rna_indel_pipeline.sh -b sample_data/inputs/sample.bam \
-                          -c sample_data/inputs/sample_gatk.vcf \
-                          -o sample_data/outputs/sample_gatk_classified.vcf
+$ ./rna_indel_pipeline.sh -b ./sample_data/inputs/sample.bam \
+                          -c ./sample_data/inputs/sample_gatk.vcf \
+                          -o ./sample_data/outputs/sample_gatk_classified.vcf
                           -f path/to/your_GRCh38.fa \
                           -d ./data_dir
 
