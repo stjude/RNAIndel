@@ -169,20 +169,20 @@ Somatic prediction can be refined by applying a user-defined indel panel. Putati
 reclassified to germline or artifact, whichever has the higher probability. Indels predicted germline or artifact are not
 subject to reclassification by PONS.  
 Such panels can be compiled:
-## from (ideally matched) normal RNA-Seq data
+#### from (ideally matched) normal RNA-Seq data
 RNA-Seq data may be a sigle or a pooled dataset.<br>
 1. Perform variant calling on the RNA-Seq data and generate a VCF file.<br>
 2. Index the VCF with Tabix. <br>
-## from a cohort dataset of tumor RNA-Seq and tumo/normal-paired DNA-Seq
+#### from a cohort dataset of tumor RNA-Seq and tumo/normal-paired DNA-Seq
 In this approah, non-somatic indels recurrently predicted somatic are collected using a large cohort.<br>
 1. Apply RNAIndel on the RNA-Seq data. <br>
 2. Validate indels predicted as somatic (putative somatic indels) with the DNA-Seq data. <br>
 3. Collect putative somatic indels which are validated as germline or artifact in N samples or more (recurrent non-somatic indels). <br>
 4. Format the recurrent non-somatic indels in a VCF file and index with Tabix.<br>
-<br>
-The first approach is recommended whenenver possible. The second approch requires a large cohort and manual work. A panel prepared from
+
+The first approach is recommended whenever possible. The second approch requires a large cohort and manual work. A panel prepared from
 a cohort of 330 samples with RNA-Seq and tumor/normal-paired WES & PCR-free WGS is provided in [data_dir.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir.tar.gz).<br> 
-This sample panel can be applied by appending the following [option](#rnaindel-options) to the RNAIndel command: <br>
+This sample panel can be applied by appending the following [option](#options):<br>
 ```
 -n path/to/data_dir/non_somatic/non_somatic.vcf.gz
 ```
