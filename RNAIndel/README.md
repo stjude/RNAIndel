@@ -12,32 +12,32 @@ The classification executable (rna_indel) classifies indel calls from the built-
 ## Classify Bambino calls
 Specify the input Bambino calls by -i.
 ```
-rna_indel -b input.bam \
-          -i bambino_call.txt \
-          -o output.vcf \
-          -f reference.fa \
-          -d path/to/data_dir \
+rna_indel -b BAM \
+          -i BAMBINO_CALLS \
+          -o OUTPUT_VCF \
+          -f FASTA \
+          -d DATA_DIR \
           [optional arguments]
 ```
 
 ## Classify calls from other callers
 Specify the input VCF by -c.  
 ```
-rna_indel -b input.bam \
-          -c input.vcf \
-          -o output.vcf \
-          -f reference.fa \
-          -d path/to/data_dir \ 
+rna_indel -b BAM \
+          -c INPUT_VCF \
+          -o OUTPUT_VCF \
+          -f FASTA \
+          -d DATA_DIR \ 
           [optional arguments]
 ```
 
 ### RNAIndel options
 * ```-b``` input BAM file (required)
-* ```-i``` Bambino output file (required for using Bambino as the indel caller)
+* ```-i``` [Bambino output file](../Bambino) (required for using Bambino as the indel caller)
 * ```-c``` VCF file from other caller (required for using other callers, e.g., [GATK](https://software.broadinstitute.org/gatk/))
 * ```-o``` output VCF file (required)
 * ```-f``` reference genome (GRCh38) FASTA file (required)
-* ```-d``` path to data directory contains refgene, dbsnp and clinvar databases. See [Data directory set up](#data-directory-set-up). 
+* ```-d``` path to data directory contains trained models and databases. See [Data directory set up](../README.md#data-directory-set-up). 
 * ```-q``` STAR mapping quality MAPQ for unique mappers (default=255)
 * ```-p``` number of cores (default=1)
 * ```-n``` user-defined panel of non-somatic indels in VCF format

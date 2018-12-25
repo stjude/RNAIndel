@@ -6,9 +6,9 @@ The Bambino variant caller is optimized to call SNVs and indels from RNA-Seq dat
 
 ## Variant calling  
 ```
-bambino -i input.bam \
-        -f reference.fa \
-        -o bambino_call.txt \ 
+bambino -i BAM \
+        -f FASTA \
+        -o OUTPUT_FILE \ 
         [optional argument (-m)]
 ```
 ### Bambino options

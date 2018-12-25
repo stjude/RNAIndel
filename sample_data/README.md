@@ -1,6 +1,6 @@
 # Run Example
 Here, we demonstrate an analysis example using a sample data prepared from the Jurkat T-cell leukemia cell line.<br>
-This cell line harbors two well characterized indels in the *PTEN* tumor suppressor gene: a 2-nt deletion followed by a 9-nt insertion at codon 234 and a 39-nt insertion at codon 246 (Figure 2 in [Reference](#reference)). 
+This cell line harbors two known indels in the *PTEN* tumor suppressor gene: a 2-nt deletion followed by a 9-nt insertion at codon 234 and a 39-nt insertion at codon 246 (Figure 2 in [Reference](#reference)). 
 We apply the RNAIndel pipeline to the sample BAM file (sample.bam), which contains the GRCh38 region chr10:80,000,000-90,000,000 (the *PTEN* locus is chr10:87,863,113-87,971,930). 
 
 ## Setup
@@ -30,6 +30,21 @@ RNAIndel
 ```
 
 ## Perform analysis
+We are assumed to be in the RNAIndel root directory.
+
+```
+RNAIndel <----------- We are here.     
+    |_ Bambino
+    ...
+    |_ data_dir
+    ...
+    |_ RNAIndel
+    ...
+    |_ sample_data
+    ...
+```
+
+```
 ### Working with the built-in Bambino caller
 ```
 $ ./rna_indel_pipeline.sh -b ./sample_data/inputs/sample.bam \
