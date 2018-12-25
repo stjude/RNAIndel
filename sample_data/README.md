@@ -52,7 +52,7 @@ $ ./rna_indel_pipeline.sh -b ./sample_data/inputs/sample.bam \
                           -d ./data_dir
 
 bambino completed successfully.
-rna_indel completed successfully
+rna_indel completed successfully.
 ```
 Fifteen coding indels are reported in the ouput [VCF](./outputs/sample.vcf) file: 2 somatic, 1 germline, and 12 artifact indels.
 The two *PTEN* indels are predicted as somatic. The first indel is a complex indel in which a 2-nt deletion and a 9-nt insertion 
@@ -70,7 +70,7 @@ $ ./rna_indel_pipeline.sh -b ./sample_data/inputs/sample.bam \
                           -f path/to/your_GRCh38.fa \
                           -d ./data_dir
 
-rna_indel completed successfully
+rna_indel completed successfully.
 ```
 Four coding indels are reported in the output [VCF](./outputs/sample_gatk_classified.vcf) file: 2 somatic, 1 germline, and 1 artifact. 
 Both *PTEN* indels are predicated as somatic. The 39-insertion at codon 246 is also detected as a 7-nt insertion by GATK-HC. 
