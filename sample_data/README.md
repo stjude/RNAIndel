@@ -44,7 +44,6 @@ RNAIndel <----------- We are here.
     ...
 ```
 
-```
 ### Working with the built-in Bambino caller
 ```
 $ ./rna_indel_pipeline.sh -b ./sample_data/inputs/sample.bam \
