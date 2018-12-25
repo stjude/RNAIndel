@@ -1,0 +1,47 @@
+##fileformat=VCFv4.2
+##filedate=20181224
+##source=RNAIndel
+##reference=/var/lib/cwl/stga7295f09-f49c-4242-af75-ea893c76d92f/data_dir/GRCh38_no_alt_ERCC92_SpikeIn.fa
+##FILTER=<ID=NtF,Description="Not found as specified in the input VCF">
+##FILTER=<ID=Lt2,Description="Less than 2 ALT allele count">
+##FILTER=<ID=RqN,Description="Rescued with nearest indel">
+##INFO=<ID=PRED,Number=1,Type=String,Description="Predicted class: somatic, germline, artifact">
+##INFO=<ID=PROB,Number=3,Type=Float,Description="Prediction probability of being somatic, germline, artifact in this order">
+##INFO=<ID=DB,Number=0,Type=Flag,Description="Flagged if on dbSNP">
+##INFO=<ID=ANNO,Number=.,Type=String,Description="Indel annotation in GeneSymbol|RefSeqAccession|CodonPos|IndelEffect. Delimited by comma for multiple isoforms">
+##INFO=<ID=MAXMAF,Number=1,Type=Float,Description="Maximum minor allele frequency (MAF) reported in dbSNP or ClinVar">
+##INFO=<ID=COMMON,Number=0,Type=Flag,Description="Flagged if curated Common on dbSNP or MAXMAF > 0.01">
+##INFO=<ID=CLIN,Number=1,Type=String,Description="Clinical Significance|Condition curated in ClinVar">
+##INFO=<ID=ICP,Number=1,Type=Integer,Description="Indel complexity">
+##INFO=<ID=DSM,Number=1,Type=Float,Description="Dissimilarity">
+##INFO=<ID=ISZ,Number=1,Type=Integer,Description="Indel size">
+##INFO=<ID=REP,Number=1,Type=Integer,Description="Repeat">
+##INFO=<ID=UQM,Number=0,Type=Flag,Description="Flagged if supported by uniquely mapped reads">
+##INFO=<ID=NEB,Number=0,Type=Flag,Description="Flagged if near exon boundary">
+##INFO=<ID=BID,Number=0,Type=Flag,Description="Flagged if supported by forward and reverse reads">
+##INFO=<ID=MTA,Number=0,Type=Flag,Description="Flagged if multialleleic">
+##INFO=<ID=TRC,Number=0,Type=Flag,Description="Flagged if truncating indel">
+##INFO=<ID=NMD,Number=0,Type=Flag,Description="Flagged if insensitive to nonsense mediated decay">
+##INFO=<ID=IPG,Number=1,Type=Float,Description="Indels per gene">
+##INFO=<ID=LSG,Number=1,Type=Float,Description="Local strength of nucleotide sequence">
+##INFO=<ID=ATI,Number=0,Type=Flag,Description="Flagged if insertion of A or T">
+##INFO=<ID=ATD,Number=0,Type=Flag,Description="Flagged if deletion of A or T">
+##INFO=<ID=RCF,Number=0,Type=Flag,Description="Flagged if reclassified">
+##INFO=<ID=RQB,Number=1,Type=String,Description="Rescued by indel nearest to this entry">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths by fragment (not read) for the ref and alt alleles in the order listed">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SJTALL046430_C1-Jurkat
+chr10	80422449	rs1369849473;rs377622179	G	GA	.	PASS	PRED=artifact;PROB=0.002450000000000001,0.007650000000000001,0.9898999999999999;DB;ANNO=FAM213A|NM_001243779|71|frameshiftTruncating,FAM213A|NM_001243780|71|frameshiftTruncating,FAM213A|NM_001243778|71|frameshiftTruncating,FAM213A|NM_001243782|67|frameshiftTruncating,FAM213A|NM_032333|71|frameshiftTruncating,FAM213A|NM_001243781|60|frameshiftTruncating;ISZ=1;REP=7;UQM;IPG=1.4492753623188406;LSG=6.583333333333333;ATI	AD	255,3
+chr10	84142739	rs745461487	G	GA	.	PASS	PRED=artifact;PROB=0.0,0.0002,0.9998000000000001;DB;ANNO=GHITM|NM_014394|72|frameshiftTruncating;ISZ=1;REP=6;UQM;BID;IPG=0.9633911368015414;LSG=4.75;ATI	AD	819,3
+chr10	84371059	rs1459243470	G	GA	.	PASS	PRED=artifact;PROB=0.0022000000000000006,0.0009500000000000001,0.99685;DB;ANNO=CCSER2|NM_001351290|3|frameshiftTruncating,CCSER2|NM_001284240|3|frameshiftTruncating,CCSER2|NM_001284241|3|frameshiftTruncating,CCSER2|NM_001351292|3|frameshiftTruncating,CCSER2|NM_018999|3|frameshiftTruncating;ISZ=1;REP=6;UQM;NMD;IPG=0.7955449482895783;LSG=5.75;ATI	AD	94,3
+chr10	84372176	.	C	CA	.	PASS	PRED=artifact;PROB=0.008000000000000004,0.0,0.992;ANNO=CCSER2|NM_001351290|375|frameshiftTruncating,CCSER2|NM_001284240|375|frameshiftTruncating,CCSER2|NM_001284241|375|frameshiftTruncating,CCSER2|NM_001351292|375|frameshiftTruncating,CCSER2|NM_018999|375|frameshiftTruncating;ISZ=1;REP=6;UQM;BID;NMD;IPG=0.7955449482895783;LSG=6.25;ATI	AD	191,6
+chr10	86437943	.	A	AT	.	PASS	PRED=artifact;PROB=0.022000000000000002,0.0005000000000000001,0.9774999999999998;ANNO=WAPL|NM_001318328|1156|frameshiftTruncating,WAPL|NM_015045|1162|frameshiftTruncating;ISZ=1;REP=6;UQM;BID;IPG=0.8417562095462807;LSG=4.916666666666667;ATI	AD	184,22
+chr10	86467334	.	A	AT	.	PASS	PRED=artifact;PROB=0.0,0.0,1.0;ANNO=WAPL|NM_001318328|766|frameshiftTruncating,WAPL|NM_015045|772|frameshiftTruncating;ISZ=1;REP=6;UQM;BID;IPG=0.8417562095462807;LSG=5.0;ATI	AD	362,6
+chr10	86499807	.	C	CT	.	PASS	PRED=artifact;PROB=0.006000000000000002,0.0015500000000000002,0.9924499999999998;ANNO=WAPL|NM_015045|479|frameshiftTruncating,WAPL|NM_001318328|479|frameshiftTruncating;ISZ=1;REP=7;UQM;BID;IPG=0.8417562095462807;LSG=6.25;ATI	AD	372,8
+chr10	87151462	rs781516860	GA	G	.	PASS	PRED=artifact;PROB=0.0025500000000000006,0.017350000000000008,0.9801000000000002;DB;ANNO=FAM35A|NM_001330112|37|frameshiftTruncating,FAM35A|NM_019054|37|frameshiftTruncating;ISZ=1;REP=7;UQM;BID;NMD;IPG=0.7670482081648118;LSG=6.615384615384615;ATD	AD	151,3
+chr10	87170871	.	G	GA	.	PASS	PRED=artifact;PROB=5e-05,0.0,0.9999499999999999;ANNO=FAM35A|NM_019054|621|frameshiftTruncating,FAM35A|NM_001330112|621|frameshiftTruncating;ISZ=1;REP=6;UQM;BID;IPG=0.7670482081648118;LSG=5.5;ATI	AD	195,7
+chr10	87864103	rs71022512	CT	C	.	PASS	PRED=germline;PROB=0.025750000000000012,0.9700999999999999,0.004150000000000001;DB;ANNO=PTEN|NM_001304717|52|spliceShortIntron,PTEN|NM_001304717|52|spliceShortIntron;MAXMAF=1.0;COMMON;CLIN=Benign|not_specified;DSM=1.0;ISZ=1;UQM;BID;IPG=2.104174888892702;LSG=9.307692307692308;ATD	AD	1,105
+chr10	87957916	.	G	GGGCCCAT	.	PASS	PRED=somatic;PROB=0.9793499999999998,0.0012000000000000001,0.019450000000000005;ANNO=PTEN|NM_001304718|36|frameshiftTruncating,PTEN|NM_000314|233|frameshiftTruncating,PTEN|NM_001304717|406|frameshiftTruncating;ICP=2;DSM=0.5714285714285712;ISZ=7;UQM;BID;IPG=2.104174888892702;LSG=8.5	AD	176,49
+chr10	87957955	.	C	CCTGGGTT	.	PASS	PRED=somatic;PROB=0.98145,0.0013000000000000004,0.017250000000000005;ANNO=PTEN|NM_001304718|49|frameshiftTruncating,PTEN|NM_000314|246|frameshiftTruncating,PTEN|NM_001304717|419|frameshiftTruncating;DSM=0.5714285714285713;ISZ=7;UQM;BID;IPG=2.104174888892702;LSG=8.083333333333334	AD	273,62
+chr10	88905565	.	CT	C	.	PASS	PRED=artifact;PROB=0.0030500000000000006,0.0,0.99695;ANNO=STAMBPL1|NM_020799|52|frameshiftTruncating;ISZ=1;REP=3;UQM;BID;IPG=0.7627765064836003;LSG=6.923076923076923;ATD	AD	181,2
+chr10	89014336	.	C	CA	.	PASS	PRED=artifact;PROB=0.0,0.0001,0.9999;ANNO=FAS|NM_152871|278|frameshiftTruncating,FAS|NM_000043|299|frameshiftTruncating;ISZ=1;REP=6;UQM;BID;NMD;IPG=1.0251322751322751;LSG=5.916666666666667;ATI	AD	67,6
+chr10	89754563	rs1179113528	G	GA	.	PASS	PRED=artifact;PROB=0.00025,0.00030000000000000003,0.9994500000000001;DB;ANNO=KIF20B|NM_001284259|1465|frameshiftTruncating,KIF20B|NM_016195|1425|frameshiftTruncating;ISZ=1;REP=6;UQM;IPG=0.18510518877286153;LSG=6.166666666666667;ATI	AD	217,3
