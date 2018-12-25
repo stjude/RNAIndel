@@ -59,14 +59,14 @@ The two *PTEN* indels are predicted as somatic. The first indel is a complex ind
 are involved. This indel is detected as a 7-nt insertion at codon 233 with indel complexity = 2 (See INFO field in [VCF](./outputs/sample.vcf)). The second indel
 is detected as a 7-nt insertion at codon 246, not as a 39-nt insertion, due to the soft-clipped alignment. 
 
-### Working with GATK-HaplotypeCaller
+### Working with GATK-HaplotypeCaller 
 The sample BAM file was preprocessed following GATK RNA-Seq Variant Calling [BestPractice](https://software.broadinstitute.org/gatk/documentation/article.php?id=3891). 
-GATK-HC (ver 4.0.2.1) called variants in the preprocessed BAM file (./inputs/sample.gatk.bam) and generated a VCF file (./inputs/sample_gatk.vcf).
+GATK-HC (ver 4.0.2.1) called variants in the preprocessed BAM file (sample.gatk.bam) and generated a [VCF](./inputs/sample_gatk.vcf) file.
 Now, the indels in the GATK VCF file are classified. **Please input the original BAM file (sample.bam), not the preprocessed one (sample.gatk.bam)**.
 ```
 $ ./rna_indel_pipeline.sh -b ./sample_data/inputs/sample.bam \
                           -c ./sample_data/inputs/sample_gatk.vcf \
-                          -o ./sample_data/outputs/sample_gatk_classified.vcf
+                          -o ./sample_data/outputs/sample_gatk_classified.vcf \
                           -f path/to/your_GRCh38.fa \
                           -d ./data_dir
 
