@@ -80,7 +80,7 @@ rna_indel_pipeline.sh -b BAM \
 * ```-c``` VCF file from other caller (required for using other callers, e.g., [GATK](https://software.broadinstitute.org/gatk/))
 * ```-o``` output VCF file (required)
 * ```-f``` reference genome (GRCh38) FASTA file (required)
-* ```-d``` data directory contains trained models and databases (required) [Data directory set up](#data-direcotry-set-up) 
+* ```-d``` data directory contains trained models and databases (required) [Data directory set up](#data-directory-set-up) 
 * ```-q``` STAR mapping quality MAPQ for unique mappers (default=255)
 * ```-p``` number of cores (default=1)
 * ```-m``` maximum heap space (default 6000m)

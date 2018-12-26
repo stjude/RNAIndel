@@ -1,7 +1,7 @@
 # Run Example
 Here, we demonstrate an analysis example using a sample data prepared from the Jurkat T-cell leukemia cell line.<br>
 This cell line harbors two known indels in the *PTEN* tumor suppressor gene: a 2-nt deletion followed by a 9-nt insertion at codon 234 and a 39-nt insertion at codon 246 (Figure 2 in [Reference](#reference)). 
-We apply the RNAIndel pipeline to the sample BAM file (sample.bam), which contains the GRCh38 region chr10:80,000,000-90,000,000 (the *PTEN* locus is chr10:87,863,113-87,971,930). 
+We apply the RNAIndel pipeline to the sample BAM file ([sample.bam](./inputs/sample.bam)), which contains the GRCh38 region chr10:80,000,000-90,000,000 (the *PTEN* locus is chr10:87,863,113-87,971,930). 
 
 ## Setup
 **Step 1:** [Clone](../README.md#download) the RNAIndel repository and [install](../README.md#installation) RNAIndel. <br>
@@ -61,8 +61,8 @@ is detected as a 7-nt insertion at codon 246, not as a 39-nt insertion, due to t
 
 ### Working with GATK-HaplotypeCaller 
 The sample BAM file was preprocessed following GATK RNA-Seq Variant Calling [BestPractice](https://software.broadinstitute.org/gatk/documentation/article.php?id=3891). 
-GATK-HC (ver 4.0.2.1) called variants in the preprocessed BAM file (sample.gatk.bam) and generated a [VCF](./inputs/sample_gatk.vcf) file.
-Now, the indels in the GATK VCF file are classified. **Please input the original BAM file (sample.bam), not the preprocessed one (sample.gatk.bam)**.
+GATK-HC (ver 4.0.2.1) called variants in the preprocessed BAM file ([sample.gatk.bam](./inputs/sample.gatk.bam)) and 
+generated a [VCF](./inputs/sample_gatk.vcf) file.Now, the indels in the GATK VCF file are classified. **Please input the original BAM file (sample.bam), not the preprocessed one (sample.gatk.bam)**.
 ```
 $ ./rna_indel_pipeline.sh -b ./sample_data/inputs/sample.bam \
                           -c ./sample_data/inputs/sample_gatk.vcf \
