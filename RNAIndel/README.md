@@ -1,4 +1,4 @@
-#Indel classification executable 
+# Indel classification executable 
 The classification executable (rna_indel) classifies indel calls from the built-in Bambino caller or other callers.   
 
 ## Prerequisites
