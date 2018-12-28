@@ -1,8 +1,8 @@
 # RNAIndel
 RNAIndel calls coding indels and classifies them into 
-somatic, germline, and artifact from a tumor RNA-Seq data.
+somatic, germline, and artifact from tumor RNA-Seq data.
 Users can also classify indels called by their own callers by
-supplying a VCF file.
+supplying a VCF file. RNAIndel only supports GRCh38. 
 
 ## Table of Contents
 **[Prerequisites](#prerequisites)**<br>
@@ -15,13 +15,14 @@ supplying a VCF file.
 **[Citations](#citations)**<br>
 
 ## Prerequisites
+The Python dependencies will be [installed](#installation). Users need to install Java.
 * [python>=3.5.2](https://www.python.org/downloads/)
     * [pandas>=0.23.0](https://pandas.pydata.org/)
     * [numpy>=1.12.0](https://www.scipy.org/scipylib/download.html)
     * [scikit-learn=0.18.1](http://scikit-learn.org/stable/install.html#)
     * [pysam=0.15.1](https://pysam.readthedocs.io/en/latest/index.html)
     * [pyvcf=0.6.8](https://pyvcf.readthedocs.io/en/latest/index.html)
-* [java=1.8.0_66](https://www.java.com/en/download/) (required for Bambino only)
+* [java>=1.8.0](https://www.java.com/en/download/) (required for Bambino only)
 
 ## Download
 ```
@@ -29,17 +30,14 @@ git clone https://github.com/adamdingliang/RNAIndel/tree/master  # Clone the rep
 ```
 
 ## Installation
-It is highly recommended to setup a virtual python environment using [conda](https://conda.io/docs/) and install 
-the python dependencies in the virtual environment:
+Setup a virtual python environment using [conda](https://conda.io/docs/). This step is optional but highly recommended.
 ```
 conda create -n py36 python=3.6 anaconda    # Create a python3.6 virtual environment
 source activate py36                        # Activate the virtual environment
-pip install -r requirements.txt             # Install python dependencies
 ```
-
-You can install RNAIndel from source directly:
+Install RNAIndel in the virtual environment.
 ```
-cd RNAIndel                 # Switch to source directory
+cd RNAIndel                 # Switch to the RNAIndel root directory
 python setup.py install     # Install bambino and rna_indel from source
 bambino -h                  # Check if bambino works correctly
 rna_indel -h                # Check if rna_indel works correctly
@@ -47,7 +45,8 @@ rna_indel -h                # Check if rna_indel works correctly
 
 ## Data directory set up
 Download [data_dir.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir.tar.gz).<br>
-Place the gziped file under your working directory and unpack it.<br>
+Place the gzipped file under a directory of your choice and unpack it. In [Demo](#demo), 
+the data directory is located under the RNAIndel root direcotry.<br>  
 ```
 tar xzvf data_dir.tar.gz
 ```

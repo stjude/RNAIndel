@@ -1,5 +1,5 @@
 # Run Example
-Here, we demonstrate an analysis example using a sample data prepared from the Jurkat T-cell leukemia cell line.<br>
+Here, we demonstrate an analysis example using sample data prepared from the Jurkat T-cell leukemia cell line.<br>
 This cell line harbors two known indels in the *PTEN* tumor suppressor gene: a 2-nt deletion followed by a 9-nt insertion at codon 234 and a 39-nt insertion at codon 246 (Figure 2 in [Reference](#reference)). 
 We apply the RNAIndel pipeline to the sample BAM file ([sample.bam](./inputs/sample.bam)), which contains the GRCh38 region chr10:80,000,000-90,000,000 (the *PTEN* locus is chr10:87,863,113-87,971,930). 
 
@@ -54,7 +54,7 @@ $ ./rna_indel_pipeline.sh -b ./sample_data/inputs/sample.bam \
 bambino completed successfully.
 rna_indel completed successfully.
 ```
-Fifteen coding indels are reported in the ouput [VCF](./outputs/sample.vcf) file: 2 somatic, 1 germline, and 12 artifact indels.
+Fifteen coding indels are reported in the ouput [VCF](./outputs/sample.vcf) file: 2 somatic, 1 germline, and 12 artifact indels (see INFO field).
 The two *PTEN* indels are predicted as somatic. The first indel is a complex indel in which a 2-nt deletion and a 9-nt insertion 
 are involved. This indel is detected as a 7-nt insertion at codon 233 with indel complexity = 2 (See INFO field in [VCF](./outputs/sample.vcf)). The second indel
 is detected as a 7-nt insertion at codon 246, not as a 39-nt insertion, due to the soft-clipped alignment. 
@@ -73,7 +73,7 @@ $ ./rna_indel_pipeline.sh -b ./sample_data/inputs/sample.bam \
 rna_indel completed successfully.
 ```
 Four coding indels are reported in the output [VCF](./outputs/sample_gatk_classified.vcf) file: 2 somatic, 1 germline, and 1 artifact. 
-Both *PTEN* indels are predicated as somatic. The 39-insertion at codon 246 is also detected as a 7-nt insertion by GATK-HC. 
+Both *PTEN* indels are predicated as somatic. The 39-nt insertion at codon 246 is also detected as a 7-nt insertion by GATK-HC. 
 However, the indel at codon 234 is detected as a combination of two insertions: 
 the GGCCC insertion at chr10:87957916 and the TG insertion at chr10:87957917. In the output [VCF](./outputs/sample_gatk_classified.vcf), 
 these two are annotated as "RQB=chr10:87957916:G:GGGCCCAT". This means that RNAIndel could not find these two indels in the BAM 
