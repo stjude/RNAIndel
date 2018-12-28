@@ -26,7 +26,7 @@ The Python dependencies will be [installed](#installation). Users need to instal
 
 ## Download
 ```
-git clone https://github.com/adamdingliang/RNAIndel/tree/master  # Clone the repo
+git clone https://github.com/stjude/RNAIndel.git  # Clone the repo
 ```
 
 ## Installation
