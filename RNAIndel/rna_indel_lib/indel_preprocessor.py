@@ -18,10 +18,12 @@ from .indel_annotator import generate_coding_indels
 logger = logging.getLogger(__name__)
 
 
-def indel_preprocessor(bambinofile, refgene, fasta):
+def indel_preprocessor(bambinofile, bam, refgene, fasta):
     """ Validate, extract and format indel calls from Bambino output
     Args:
         bambinofile (str): Bambino output filename (contains SNVs + indels)
+        refgene (bed file): refCodingExon.bed.gz (contained in data_dir)
+        fasta (str): path to reference
     Returns:
         df (pandas.DataFrame): Contains coding indels
                                4 columns formatted as: 
@@ -34,6 +36,7 @@ def indel_preprocessor(bambinofile, refgene, fasta):
                                chrY 987  CCT  -
     """
     exon_data = pysam.TabixFile(refgene)
+    bam_data = pysam.AlingmentFile(bam)
 
     if not exists_bambino_output(bambinofile):
         sys.exit(1)
@@ -53,7 +56,9 @@ def indel_preprocessor(bambinofile, refgene, fasta):
     df = rename_header(df)
     df = format_indel_report(df)
 
-    coding = partial(flag_coding_indels, exon_data=exon_data, fasta=fasta)
+    chr_prefixed = is_chr_prefixed(bam_data)
+    print(chr_prefixed)
+    coding = partial(flag_coding_indels, exon_data=exon_data, fasta=fasta, chr_prefixed=chr_prefixed)
     df["is_coding"] = df.apply(coding, axis=1)
     df = df[df["is_coding"] == True]
 
@@ -67,7 +72,33 @@ def indel_preprocessor(bambinofile, refgene, fasta):
     return df
 
 
-def flag_coding_indels(row, exon_data, fasta):
+def is_chr_prefixed(bam_data):
+    """Check if chromosome names are prefixed with "chr"
+
+    Args:
+        bam_data (pysam.AlignmeentFile obj)
+    Returns:
+        is_prefixed (bool): True if prefixed.
+    """
+    header_dict = bam_data.header.to_dict()
+    chromosome_names = header_dict["SQ"]
+    
+    is_prefixed = False
+    if chromosome_names[0]["SN"].startswith("chr"):
+        is_prefixed = True
+
+    return is_prefixed
+
+
+def flag_coding_indels(row, exon_data, fasta, chr_prefixed):
+    """Flag indels if they are coding indels
+    Args:
+        row (panda.Series)
+        exon_data (pysam.TabixFile obj): coding exon database obj
+        fasta (str): path to Fasta
+    Return:
+        is_coding (bool): True for coding indels
+    """ 
     is_coding = False
 
     if row["ref"] == "-":
@@ -76,7 +107,7 @@ def flag_coding_indels(row, exon_data, fasta):
         idl_type, idl_seq = 0, row["ref"]
 
     res = generate_coding_indels(
-        row["chr"], row["pos"], idl_type, idl_seq, exon_data, fasta
+        row["chr"], row["pos"], idl_type, idl_seq, exon_data, fasta, chr_prefixed
     )
     if res != []:
         is_coding = True

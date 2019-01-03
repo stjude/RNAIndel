@@ -27,7 +27,8 @@ def main():
     
     # Preprocessing
     if args.input_bambino:
-        df = ri.indel_preprocessor(args.input_bambino, refgene, args.fasta)
+        df = ri.indel_preprocessor(args.input_bambino, args.bam, refgene, args.fasta)
+        df.to_csv("test_out.txt", index=False, sep="\t")
         df = ri.indel_rescuer(
             df, args.fasta, args.bam, num_of_processes=args.process_num
         )

@@ -14,16 +14,17 @@ random.seed(123)
 cigar_ptn = re.compile(r"[0-9]+[MIDNSHPX=]")
 
 
-def curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq):
+def curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq, chr_prefixed):
     """Gerenates an indel object with reference flanking sequences.
        Splicing will NOT be considered.
        
     Args:
         fasta (str): path to. fa
-        chr (str): chr1-22, chrX, chrY
+        chr (str): chr1-22, chrX, chrY. Note "chr"-prefixed. 
         pos (int): 1-based pos of indel
         idl_type (int): 1 for insertion 0 for deletion
         idl_seq (str): inserted or deleted sequence
+        chr_prefixed (bool): True if chromosome names in BAM or FASTA is prefixed with "chr"
     Returns:
         SequenceWithIndel (obj)
 
@@ -43,7 +44,11 @@ def curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq):
         
         Note that the right flanking sequence is not spliced.             
     """
+    # extract flanking seq +- window-nt
     window = 50
+    
+    if not chr_prefixed:
+        chr = chr.replace("chr", "")
 
     # left flank seq
     start, end = pos - window, pos - 1
@@ -70,6 +75,10 @@ def curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq):
         rt_fasta = pysam.faidx(fasta, chr + ":" + str(start) + "-" + str(end))
         # extract the seqence string
         rt_seq = rt_fasta.split("\n")[1]
+
+    # adding back "chr" if removed above
+    if not chr_prefixed:
+        chr = "chr" + chr
 
     return SequenceWithIndel(chr, pos, idl_type, lt_seq, idl_seq, rt_seq)
 
