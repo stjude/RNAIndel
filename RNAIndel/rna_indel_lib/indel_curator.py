@@ -160,7 +160,7 @@ def extract_all_valid_reads(bam_data, chr, pos, chr_prefixed):
            Read_5     >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     """
     if not chr_prefixed:
-        chr = chr.replaced("chr", "")
+        chr = chr.replace("chr", "")
 
     all_reads = bam_data.fetch(chr, pos, pos + 1, until_eof=True)
 
@@ -238,10 +238,10 @@ def decompose_indel_read(parsed_indel_read):
     into flanking and inserted/deleted sequences
 
     Args:
-        parsed_indel_read (tuple): (pysam.AligedSegment, idx, adjust)
+        parsed_indel_read (tuple): (pysam.AlignedSegment, idx, adjust)
     Returns:
         decomposed_reads (tuple): (
-                                   pysam.AligedSegment, 
+                                   pysam.AlignedSegment, 
                                    idl_seq (str), 
                                    read_flanks (list),
                                    ref_flanks(list)
@@ -270,7 +270,10 @@ def decompose_indel_read(parsed_indel_read):
     # read (actual sequence)
     read_seq = read.query_sequence
     # reference sequence
-    ref_seq = read.get_reference_sequence()
+    try:
+        ref_seq = read.get_reference_sequence()
+    except:
+        ref_seq = read.query_sequence
 
     i = 0  # pos on read_seq
     j = 0 - adjust  # pos on ref_seq
@@ -514,17 +517,18 @@ def infer_del_seq_from_data(decomposed_non_idl_reads, idl_flanks, del_seq):
     return inferred_seq
 
 
-def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq):
+def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq, chr_prefixed):
     """Generates an object describing what indel looks like
     in the pileup view.
     
     Args:    
         bam_data (pysam.AlignmentFile obj) 
-        chr (str): chr1-22, chrX, chrY
+        chr (str): chr1-22, chrX or chrY. Note "chr"-prefixed
         pos (int): 1-based position of indel on the reference
         idl_type (int): 1 for insertion 0 for deletion
         idl_seq (str): inserted or deleted sequence
-        mapq (int): MAPQ for uniquely mapped reads. Default=255
+        mapq (int): MAPQ for uniquely mapped reads
+        chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
     Returns:
         PileupWithIndel object: if indels found as specified with 
                                 chr, pos, idl_type and idl_seq 
@@ -543,7 +547,7 @@ def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq):
         del_or_ins = "I"
 
     # extract all good reads covering the locus of interest
-    all_reads = extract_all_valid_reads(bam_data, chr, pos)
+    all_reads = extract_all_valid_reads(bam_data, chr, pos, chr_prefixed)
 
     ###########################
     # Analysis of indel reads #

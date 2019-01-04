@@ -27,11 +27,13 @@ def main():
     
     # Preprocessing
     if args.input_bambino:
-        df, chr_prefixed = ri.indel_preprocessor(args.input_bambino, args.bam, refgene, args.fasta)
-        df = ri.indel_rescuer(
-            df, args.fasta, args.bam, chr_prefixed, num_of_processes=args.process_num
-        )
-        df.to_csv("after_rescue.txt", sep="\t", index=False)
+        #df, chr_prefixed = ri.indel_preprocessor(args.input_bambino, args.bam, refgene, args.fasta)
+        #df = ri.indel_rescuer(
+        #    df, args.fasta, args.bam, chr_prefixed, num_of_processes=args.process_num
+        #)
+        
+        df = pd.read_csv("after_rescue.txt", sep="\t")
+        chr_prefixed = False
     else:
         df = ri.indel_vcf_preprocessor(args.input_vcf, refgene, args.fasta)
         df = ri.indel_rescuer(
@@ -44,15 +46,14 @@ def main():
         )
 
     # Analysis 1: indel annotation
-    df = ri.indel_annotator(df, refgene, args.fasta)
-    
+    df = ri.indel_annotator(df, refgene, args.fasta, chr_prefixed)
     # Analysis 2: feature calculation using  
     df, df_filtered_premerge = ri.indel_sequence_processor(
-        df, args.fasta, args.bam, args.uniq_mapq
+        df, args.fasta, args.bam, args.uniq_mapq, chr_prefixed
     )
     df = ri.indel_protein_processor(df, refgene)
-    
-    # Analysis 3: mergeing equivalent indels
+    df.to_csv("after_feature.txt", sep="\t", index=False)
+    # Analysis 3: merging equivalent indels
     df, df_filtered_postmerge = ri.indel_equivalence_solver(
        df, args.fasta, refgene
     )
