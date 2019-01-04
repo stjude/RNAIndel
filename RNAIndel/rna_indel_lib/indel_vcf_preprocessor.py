@@ -34,16 +34,18 @@ def indel_vcf_preprocessor(vcffile, bam, refgene, fasta):
     vcf_data = vcf.Reader(open(vcffile, "r"))
     bam_data = pysam.AlignmentFile(bam)
     exon_data = pysam.TabixFile(refgene)
-    
+
     chr_prefixed = is_chr_prefixed(bam_data)
     df = pd.DataFrame(make_data_list(vcf_data))
-
+    
     datasize = len(df)
     if len(df) == 0:
         logging.warning("No indels detected in input vcf. Analysis done.")
         sys.exit(0)
 
-    coding = partial(flag_coding_indels, exon_data=exon_data, fasta=fasta)
+    coding = partial(
+        flag_coding_indels, exon_data=exon_data, fasta=fasta, chr_prefixed=chr_prefixed
+    )
     df["is_coding"] = df.apply(coding, axis=1)
     df = df[df["is_coding"] == True]
 
@@ -108,10 +110,10 @@ def parse_vcf_record(record):
     """
     parsed_record = None
 
-    chr = record.CHROM # from input VCF, may or may not be "chr"-prefixed
+    chr = record.CHROM  # from input VCF, may or may not be "chr"-prefixed
     if not chr.startswith("chr"):
         chr = "chr" + chr
-    
+
     if record.is_indel and is_canonical_chromosome(chr):
         ref = record.REF
         alts = record.ALT

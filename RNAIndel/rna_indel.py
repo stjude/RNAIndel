@@ -21,7 +21,7 @@ def main():
     create_logger(args.log_dir)
     data_dir = args.data_dir.rstrip("/")
     refgene = "{}/refgene/refCodingExon.bed.gz".format(data_dir)
-    dbsnp = "{}/dbsnp/00-All.151.indel.vcf.gz".format(data_dir)
+    dbsnp = "{}/dbsnp/dbsnp.indel.vcf.gz".format(data_dir)
     clinvar = "{}/clinvar/clinvar.indel.vcf.gz".format(data_dir)
     model_dir = "{}/models".format(data_dir)
     
@@ -32,7 +32,7 @@ def main():
             df, args.fasta, args.bam, chr_prefixed, num_of_processes=args.process_num
         )
     else:
-        df, chr_prefixed = ri.indel_vcf_preprocessor(args.input_vcf, args.bam, efgene, args.fasta)
+        df, chr_prefixed = ri.indel_vcf_preprocessor(args.input_vcf, args.bam, refgene, args.fasta)
         df = ri.indel_rescuer(
             df,
             args.fasta,
@@ -69,11 +69,11 @@ def main():
     
     # Analysis 7(Optional): custom refinement of somatic prediction
     if args.non_somatic_panel:
-        df = ri.indel_reclassifier(df, args.fasta, args.non_somatic_panel)
+        df = ri.indel_reclassifier(df, args.fasta, chr_prefixed, args.non_somatic_panel)
 
     # PostProcessing & VCF formatting
     df, df_filtered = ri.indel_postprocessor(
-        df, df_filtered, refgene, args.fasta, args.non_somatic_panel
+        df, df_filtered, refgene, args.fasta, chr_prefixed
     )
     ri.indel_vcf_writer(df, df_filtered, args.bam, args.fasta, chr_prefixed, args.output_vcf)
     

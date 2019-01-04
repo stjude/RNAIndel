@@ -17,15 +17,15 @@ from .indel_annotator import annotate_indels
 logger = logging.getLogger(__name__)
 
 
-def indel_postprocessor(df, df_filtered, refgene, fasta, chr_prefixed, reclf=False):
+def indel_postprocessor(df, df_filtered, refgene, fasta, chr_prefixed):
     """Main routine to perform left-alingment, unification, and formatting
      
     Args:
-        df (pandas.DataFrame): df with prediction made
+        df (pandas.DataFrame): df with successful entries
+        df_filtered (pandas.DataFrame): df with filtered entries 
         refgene (str): path to refCodingExon.bed.gz
         fasta (str): path to .fa
         chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
-        reclf (bool): True if reclassification is performed. Default=False 
     Returns:
         df (pandas.DataFrame): df with all post-processing done
     """

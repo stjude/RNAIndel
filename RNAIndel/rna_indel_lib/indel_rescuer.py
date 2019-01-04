@@ -30,7 +30,7 @@ def indel_rescuer(df, fasta, bam, chr_prefixed, **kwargs):
         search_window=50,
         pool=pool,
         left_aligned=left_aligned,
-        chr_prefixed = chr_prefixed,
+        chr_prefixed=chr_prefixed,
     )
     
     df["rescued_indels"] = df.apply(rqxeq, axis=1)
