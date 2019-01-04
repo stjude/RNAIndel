@@ -32,13 +32,19 @@ def indel_rescuer(df, fasta, bam, chr_prefixed, **kwargs):
         left_aligned=left_aligned,
         chr_prefixed=chr_prefixed,
     )
-    
+
     df["rescued_indels"] = df.apply(rqxeq, axis=1)
     df["rescued"] = df.apply(flag_indel_rescued_by_equivalence, axis=1)
 
     # rescue by nearest
     if external_vcf:
-        rqxnr = partial(rescue_by_nearest, fasta=fasta, bam=bam, search_window=10)
+        rqxnr = partial(
+            rescue_by_nearest,
+            fasta=fasta,
+            bam=bam,
+            search_window=10,
+            chr_prefixed=chr_prefixed,
+        )
         df["rescued_indels"] = df.apply(
             lambda x: rqxnr(x) if x["rescued_indels"] == [] else x["rescued_indels"],
             axis=1,
@@ -55,11 +61,13 @@ def indel_rescuer(df, fasta, bam, chr_prefixed, **kwargs):
     df = sort_positionally(df)
     df = df.drop_duplicates(["chr", "pos", "ref", "alt"])
     df.reset_index(drop=True, inplace=True)
-    
+
     return df
 
 
-def rescue_by_equivalence(row, fasta, bam, search_window, pool, left_aligned, chr_prefixed):
+def rescue_by_equivalence(
+    row, fasta, bam, search_window, pool, left_aligned, chr_prefixed
+):
     """Recover equivalent indels from left-aligned indel report
     
     Args:
@@ -87,7 +95,9 @@ def rescue_by_equivalence(row, fasta, bam, search_window, pool, left_aligned, ch
     else:
         idl_type, idl_seq = 0, row["ref"]
 
-    called_idl = curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq, chr_prefixed)
+    called_idl = curate_indel_in_genome(
+        fasta, chr, pos, idl_type, idl_seq, chr_prefixed
+    )
 
     if left_aligned:
         rt_window, lt_window = search_window, search_window - search_window
@@ -123,7 +133,7 @@ def rescue_by_equivalence(row, fasta, bam, search_window, pool, left_aligned, ch
         for eq in equivalents
         if eq
     ]
-    
+
     return equivalents
 
 
@@ -136,7 +146,7 @@ def flag_indel_rescued_by_equivalence(row):
     return flag
 
 
-def rescue_by_nearest(row, fasta, bam, search_window):
+def rescue_by_nearest(row, fasta, bam, search_window, chr_prefixed):
 
     chr = row["chr"]
     pos = row["pos"]
@@ -153,7 +163,9 @@ def rescue_by_nearest(row, fasta, bam, search_window):
     i = 0
     idl_found = None
     while i < len(pos_move) and not idl_found:
-        idl_found = extract_indel(pos + pos_move[i], fasta, bam, chr, idl_type, chr_prefixed)
+        idl_found = extract_indel(
+            pos + pos_move[i], fasta, bam, chr, idl_type, chr_prefixed
+        )
         i += 1
 
     if not idl_found:
@@ -189,7 +201,7 @@ def flag_indel_rescued_by_nearest(row):
     flag = row["rescued"]
     if row["rescued_indels"] != [] and flag != "by_equivalence":
         flag = row["rescued_indels"][0]["rescued"]
-    
+
     return flag
 
 
@@ -214,7 +226,9 @@ def extract_indel(pos, fasta, bam, chr, idl_type, chr_prefixed, **kwargs):
     bam_data = pysam.AlignmentFile(bam, "rb")
     idl_to_compare = kwargs.pop("equivalent_to", None)
 
-    inferred_idl_seq = get_most_common_indel_seq(bam_data, chr, pos, idl_type, chr_prefixed)
+    inferred_idl_seq = get_most_common_indel_seq(
+        bam_data, chr, pos, idl_type, chr_prefixed
+    )
 
     if inferred_idl_seq:
         idl_at_this_locus = curate_indel_in_genome(
