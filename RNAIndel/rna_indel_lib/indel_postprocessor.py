@@ -17,13 +17,14 @@ from .indel_annotator import annotate_indels
 logger = logging.getLogger(__name__)
 
 
-def indel_postprocessor(df, df_filtered, refgene, fasta, reclf=False):
+def indel_postprocessor(df, df_filtered, refgene, fasta, chr_prefixed, reclf=False):
     """Main routine to perform left-alingment, unification, and formatting
      
     Args:
         df (pandas.DataFrame): df with prediction made
         refgene (str): path to refCodingExon.bed.gz
         fasta (str): path to .fa
+        chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
         reclf (bool): True if reclassification is performed. Default=False 
     Returns:
         df (pandas.DataFrame): df with all post-processing done
@@ -31,7 +32,9 @@ def indel_postprocessor(df, df_filtered, refgene, fasta, reclf=False):
     fa = pysam.FastaFile(fasta)
 
     # left-alignment
-    lt_aln_indel_generator = partial(generate_lt_aln_indel, fa=fa)
+    lt_aln_indel_generator = partial(
+        generate_lt_aln_indel, fa=fa, chr_prefixed=chr_prefixed
+    )
     df["lt"] = df.apply(lt_aln_indel_generator, axis=1)
     df["pos"], df["ref"], df["alt"] = zip(*df.apply(left_align_report, axis=1))
 
@@ -49,7 +52,13 @@ def indel_postprocessor(df, df_filtered, refgene, fasta, reclf=False):
 
     # reannotate afer left-alignment
     exon_data = pysam.TabixFile(refgene)
-    anno = partial(annotate_indels, exon_data=exon_data, fasta=fasta, postprocess=True)
+    anno = partial(
+        annotate_indels,
+        exon_data=exon_data,
+        fasta=fasta,
+        chr_prefixed=chr_prefixed,
+        postprocess=True,
+    )
     df["annotation"] = df.apply(anno, axis=1)
     df = df[df["annotation"] != "-"]
 
@@ -60,21 +69,23 @@ def indel_postprocessor(df, df_filtered, refgene, fasta, reclf=False):
         sys.exit(0)
 
     df = unify_equivalent_indels(df)
-    
+
     return df, df_filtered
 
-def generate_lt_aln_indel(row, fa):
+
+def generate_lt_aln_indel(row, fa, chr_prefixed):
     """Generates a left-aligned Indel object
 
     Args:
         row (pandas.Series): with 'chr', 'pos', 'is_ins', 'indel_seq'
                             specifies original (not lt-aligned) indel  
-        fa (pysam.FastaFile): obj storing reference seq 
+        fa (pysam.FastaFile): obj storing reference seq
+        chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
     Returns:
         idl (Indel obj): Indel obj left-aligned against reference
     """
     idl = Indel(row["chr"], row["pos"], row["is_ins"], row["indel_seq"])
-    idl = lt_aln(idl, fa)
+    idl = lt_aln(idl, fa, chr_prefixed)
 
     return idl
 

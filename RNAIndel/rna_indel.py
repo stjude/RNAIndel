@@ -27,19 +27,17 @@ def main():
     
     # Preprocessing
     if args.input_bambino:
-        #df, chr_prefixed = ri.indel_preprocessor(args.input_bambino, args.bam, refgene, args.fasta)
-        #df = ri.indel_rescuer(
-        #    df, args.fasta, args.bam, chr_prefixed, num_of_processes=args.process_num
-        #)
-        
-        df = pd.read_csv("after_rescue.txt", sep="\t")
-        chr_prefixed = False
+        df, chr_prefixed = ri.indel_preprocessor(args.input_bambino, args.bam, refgene, args.fasta)
+        df = ri.indel_rescuer(
+            df, args.fasta, args.bam, chr_prefixed, num_of_processes=args.process_num
+        )
     else:
-        df = ri.indel_vcf_preprocessor(args.input_vcf, refgene, args.fasta)
+        df, chr_prefixed = ri.indel_vcf_preprocessor(args.input_vcf, args.bam, efgene, args.fasta)
         df = ri.indel_rescuer(
             df,
             args.fasta,
             args.bam,
+            chr_prefixed,
             num_of_processes=args.process_num,
             left_aligned=True,
             external_vcf=True
@@ -52,15 +50,12 @@ def main():
         df, args.fasta, args.bam, args.uniq_mapq, chr_prefixed
     )
     df = ri.indel_protein_processor(df, refgene)
-    df.to_csv("after_feature.txt", sep="\t", index=False)
     # Analysis 3: merging equivalent indels
     df, df_filtered_postmerge = ri.indel_equivalence_solver(
-       df, args.fasta, refgene
+       df, args.fasta, refgene, chr_prefixed
     )
-    
     # Analysis 4: dbSNP annotation
-    df = ri.indel_snp_annotator(df, args.fasta, dbsnp, clinvar)
-    
+    df = ri.indel_snp_annotator(df, args.fasta, dbsnp, clinvar, chr_prefixed)
     # Analysis 5: prediction
     df = ri.indel_classifier(df, model_dir, num_of_processes=args.process_num)
     
@@ -80,7 +75,7 @@ def main():
     df, df_filtered = ri.indel_postprocessor(
         df, df_filtered, refgene, args.fasta, args.non_somatic_panel
     )
-    ri.indel_vcf_writer(df, df_filtered, args.bam, args.fasta, args.output_vcf)
+    ri.indel_vcf_writer(df, df_filtered, args.bam, args.fasta, chr_prefixed, args.output_vcf)
     
     print("rna_indel completed successfully", file=sys.stderr)
 

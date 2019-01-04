@@ -14,22 +14,28 @@ import pandas as pd
 from functools import partial
 from .indel_preprocessor import flag_coding_indels
 from .indel_snp_annotator import count_padding_bases
+from .indel_preprocessor import is_chr_prefixed
 from .indel_preprocessor import is_canonical_chromosome
 
 logger = logging.getLogger(__name__)
 
 
-def indel_vcf_preprocessor(vcffile, refgene, fasta):
-    """
+def indel_vcf_preprocessor(vcffile, bam, refgene, fasta):
+    """Convert input VCF to Bambino format and check chromosome name format
     
     Args:
-        vcffile (str): vcf file name
+        vcffile (str): path to input vcf
+        bam (str): path to bam
+        refgene (str): path to refCodingExon.bed.gz
+        fasta (str): path to fasta
     Returns:
         df (pandas.DataFrame): df with indels reported as in Bambino output
     """
     vcf_data = vcf.Reader(open(vcffile, "r"))
+    bam_data = pysam.AlignmentFile(bam)
     exon_data = pysam.TabixFile(refgene)
-
+    
+    chr_prefixed = is_chr_prefixed(bam_data)
     df = pd.DataFrame(make_data_list(vcf_data))
 
     datasize = len(df)
@@ -48,7 +54,7 @@ def indel_vcf_preprocessor(vcffile, refgene, fasta):
     df.drop("is_coding", axis=1, inplace=True)
     df = df.reset_index(drop=True)
 
-    return df
+    return df, chr_prefixed
 
 
 def make_data_list(vcf_data):
@@ -101,7 +107,11 @@ def parse_vcf_record(record):
             chr_N 5   -   GTA   
     """
     parsed_record = None
-    chr = record.CHROM
+
+    chr = record.CHROM # from input VCF, may or may not be "chr"-prefixed
+    if not chr.startswith("chr"):
+        chr = "chr" + chr
+    
     if record.is_indel and is_canonical_chromosome(chr):
         ref = record.REF
         alts = record.ALT
