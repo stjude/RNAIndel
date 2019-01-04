@@ -13,7 +13,7 @@ from .indel_features import IndelSnpFeatures
 from .indel_curator import curate_indel_in_genome
 
 
-def indel_snp_annotator(df, fasta, dbsnp, clnvr):
+def indel_snp_annotator(df, fasta, dbsnp, clnvr, chr_prefixed):
     """Annotates indels with dbSNP and ClinVar info
 
     Args:
@@ -21,13 +21,20 @@ def indel_snp_annotator(df, fasta, dbsnp, clnvr):
         fasta (str): path to .fa
         dbsnp (str): path to 00-All.151.indel.vcf.gz
         clnvr (str): path to clinvar.indel.vcf.gz
+        chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
     Returns:
         df (pandas.DataFrame): with SNP info
     """
     dbsnp = pysam.TabixFile(dbsnp)
     clnvr = pysam.TabixFile(clnvr)
 
-    db_anno = partial(annotate_indel_on_db, fasta=fasta, dbsnp=dbsnp, clnvr=clnvr)
+    db_anno = partial(
+        annotate_indel_on_db,
+        fasta=fasta,
+        dbsnp=dbsnp,
+        clnvr=clnvr,
+        chr_prefixed=chr_prefixed,
+    )
     df["db"] = df.apply(db_anno, axis=1)
     df["dbsnp"] = df.apply(lambda x: x["db"].report_dbsnp_id(), axis=1)
     df["is_on_dbsnp"] = df.apply(is_on_dbsnp, axis=1)
@@ -43,7 +50,7 @@ def indel_snp_annotator(df, fasta, dbsnp, clnvr):
     return df
 
 
-def annotate_indel_on_db(row, fasta, dbsnp, clnvr):
+def annotate_indel_on_db(row, fasta, dbsnp, clnvr, chr_prefixed):
     """Check if there are equivalent indels on dbSNP and ClinVar
     for each indel. If exists, annotate with SNP info.
 
@@ -52,7 +59,7 @@ def annotate_indel_on_db(row, fasta, dbsnp, clnvr):
         fasta (str): path to .fa
         dbsnp (str): path to 00-All.151.indel.vcf.gz
         clnvr (str): path to clinvar.indel.vcf.gz
-
+        chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
     Returns:
         report (IndelSnpFeatures): idl object reporting SNP info
     """
@@ -62,7 +69,7 @@ def annotate_indel_on_db(row, fasta, dbsnp, clnvr):
     idl_seq = row["indel_seq"]
 
     # obj representing the indel in reference genome
-    idl = curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq)
+    idl = curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq, chr_prefixed)
     # obj representing report of the indel
     report = IndelSnpFeatures(chr, pos, idl_type, idl_seq)
 
@@ -77,7 +84,7 @@ def annotate_indel_on_db(row, fasta, dbsnp, clnvr):
             if idl_type == bb.idl_type and len(idl_seq) == len(bb.idl_seq):
                 # indel on db representing in reference genome
                 db_idl = curate_indel_in_genome(
-                    fasta, chr, bb.pos, bb.idl_type, bb.idl_seq
+                    fasta, chr, bb.pos, bb.idl_type, bb.idl_seq, chr_prefixed
                 )
                 if idl == db_idl:
                     rs = record[2]
@@ -91,7 +98,7 @@ def annotate_indel_on_db(row, fasta, dbsnp, clnvr):
         for bb in bambinos:
             if idl_type == bb.idl_type and len(idl_seq) == len(bb.idl_seq):
                 db_idl = curate_indel_in_genome(
-                    fasta, chr, bb.pos, bb.idl_type, bb.idl_seq
+                    fasta, chr, bb.pos, bb.idl_type, bb.idl_seq, chr_prefixed
                 )
                 if idl == db_idl:
                     id = record[2]

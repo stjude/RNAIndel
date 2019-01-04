@@ -17,14 +17,16 @@ class IndelVcfReport(object):
         pos (int): 1-based indel pos (Bambino coordinate)
         ref (str): Bambino style ref allele
         alt (str): Bambino style alt allele
+        chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
     """
 
-    def __init__(self, fa, chr, pos, ref, alt):
+    def __init__(self, fa, chr, pos, ref, alt, chr_prefixed):
         self.fa = fa
         self.chr = chr
         self.pos = pos
         self.ref = ref
         self.alt = alt
+        self.chr_prefixed = chr_prefixed
 
     def generate_indel(self):
         if self.ref == "-":
@@ -89,9 +91,9 @@ class IndelVcfReport(object):
                 VCF: REF = 'GA', ALT = 'G' at 3
         """
         if self.ref == "-":
-            return peek_left_base(self.generate_indel(), self.fa)
+            return peek_left_base(self.generate_indel(), self.fa, self.chr_prefixed)
         else:
-            return peek_left_base(self.generate_indel(), self.fa) + self.ref
+            return peek_left_base(self.generate_indel(), self.fa, self.chr_prefixed) + self.ref
 
     @property
     def ALT(self):

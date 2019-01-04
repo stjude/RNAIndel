@@ -14,16 +14,17 @@ random.seed(123)
 cigar_ptn = re.compile(r"[0-9]+[MIDNSHPX=]")
 
 
-def curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq):
+def curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq, chr_prefixed):
     """Gerenates an indel object with reference flanking sequences.
        Splicing will NOT be considered.
        
     Args:
         fasta (str): path to. fa
-        chr (str): chr1-22, chrX, chrY
+        chr (str): chr1-22, chrX, chrY. Note "chr"-prefixed. 
         pos (int): 1-based pos of indel
         idl_type (int): 1 for insertion 0 for deletion
         idl_seq (str): inserted or deleted sequence
+        chr_prefixed (bool): True if chromosome names in BAM or FASTA is prefixed with "chr"
     Returns:
         SequenceWithIndel (obj)
 
@@ -43,7 +44,11 @@ def curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq):
         
         Note that the right flanking sequence is not spliced.             
     """
+    # extract flanking seq +- window-nt
     window = 50
+    
+    if not chr_prefixed:
+        chr = chr.replace("chr", "")
 
     # left flank seq
     start, end = pos - window, pos - 1
@@ -70,6 +75,10 @@ def curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq):
         rt_fasta = pysam.faidx(fasta, chr + ":" + str(start) + "-" + str(end))
         # extract the seqence string
         rt_seq = rt_fasta.split("\n")[1]
+
+    # adding back "chr" if removed above
+    if not chr_prefixed:
+        chr = "chr" + chr
 
     return SequenceWithIndel(chr, pos, idl_type, lt_seq, idl_seq, rt_seq)
 
@@ -117,7 +126,7 @@ def is_close_to_exon_boundary(cigarstring, idx):
     return is_close
 
 
-def extract_all_valid_reads(bam_data, chr, pos):
+def extract_all_valid_reads(bam_data, chr, pos, chr_prefixed):
     """Extracts reads that are
         1. non-duplicate
         2. primary alignment
@@ -125,8 +134,9 @@ def extract_all_valid_reads(bam_data, chr, pos):
     
     Args:
         bam_data (pysam.AlignmentFile obj)
-        chr (str): chr1-22, chrX or chrY
+        chr (str): chr1-22, chrX or chrY. Note "chr"-prefixed
         pos (int): 0-based coordinate
+        chr_prefixed (bool): True if chromosome names are "chr"-prefixed
     Returns:
         valid_reads (list): a list of pysam.AlignedSegment
     
@@ -149,6 +159,9 @@ def extract_all_valid_reads(bam_data, chr, pos):
            Read_4            CGTTC-G>>>>>>>>>>>>>>AAATCGA (non-primary)   
            Read_5     >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     """
+    if not chr_prefixed:
+        chr = chr.replace("chr", "")
+
     all_reads = bam_data.fetch(chr, pos, pos + 1, until_eof=True)
 
     valid_reads = []
@@ -169,9 +182,8 @@ def extract_indel_reads(reads, pos, ins_or_del):
 
     Args:
         reads (list): a list of pysam.AlignedSegment obj.
-        chr (str): chr1-22, chrX or chrY
         pos (int): 0-based coordinate
-        cigar_ins_del (str): 'I' for insertion or 'D' insertion
+        ins_or_del (str): 'I' for insertion or 'D' insertion
     Returns:
         parsed_indel_reads (list): a list of (pysam.AligedSegment obj, idx, adjust)
                             idx: the index of cigar token specifying the indel
@@ -226,10 +238,10 @@ def decompose_indel_read(parsed_indel_read):
     into flanking and inserted/deleted sequences
 
     Args:
-        parsed_indel_read (tuple): (pysam.AligedSegment, idx, adjust)
+        parsed_indel_read (tuple): (pysam.AlignedSegment, idx, adjust)
     Returns:
         decomposed_reads (tuple): (
-                                   pysam.AligedSegment, 
+                                   pysam.AlignedSegment, 
                                    idl_seq (str), 
                                    read_flanks (list),
                                    ref_flanks(list)
@@ -502,17 +514,18 @@ def infer_del_seq_from_data(decomposed_non_idl_reads, idl_flanks, del_seq):
     return inferred_seq
 
 
-def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq):
+def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq, chr_prefixed):
     """Generates an object describing what indel looks like
     in the pileup view.
     
     Args:    
         bam_data (pysam.AlignmentFile obj) 
-        chr (str): chr1-22, chrX, chrY
+        chr (str): chr1-22, chrX or chrY. Note "chr"-prefixed
         pos (int): 1-based position of indel on the reference
         idl_type (int): 1 for insertion 0 for deletion
         idl_seq (str): inserted or deleted sequence
-        mapq (int): MAPQ for uniquely mapped reads. Default=255
+        mapq (int): MAPQ for uniquely mapped reads
+        chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
     Returns:
         PileupWithIndel object: if indels found as specified with 
                                 chr, pos, idl_type and idl_seq 
@@ -531,7 +544,7 @@ def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq):
         del_or_ins = "I"
 
     # extract all good reads covering the locus of interest
-    all_reads = extract_all_valid_reads(bam_data, chr, pos)
+    all_reads = extract_all_valid_reads(bam_data, chr, pos, chr_prefixed)
 
     ###########################
     # Analysis of indel reads #

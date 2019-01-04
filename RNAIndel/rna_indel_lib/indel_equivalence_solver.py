@@ -19,7 +19,7 @@ from .indel_protein_processor import acc_len_dict
 mrna = re.compile(r"NM_[0-9]+")
 
 
-def indel_equivalence_solver(df, fasta, refgene):
+def indel_equivalence_solver(df, fasta, refgene, chr_prefixed):
     """Solve indel equivalence and calculates 
     indels_per_gene (ipg)
     
@@ -27,6 +27,7 @@ def indel_equivalence_solver(df, fasta, refgene):
         df (pandas.DataFrame)
         fasta (str): path to .fa
         refgene (str): path to refCodingExon.bed.gz
+        chr_prefixed (bool): True if chromosome names are "chr"-prefixed
     Returns:
         df (pandas.DataFrame): dataframe with valid entries
         df_filtered_postmerge (pandas.DataFrame):
@@ -34,7 +35,7 @@ def indel_equivalence_solver(df, fasta, refgene):
                                after the merge of equivalen indels
     """
     # finds and merge equivalent indels
-    df = solve_equivalence(df, fasta)
+    df = solve_equivalence(df, fasta, chr_prefixed)
     dfe = df.groupby("equivalence_id")
     df = dfe.apply(merge_equivalents)
 
@@ -46,9 +47,9 @@ def indel_equivalence_solver(df, fasta, refgene):
     df.drop(["gene_symbol", "equivalence_id"], axis=1, inplace=True)
 
     df["filtered"] = df.apply(flag_entry_with_one_read, axis=1)
-    
+
     df, df_filtered_postmerge = df[df["filtered"] == "-"], df[df["filtered"] != "-"]
-    
+
     return df, df_filtered_postmerge
 
 
@@ -60,18 +61,21 @@ def flag_entry_with_one_read(row):
     return filtered
 
 
-def solve_equivalence(df, fasta):
-    """Finds equivalent indels and assigns IDs based on equivalnece
+def solve_equivalence(df, fasta, chr_prefixed):
+    """Find equivalent indels and assigns IDs based on equivalnece
        Equivalent indels are assigned the same ID numbers.
 
     Args: 
        df (pandas dataframe)
        fasta (str): complete path to FASTA file
+       chr_prefixed (bool): True is chromosome names in BAM are "chr"-prefixed
     Returns:
        df (pandas datagrame): 'equivalence_id' column added
     """
     # generate indel objects
-    df["indel_obj"] = df.apply(partial(generate_indel, fasta=fasta), axis=1)
+    df["indel_obj"] = df.apply(
+        partial(generate_indel, fasta=fasta, chr_prefixed=chr_prefixed), axis=1
+    )
 
     # find equivalent indels and assign id
     df["eq"] = df.apply(partial(check_equivalence, df=df), axis=1)
@@ -86,14 +90,15 @@ def solve_equivalence(df, fasta):
     return df
 
 
-def generate_indel(row, fasta):
-    """Generates indel objects
+def generate_indel(row, fasta, chr_prefixed):
+    """Generate indel objects
 
     Args:
        row (pandas.Series): 4 Series objects respectively
                             column indexed 'chr', 'pos', 
                             'idl_type', 'idl_seq'  
        fasta (str): complete path to FASTA file
+       chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
     Returns:
        SequenceWithIndel object
     """
@@ -101,11 +106,11 @@ def generate_indel(row, fasta):
     pos = row["pos"]
     idl_type = row["is_ins"]
     idl_seq = row["indel_seq"]
-    return curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq)
+    return curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq, chr_prefixed)
 
 
 def check_equivalence(row, df):
-    """Finds equivalent indels stored in dataframe column
+    """Find equivalent indels stored in dataframe column
     
     Args:
        row (pandas.Series): A Series object column labeled 'indel_obj'

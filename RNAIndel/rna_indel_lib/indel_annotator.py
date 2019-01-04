@@ -18,13 +18,13 @@ from .indel_sequence import CodingSequenceWithIndel
 logger = logging.getLogger(__name__)
 
 
-def indel_annotator(df, refgene, fasta):
+def indel_annotator(df, refgene, fasta, chr_prefixed):
     """Sort coding indels and annotate coding indels with variant effect
 
     Args:
         df (pandas.DataFrame): with a header:'chr', 'pos', 'ref', 'alt' 
         refgene (str): path to refCodingExon.bed.gz
-        fasta (str): path to .fa
+        fasta (str): path to fasta
     Returns:
         df (pandas.DataFrame): with indels annotated
     """
@@ -33,7 +33,7 @@ def indel_annotator(df, refgene, fasta):
 
     # performs annotation
     exon_data = pysam.TabixFile(refgene)
-    anno = partial(annotate_indels, exon_data=exon_data, fasta=fasta)
+    anno = partial(annotate_indels, exon_data=exon_data, fasta=fasta, chr_prefixed=chr_prefixed)
     df["annotation"] = df.apply(anno, axis=1)
 
     # removes unannotated calls (non-coding indels)
@@ -95,14 +95,15 @@ def get_indel_seq(row):
     return indel_seq
 
 
-def annotate_indels(row, exon_data, fasta, postprocess=False):
+def annotate_indels(row, exon_data, fasta, chr_prefixed, postprocess=False):
     """Annotates indels for all RefSeq isoforms
 
     Args: 
         row (pandas.Series): a Series with indices 
                              'chr', 'pos', 'is_ins', 'indel_seq'
-        exon_data (pysam.TabixFile): randomly accessible refgene exon data 
+        exon_data (pysam.TabixFile): coding exon database 
         fasta (str): path to fasta file
+        chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
         postprocess (bool): True if used in indel_postprocessor. Default to False 
     
     Returns:
@@ -128,7 +129,7 @@ def annotate_indels(row, exon_data, fasta, postprocess=False):
     idl_seq = row["indel_seq"]
 
     # generates CodingSequenceWithIndel instances
-    idls = generate_coding_indels(chr, pos, idl_type, idl_seq, exon_data, fasta)
+    idls = generate_coding_indels(chr, pos, idl_type, idl_seq, exon_data, fasta, chr_prefixed)
 
     # annotates for all RefSeq isoforms
     annots = []
@@ -164,16 +165,17 @@ def annotate_indels(row, exon_data, fasta, postprocess=False):
     return annotation
 
 
-def generate_coding_indels(chr, pos, idl_type, idl_seq, exon_data, fasta):
+def generate_coding_indels(chr, pos, idl_type, idl_seq, exon_data, fasta, chr_prefixed):
     """Generates coding indel objects
     
     Args:
-        chr (str): chr1-22, chrX or chrY
+        chr (str): chr1-22, chrX or chrY. Note "chr"-prefixed.
         pos (int): 1-based genomic position
         idl_type (int): 1 for insertion, 0 for deletion
         idl_seq (str): inserted or deleted sequence
-        exon_data (pysam.TabixFile): randomly accessible refgene exon data
+        exon_data (pysam.TabixFile): coding exon database
         fasta (str): path to fasta file
+        chr_prefixed (bool): True if chromosome names in BAM or FASTA are "chr"-prefixed
 
     Returns:
         coding_idl_lst (list): a list of CodingSequenceWithIndel obj
@@ -232,7 +234,7 @@ def generate_coding_indels(chr, pos, idl_type, idl_seq, exon_data, fasta):
                 pass
             else:
                 indel_in_reference_genome = curate_indel_in_genome(
-                    fasta, chr, pos, idl_type, idl_seq
+                    fasta, chr, pos, idl_type, idl_seq, chr_prefixed
                 )
                 lt_seq = indel_in_reference_genome.lt_seq
                 rt_seq = indel_in_reference_genome.rt_seq

@@ -15,7 +15,7 @@ from .indel_curator import curate_indel_in_genome
 from .indel_curator import curate_indel_in_pileup
 
 
-def indel_sequence_processor(df, fasta, bam, mapq):
+def indel_sequence_processor(df, fasta, bam, mapq, chr_prefixed):
     """Calculate features from Bambino output, annotation, and .bam
     
     Features not used for final model are commented out '#'
@@ -24,6 +24,8 @@ def indel_sequence_processor(df, fasta, bam, mapq):
         df (pandas.DataFrame)
         fasta (str): path to fasta
         bam (str): path to bam
+        mapq (int): MAPQ score for uniquely mapped reads
+        chr_prefixed (bool): True if chromosome names are "chr"-prefixed
     Returns:
         df (pandas.DataFrame): dataframe with valid entries
         df_filtered_premerge (pandas.DataFrame): dataframe with invalid entries
@@ -44,7 +46,7 @@ def indel_sequence_processor(df, fasta, bam, mapq):
 
     # features derived from sequence alingment/map
     bam_data = pysam.AlignmentFile(bam, "rb")
-    sam = partial(sam_features, fasta=fasta, bam_data=bam_data, mapq=mapq)
+    sam = partial(sam_features, fasta=fasta, bam_data=bam_data, mapq=mapq, chr_prefixed=chr_prefixed)
     df["s"] = df.apply(sam, axis=1)
     # df['gc'] = df.apply(lambda x: x['s'].gc, axis=1)
     # df['local_gc'] = df.apply(lambda x: x['s'].local_gc, axis=1)
@@ -224,29 +226,31 @@ def anno_features(row):
     )
 
 
-def sam_features(row, fasta, bam_data, mapq):
+def sam_features(row, fasta, bam_data, mapq, chr_prefixed):
     """Encodes features derived from sequence alignment/map(SAM)
     
     Args:
         row (pandas.Series): a Series with 'chr', 'pos', 
                              'is_ins', 'indel_seq' indexes
         fasta (str): path to fasta
-        bam_data (pysam.AlignmentFile): bam alignment object
+        bam_data (pysam.AlignmentFile): bam object
+        mapq (int): MAPQ score for unique mappers
+        chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
     Returns:
         SamFeatures (class)            
     """
     dna_window = 50
     rna_window = 6
 
-    chr = row["chr"]
+    chr = row["chr"]  # this is "chr"-prefixed
     pos = row["pos"]
     idl_type = row["is_ins"]
     idl_seq = row["indel_seq"]
 
     # SequenceWithIndel obj in refrence genome
-    idl_ref_genome = curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq)
+    idl_ref_genome = curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq, chr_prefixed)
     # PileupWithIndel obj in bam
-    idl_bam = curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq)
+    idl_bam = curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq, chr_prefixed)
 
     # global sequence properties
     # derived from reference genome

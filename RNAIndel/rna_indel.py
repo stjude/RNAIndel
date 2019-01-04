@@ -27,38 +27,35 @@ def main():
     
     # Preprocessing
     if args.input_bambino:
-        df = ri.indel_preprocessor(args.input_bambino, refgene, args.fasta)
+        df, chr_prefixed = ri.indel_preprocessor(args.input_bambino, args.bam, refgene, args.fasta)
         df = ri.indel_rescuer(
-            df, args.fasta, args.bam, num_of_processes=args.process_num
+            df, args.fasta, args.bam, chr_prefixed, num_of_processes=args.process_num
         )
     else:
-        df = ri.indel_vcf_preprocessor(args.input_vcf, refgene, args.fasta)
+        df, chr_prefixed = ri.indel_vcf_preprocessor(args.input_vcf, args.bam, refgene, args.fasta)
         df = ri.indel_rescuer(
             df,
             args.fasta,
             args.bam,
+            chr_prefixed,
             num_of_processes=args.process_num,
             left_aligned=True,
             external_vcf=True
         )
 
     # Analysis 1: indel annotation
-    df = ri.indel_annotator(df, refgene, args.fasta)
-    
+    df = ri.indel_annotator(df, refgene, args.fasta, chr_prefixed)
     # Analysis 2: feature calculation using  
     df, df_filtered_premerge = ri.indel_sequence_processor(
-        df, args.fasta, args.bam, args.uniq_mapq
+        df, args.fasta, args.bam, args.uniq_mapq, chr_prefixed
     )
     df = ri.indel_protein_processor(df, refgene)
-    
-    # Analysis 3: mergeing equivalent indels
+    # Analysis 3: merging equivalent indels
     df, df_filtered_postmerge = ri.indel_equivalence_solver(
-       df, args.fasta, refgene
+       df, args.fasta, refgene, chr_prefixed
     )
-    
     # Analysis 4: dbSNP annotation
-    df = ri.indel_snp_annotator(df, args.fasta, dbsnp, clinvar)
-    
+    df = ri.indel_snp_annotator(df, args.fasta, dbsnp, clinvar, chr_prefixed)
     # Analysis 5: prediction
     df = ri.indel_classifier(df, model_dir, num_of_processes=args.process_num)
     
@@ -72,13 +69,13 @@ def main():
     
     # Analysis 7(Optional): custom refinement of somatic prediction
     if args.non_somatic_panel:
-        df = ri.indel_reclassifier(df, args.fasta, args.non_somatic_panel)
+        df = ri.indel_reclassifier(df, args.fasta, chr_prefixed, args.non_somatic_panel)
 
     # PostProcessing & VCF formatting
     df, df_filtered = ri.indel_postprocessor(
-        df, df_filtered, refgene, args.fasta, args.non_somatic_panel
+        df, df_filtered, refgene, args.fasta, chr_prefixed
     )
-    ri.indel_vcf_writer(df, df_filtered, args.bam, args.fasta, args.output_vcf)
+    ri.indel_vcf_writer(df, df_filtered, args.bam, args.fasta, chr_prefixed, args.output_vcf)
     
     print("rna_indel completed successfully", file=sys.stderr)
 
