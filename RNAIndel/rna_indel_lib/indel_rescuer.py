@@ -50,10 +50,7 @@ def indel_rescuer(df, fasta, bam, chr_prefixed, **kwargs):
 
     df = df[["chr", "pos", "ref", "alt", "rescued"]]
 
-    try:
-        df = pd.concat([df, df_rescued], axis=0, sort=True)
-    except:
-        df = pd.concat([df, df_rescued], axis=0)
+    df = pd.concat([df, df_rescued], axis=0, sort=True)
 
     df = sort_positionally(df)
     df = df.drop_duplicates(["chr", "pos", "ref", "alt"])

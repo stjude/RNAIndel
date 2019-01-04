@@ -270,10 +270,7 @@ def decompose_indel_read(parsed_indel_read):
     # read (actual sequence)
     read_seq = read.query_sequence
     # reference sequence
-    try:
-        ref_seq = read.get_reference_sequence()
-    except:
-        ref_seq = read.query_sequence
+    ref_seq = read.get_reference_sequence()
 
     i = 0  # pos on read_seq
     j = 0 - adjust  # pos on ref_seq
