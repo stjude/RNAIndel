@@ -126,7 +126,7 @@ def is_close_to_exon_boundary(cigarstring, idx):
     return is_close
 
 
-def extract_all_valid_reads(bam_data, chr, pos):
+def extract_all_valid_reads(bam_data, chr, pos, chr_prefixed):
     """Extracts reads that are
         1. non-duplicate
         2. primary alignment
@@ -134,8 +134,9 @@ def extract_all_valid_reads(bam_data, chr, pos):
     
     Args:
         bam_data (pysam.AlignmentFile obj)
-        chr (str): chr1-22, chrX or chrY
+        chr (str): chr1-22, chrX or chrY. Note "chr"-prefixed
         pos (int): 0-based coordinate
+        chr_prefixed (bool): True if chromosome names are "chr"-prefixed
     Returns:
         valid_reads (list): a list of pysam.AlignedSegment
     
@@ -158,6 +159,9 @@ def extract_all_valid_reads(bam_data, chr, pos):
            Read_4            CGTTC-G>>>>>>>>>>>>>>AAATCGA (non-primary)   
            Read_5     >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     """
+    if not chr_prefixed:
+        chr = chr.replaced("chr", "")
+
     all_reads = bam_data.fetch(chr, pos, pos + 1, until_eof=True)
 
     valid_reads = []
@@ -178,9 +182,8 @@ def extract_indel_reads(reads, pos, ins_or_del):
 
     Args:
         reads (list): a list of pysam.AlignedSegment obj.
-        chr (str): chr1-22, chrX or chrY
         pos (int): 0-based coordinate
-        cigar_ins_del (str): 'I' for insertion or 'D' insertion
+        ins_or_del (str): 'I' for insertion or 'D' insertion
     Returns:
         parsed_indel_reads (list): a list of (pysam.AligedSegment obj, idx, adjust)
                             idx: the index of cigar token specifying the indel

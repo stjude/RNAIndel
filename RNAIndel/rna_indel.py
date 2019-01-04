@@ -9,11 +9,11 @@ import argparse
 import pandas as pd
 from functools import partial
 
-try:
-    import RNAIndel.rna_indel_lib as ri
-except ImportError:
+#try:
+#    import RNAIndel.rna_indel_lib as ri
+#except ImportError:
     # try import rna_indel_lib package directly
-    import rna_indel_lib as ri
+import rna_indel_lib as ri
 
 
 def main():
@@ -27,11 +27,11 @@ def main():
     
     # Preprocessing
     if args.input_bambino:
-        df = ri.indel_preprocessor(args.input_bambino, args.bam, refgene, args.fasta)
-        df.to_csv("test_out.txt", index=False, sep="\t")
+        df, chr_prefixed = ri.indel_preprocessor(args.input_bambino, args.bam, refgene, args.fasta)
         df = ri.indel_rescuer(
-            df, args.fasta, args.bam, num_of_processes=args.process_num
+            df, args.fasta, args.bam, chr_prefixed, num_of_processes=args.process_num
         )
+        df.to_csv("after_rescue.txt", sep="\t", index=False)
     else:
         df = ri.indel_vcf_preprocessor(args.input_vcf, refgene, args.fasta)
         df = ri.indel_rescuer(

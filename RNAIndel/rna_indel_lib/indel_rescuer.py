@@ -12,7 +12,7 @@ from .indel_curator import curate_indel_in_genome
 from .indel_curator import extract_all_valid_reads
 
 
-def indel_rescuer(df, fasta, bam, **kwargs):
+def indel_rescuer(df, fasta, bam, chr_prefixed, **kwargs):
 
     num_of_processes = kwargs.pop("num_of_processes", 1)
     left_aligned = kwargs.pop("left_aligned", False)
@@ -30,6 +30,7 @@ def indel_rescuer(df, fasta, bam, **kwargs):
         search_window=50,
         pool=pool,
         left_aligned=left_aligned,
+        chr_prefixed = chr_prefixed,
     )
     
     df["rescued_indels"] = df.apply(rqxeq, axis=1)
@@ -58,14 +59,17 @@ def indel_rescuer(df, fasta, bam, **kwargs):
     return df
 
 
-def rescue_by_equivalence(row, fasta, bam, search_window, pool, left_aligned):
-    """Recorver equivalent indels from left-aligned indel report
+def rescue_by_equivalence(row, fasta, bam, search_window, pool, left_aligned, chr_prefixed):
+    """Recover equivalent indels from left-aligned indel report
     
     Args:
         row (pandas.Series)
         fasta (str): path to fasta
-        bam_data (pysam.AlignmentFile)
+        bam (str): path to bam
         search_window (int): to define search range
+        pool (Multiprocessing.Pool obj)
+        left_aligned (bool): True if input indels are left-aligned.
+        chr_prefixed (bool): True if chromosome names are "chr" prefixed
     Returns
         equivalents (list): dict element
                             {'chr':chromosome,
@@ -75,7 +79,7 @@ def rescue_by_equivalence(row, fasta, bam, search_window, pool, left_aligned):
 
                             empty list if no equivalent indels found
     """
-    chr = row["chr"]
+    chr = row["chr"]  # this is "chr"-prefixed
     pos = row["pos"]
 
     if row["ref"] == "-":
@@ -83,7 +87,7 @@ def rescue_by_equivalence(row, fasta, bam, search_window, pool, left_aligned):
     else:
         idl_type, idl_seq = 0, row["ref"]
 
-    called_idl = curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq)
+    called_idl = curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq, chr_prefixed)
 
     if left_aligned:
         rt_window, lt_window = search_window, search_window - search_window
@@ -96,6 +100,7 @@ def rescue_by_equivalence(row, fasta, bam, search_window, pool, left_aligned):
         bam=bam,
         chr=chr,
         idl_type=idl_type,
+        chr_prefixed=chr_prefixed,
         equivalent_to=called_idl,
     )
 
@@ -148,7 +153,7 @@ def rescue_by_nearest(row, fasta, bam, search_window):
     i = 0
     idl_found = None
     while i < len(pos_move) and not idl_found:
-        idl_found = extract_indel(pos + pos_move[i], fasta, bam, chr, idl_type)
+        idl_found = extract_indel(pos + pos_move[i], fasta, bam, chr, idl_type, chr_prefixed)
         i += 1
 
     if not idl_found:
@@ -188,15 +193,19 @@ def flag_indel_rescued_by_nearest(row):
     return flag
 
 
-def extract_indel(pos, fasta, bam, chr, idl_type, **kwargs):
+def extract_indel(pos, fasta, bam, chr, idl_type, chr_prefixed, **kwargs):
     """Extract equivalent indel if exists at the locus (chr, pos)
 
     Args:
-        called_idl (SequenceWithIndel): indel object to compare
-        fasta (str): path to fasta 
-        bam_data (pysam.AlignmentFile)
         pos (int): 1-based coordinate
+                   Placed as 1st arg for map()
+        fasta (str): path to fasta
+        bam (str): path to bam
+        chr (str): chr1-22, chrX or chrY. Note "chr"-prefixed.
         idl_type (int): 1 for insertion, 0 for deletion
+        chr_prefixed (bool): True if chrosomome names in BAM is "chr"-prefixed
+    KwArgs:
+        equivalent_to (SequenceWithIndel obj): indel obj to be compared for equivalence
     Returns:
         equivalent_indel(SequenceWithIndel or None) :SequenceWithIndel if found
                                                      None if not found
@@ -205,11 +214,11 @@ def extract_indel(pos, fasta, bam, chr, idl_type, **kwargs):
     bam_data = pysam.AlignmentFile(bam, "rb")
     idl_to_compare = kwargs.pop("equivalent_to", None)
 
-    inferred_idl_seq = get_most_common_indel_seq(bam_data, chr, pos, idl_type)
+    inferred_idl_seq = get_most_common_indel_seq(bam_data, chr, pos, idl_type, chr_prefixed)
 
     if inferred_idl_seq:
         idl_at_this_locus = curate_indel_in_genome(
-            fasta, chr, pos, idl_type, inferred_idl_seq
+            fasta, chr, pos, idl_type, inferred_idl_seq, chr_prefixed
         )
 
         if idl_to_compare:
@@ -219,14 +228,15 @@ def extract_indel(pos, fasta, bam, chr, idl_type, **kwargs):
     return idl_at_this_locus
 
 
-def get_most_common_indel_seq(bam_data, chr, pos, idl_type):
+def get_most_common_indel_seq(bam_data, chr, pos, idl_type, chr_prefixed):
     """Extract most frequent indel sequnece from bam data
 
     Args:
         bam_data (pysam.pysam.AlignmentFile)
-        chr (str): chr1-22, chrX or chrY
+        chr (str): chr1-22, chrX or chrY. Note "chr"-prefixed. 
         pos (int): 1-based coordinate
         idl_type (int): 1 for insertion, 0 for deletion
+        chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
     Returns:
         idl_seq (str or None): None type if no indels found
     """
@@ -241,7 +251,7 @@ def get_most_common_indel_seq(bam_data, chr, pos, idl_type):
     pos = pos - 1
 
     try:
-        valid_reads = extract_all_valid_reads(bam_data, chr, pos)
+        valid_reads = extract_all_valid_reads(bam_data, chr, pos, chr_prefixed)
     except:
         return idl_seq
 

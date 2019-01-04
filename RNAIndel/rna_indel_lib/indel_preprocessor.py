@@ -34,9 +34,10 @@ def indel_preprocessor(bambinofile, bam, refgene, fasta):
                                chr2 456  GG   -
                                       ....
                                chrY 987  CCT  -
+        chr_prefixed (bool): True if chromosome names are prefixed with "chr" in BAM
     """
     exon_data = pysam.TabixFile(refgene)
-    bam_data = pysam.AlingmentFile(bam)
+    bam_data = pysam.AlignmentFile(bam)
 
     if not exists_bambino_output(bambinofile):
         sys.exit(1)
@@ -57,7 +58,6 @@ def indel_preprocessor(bambinofile, bam, refgene, fasta):
     df = format_indel_report(df)
 
     chr_prefixed = is_chr_prefixed(bam_data)
-    print(chr_prefixed)
     coding = partial(flag_coding_indels, exon_data=exon_data, fasta=fasta, chr_prefixed=chr_prefixed)
     df["is_coding"] = df.apply(coding, axis=1)
     df = df[df["is_coding"] == True]
@@ -69,7 +69,7 @@ def indel_preprocessor(bambinofile, bam, refgene, fasta):
     df.drop("is_coding", axis=1, inplace=True)
     df = df.reset_index(drop=True)
 
-    return df
+    return df, chr_prefixed
 
 
 def is_chr_prefixed(bam_data):
@@ -80,7 +80,7 @@ def is_chr_prefixed(bam_data):
     Returns:
         is_prefixed (bool): True if prefixed.
     """
-    header_dict = bam_data.header.to_dict()
+    header_dict = bam_data.header
     chromosome_names = header_dict["SQ"]
     
     is_prefixed = False
