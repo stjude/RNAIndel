@@ -158,9 +158,13 @@ class IndelVcfReport(object):
 
     @property
     def vcf_record(self):
+        if self.chr_prefixed:
+            chr = self.CHROM
+        else:
+            chr = self.CHROM.replace("chr", "")
 
         record = [
-            self.CHROM,
+            chr,
             str(self.POS),
             self.ID,
             self.REF,
