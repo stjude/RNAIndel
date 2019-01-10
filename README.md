@@ -35,8 +35,8 @@ rna_indel -h                # Check if rna_indel works correctly
 ```
 
 ## Data directory set up
-Download datafile:[data_dir_37.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_37.tar.gz) 
-for GRCh37 and [data_dir_38.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz) for GRCh38 <br>
+Download datafile: [data_dir_37.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_37.tar.gz) 
+for GRCh37 and [data_dir_38.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz) for GRCh38.
 Place the gzipped file under a directory of your choice and unpack it. In [Demo](#demo), 
 the data directory (GRCh38 version) is located under the RNAIndel root direcotry.<br>  
 ```
