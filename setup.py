@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 version = {}
-with open("./version.py") as fp:
+with open("./RNAIndel/version.py") as fp:
     exec(fp.read(), version)
 
 setup(

@@ -8,12 +8,13 @@ import logging
 import argparse
 import pandas as pd
 from functools import partial
+from version import __version__
 
-try:
-    import RNAIndel.rna_indel_lib as ri
-except ImportError:
+#try:
+#    import RNAIndel.rna_indel_lib as ri
+#except ImportError:
     # try import rna_indel_lib package directly
-    import rna_indel_lib as ri
+import rna_indel_lib as ri
 
 
 def main():
@@ -24,15 +25,19 @@ def main():
     dbsnp = "{}/dbsnp/dbsnp.indel.vcf.gz".format(data_dir)
     clinvar = "{}/clinvar/clinvar.indel.vcf.gz".format(data_dir)
     model_dir = "{}/models".format(data_dir)
-    
+
     # Preprocessing
     if args.input_bambino:
-        df, chr_prefixed = ri.indel_preprocessor(args.input_bambino, args.bam, refgene, args.fasta)
+        df, chr_prefixed = ri.indel_preprocessor(
+            args.input_bambino, args.bam, refgene, args.fasta
+        )
         df = ri.indel_rescuer(
             df, args.fasta, args.bam, chr_prefixed, num_of_processes=args.process_num
         )
     else:
-        df, chr_prefixed = ri.indel_vcf_preprocessor(args.input_vcf, args.bam, refgene, args.fasta)
+        df, chr_prefixed = ri.indel_vcf_preprocessor(
+            args.input_vcf, args.bam, refgene, args.fasta
+        )
         df = ri.indel_rescuer(
             df,
             args.fasta,
@@ -40,33 +45,33 @@ def main():
             chr_prefixed,
             num_of_processes=args.process_num,
             left_aligned=True,
-            external_vcf=True
+            external_vcf=True,
         )
 
     # Analysis 1: indel annotation
     df = ri.indel_annotator(df, refgene, args.fasta, chr_prefixed)
-    # Analysis 2: feature calculation using  
+    # Analysis 2: feature calculation using
     df, df_filtered_premerge = ri.indel_sequence_processor(
         df, args.fasta, args.bam, args.uniq_mapq, chr_prefixed
     )
     df = ri.indel_protein_processor(df, refgene)
     # Analysis 3: merging equivalent indels
     df, df_filtered_postmerge = ri.indel_equivalence_solver(
-       df, args.fasta, refgene, chr_prefixed
+        df, args.fasta, refgene, chr_prefixed
     )
     # Analysis 4: dbSNP annotation
     df = ri.indel_snp_annotator(df, args.fasta, dbsnp, clinvar, chr_prefixed)
     # Analysis 5: prediction
     df = ri.indel_classifier(df, model_dir, num_of_processes=args.process_num)
-    
+
     # Analysis 6: concatenating invalid(filtered) entries
     df_filtered = pd.concat(
-        [df_filtered_premerge, df_filtered_postmerge], 
-        axis=0, 
+        [df_filtered_premerge, df_filtered_postmerge],
+        axis=0,
         ignore_index=True,
-        sort=True
+        sort=True,
     )
-    
+
     # Analysis 7(Optional): custom refinement of somatic prediction
     if args.non_somatic_panel:
         df = ri.indel_reclassifier(df, args.fasta, chr_prefixed, args.non_somatic_panel)
@@ -75,20 +80,28 @@ def main():
     df, df_filtered = ri.indel_postprocessor(
         df, df_filtered, refgene, args.fasta, chr_prefixed
     )
-    ri.indel_vcf_writer(df, df_filtered, args.bam, args.fasta, chr_prefixed, args.output_vcf)
-    
-    print("rna_indel completed successfully", file=sys.stderr)
+    ri.indel_vcf_writer(
+        df,
+        df_filtered,
+        args.bam,
+        args.fasta,
+        chr_prefixed,
+        args.output_vcf,
+        __version__,
+    )
+
+    print("rna_indel completed successfully.", file=sys.stderr)
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(prog="RNAIndel")
     parser.add_argument(
         "-b",
         "--bam",
         metavar="FILE",
         required=True,
         type=partial(check_file, file_name="BAM file (.bam)"),
-        help="input tumor bam file"
+        help="input tumor bam file",
     )
 
     # input indel calls required either: bambino output or a vcf file
@@ -98,14 +111,14 @@ def get_args():
         "--input-bambino",
         metavar="FILE",
         type=partial(check_file, file_name="Bambino Call Format file"),
-        help="input file with calls from Bambino"
+        help="input file with calls from Bambino",
     )
     group.add_argument(
         "-c",
         "--input-vcf",
         metavar="FILE",
         type=partial(check_file, file_name="VCF (.vcf) file"),
-        help="input vcf file from other callers"
+        help="input vcf file from other callers",
     )
     parser.add_argument(
         "-o", "--output-vcf", metavar="FILE", required=True, help="output vcf file"
@@ -116,7 +129,7 @@ def get_args():
         metavar="FILE",
         required=True,
         type=partial(check_file, file_name="FASTA file"),
-        help="reference genome (GRCh38) FASTA file. Use the same FASTA file used for mapping"
+        help="reference genome (GRCh38) FASTA file. Use the same FASTA file used for mapping",
     )
     parser.add_argument(
         "-d",
@@ -124,7 +137,7 @@ def get_args():
         metavar="DIR",
         required=True,
         help="data directory contains refgene, dbsnp and clinvar databases and models",
-        type=check_folder_existence
+        type=check_folder_existence,
     )
     parser.add_argument(
         "-q",
@@ -155,6 +168,11 @@ def get_args():
         metavar="DIR",
         type=check_folder_existence,
         help="directory for storing log files",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version="%(prog)s {version}".format(version=__version__),
     )
     args = parser.parse_args()
     return args
@@ -191,6 +209,7 @@ def check_mapq(val):
     if not 0 <= val <= 255:
         sys.exit("Error: the MAPQ value must be between 0 and 255.")
     return val
+
 
 def check_folder_existence(folder):
     p = pathlib.Path(folder)
