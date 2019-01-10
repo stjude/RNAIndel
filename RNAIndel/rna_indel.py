@@ -10,11 +10,11 @@ import pandas as pd
 from functools import partial
 from version import __version__
 
-#try:
-#    import RNAIndel.rna_indel_lib as ri
-#except ImportError:
+try:
+    import RNAIndel.rna_indel_lib as ri
+except ImportError:
     # try import rna_indel_lib package directly
-import rna_indel_lib as ri
+    import rna_indel_lib as ri
 
 
 def main():
