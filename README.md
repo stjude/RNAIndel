@@ -35,9 +35,8 @@ rna_indel -h                # Check if rna_indel works correctly
 ```
 
 ## Data directory set up
-Download datafile.<br>
-For GRCh37, [data_dir_37.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_37.tar.gz) <br>
-For GRCh38, [data_dir_38.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz) <br>
+Download datafile:[data_dir_37.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_37.tar.gz) 
+for GRCh37 and [data_dir_38.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz) for GRCh38 <br>
 Place the gzipped file under a directory of your choice and unpack it. In [Demo](#demo), 
 the data directory (GRCh38 version) is located under the RNAIndel root direcotry.<br>  
 ```
@@ -72,7 +71,7 @@ rna_indel_pipeline.sh -b BAM \
 * ```-b``` input BAM file (required)
 * ```-c``` VCF file from other caller (required for using other callers, e.g., [GATK](https://software.broadinstitute.org/gatk/))
 * ```-o``` output VCF file (required)
-* ```-f``` reference genome (GRCh38) FASTA file (required)
+* ```-f``` reference genome (GRCh37 or 38) FASTA file (required)
 * ```-d``` data directory contains trained models and databases (required) [Data directory set up](#data-directory-set-up) 
 * ```-q``` STAR mapping quality MAPQ for unique mappers (default=255)
 * ```-p``` number of cores (default=1)
