@@ -2,8 +2,7 @@
 RNAIndel calls coding indels and classifies them into 
 somatic, germline, and artifact from tumor RNA-Seq data.
 Users can also classify indels called by their own callers by
-supplying a VCF file. For the indel calling part, users may use
-their own callers. RNAIndel supports GRCh38 as well as GRCh37. 
+supplying a VCF file. RNAIndel supports GRCh38 as well as GRCh37. 
 
 ## Prerequisites
 The Python dependencies will be [installed](#installation). Users need to install Java.
