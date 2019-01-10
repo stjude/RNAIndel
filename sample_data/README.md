@@ -16,12 +16,12 @@ RNAIndel
      ...
 ```
 **Step 2:**  Setup Data Directory.<br> 
-Unpack [data_dir.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir.tar.gz) under the RNAIndel root.  
+Unpack [data_dir_38.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz) under the RNAIndel root.  
 ```
 RNAIndel
     |_ Bambino
     ...
-    |_ data_dir
+    |_ data_dir_38
     ...
     |_ RNAIndel
     ...
@@ -36,7 +36,7 @@ We are assumed to be in the RNAIndel root directory.
 RNAIndel <----------- We are here.     
     |_ Bambino
     ...
-    |_ data_dir
+    |_ data_dir_38
     ...
     |_ RNAIndel
     ...
@@ -49,7 +49,7 @@ RNAIndel <----------- We are here.
 $ ./rna_indel_pipeline.sh -b ./sample_data/inputs/sample.bam \
                           -o ./sample_data/outputs/sample.vcf \
                           -f path/to/your_GRCh38.fa \
-                          -d ./data_dir
+                          -d ./data_dir_38
 
 bambino completed successfully.
 rna_indel completed successfully.
@@ -68,7 +68,7 @@ $ ./rna_indel_pipeline.sh -b ./sample_data/inputs/sample.bam \
                           -c ./sample_data/inputs/sample_gatk.vcf \
                           -o ./sample_data/outputs/sample_gatk_classified.vcf \
                           -f path/to/your_GRCh38.fa \
-                          -d ./data_dir
+                          -d ./data_dir_38
 
 rna_indel completed successfully.
 ```

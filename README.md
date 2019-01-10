@@ -2,17 +2,8 @@
 RNAIndel calls coding indels and classifies them into 
 somatic, germline, and artifact from tumor RNA-Seq data.
 Users can also classify indels called by their own callers by
-supplying a VCF file. RNAIndel only supports GRCh38. 
-
-## Table of Contents
-**[Prerequisites](#prerequisites)**<br>
-**[Download](#download)**<br>
-**[Installation](#installation)**<br>
-**[Usage](#usage)**<br>
-**[Demo](#demo)**<br>
-**[Input BAM file](#input-bam-file)**<br>
-**[Panel of non-somatic indel](#preparation-of-non-somatic-indel-panel)**<br>
-**[Citations](#citations)**<br>
+supplying a VCF file. For the indel calling part, users may use
+their own callers. RNAIndel supports GRCh38 as well as GRCh37. 
 
 ## Prerequisites
 The Python dependencies will be [installed](#installation). Users need to install Java.
@@ -44,11 +35,14 @@ rna_indel -h                # Check if rna_indel works correctly
 ```
 
 ## Data directory set up
-Download [data_dir.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir.tar.gz).<br>
+Download datafile.<br>
+For GRCh37, [data_dir_37.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_37.tar.gz) <br>
+For GRCh38, [data_dir_38.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz) <br>
 Place the gzipped file under a directory of your choice and unpack it. In [Demo](#demo), 
-the data directory is located under the RNAIndel root direcotry.<br>  
+the data directory (GRCh38 version) is located under the RNAIndel root direcotry.<br>  
 ```
-tar xzvf data_dir.tar.gz
+tar xzvf data_dir_37.tar.gz  # for GRCh37
+tar xzvf data_dir_38.tar.gz  # for GRCh38
 ```
 
 ## Usage
