@@ -8,7 +8,7 @@ import logging
 import argparse
 import pandas as pd
 from functools import partial
-from version import __version__
+from .version import __version__
 
 try:
     import RNAIndel.rna_indel_lib as ri
