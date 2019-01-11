@@ -33,7 +33,9 @@ def indel_annotator(df, refgene, fasta, chr_prefixed):
 
     # performs annotation
     exon_data = pysam.TabixFile(refgene)
-    anno = partial(annotate_indels, exon_data=exon_data, fasta=fasta, chr_prefixed=chr_prefixed)
+    anno = partial(
+        annotate_indels, exon_data=exon_data, fasta=fasta, chr_prefixed=chr_prefixed
+    )
     df["annotation"] = df.apply(anno, axis=1)
 
     # removes unannotated calls (non-coding indels)
@@ -129,7 +131,9 @@ def annotate_indels(row, exon_data, fasta, chr_prefixed, postprocess=False):
     idl_seq = row["indel_seq"]
 
     # generates CodingSequenceWithIndel instances
-    idls = generate_coding_indels(chr, pos, idl_type, idl_seq, exon_data, fasta, chr_prefixed)
+    idls = generate_coding_indels(
+        chr, pos, idl_type, idl_seq, exon_data, fasta, chr_prefixed
+    )
 
     # annotates for all RefSeq isoforms
     annots = []

@@ -5,8 +5,7 @@
 
 usage() {
     >&2 echo ""
-    >&2 echo ""
-    >&2 echo "This wrapper requires bambino and rna_indel executables installed."
+    >&2 echo "`rna_indel --version` pipeline."
     >&2 echo ""
     >&2 echo "Usage:"
     >&2 echo "  To run the Bambino/RNAIndel pipeline:"
@@ -26,8 +25,7 @@ usage() {
     >&2 echo "-m maximum heap space. Java parameter used for Bambino (default 6000m)"
     >&2 echo "-n user-defined panel of non-somatic indels in VCF format"
     >&2 echo "-l directory to store log files"
-    >&2 echo "-h show this message"
-    >&2 echo ""
+    >&2 echo "-h print this message"
     >&2 echo ""
     exit 0
 }
@@ -38,7 +36,7 @@ if [ $# -eq 0 ]; then
 fi
 
 # parse args
-while getopts "b:c:o:f:d:q:p:m:n:l:h" opt
+while getopts "b:c:o:f:d:q:p:m:n:l:hiv" opt
 do
     case $opt in
         b) BAM=$OPTARG ;;

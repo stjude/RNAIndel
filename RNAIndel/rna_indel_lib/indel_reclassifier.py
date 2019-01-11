@@ -29,7 +29,9 @@ def indel_reclassifier(df, fasta, chr_prefixed, pons_vcf=None):
     # OPTIONAL reclassification by non somatic list
     if pons_vcf:
         pons = pysam.TabixFile(pons_vcf)
-        reclf = partial(wrap_reclassify_by_pons, fasta=fasta, chr_prefixed=chr_prefixed, pons=pons)
+        reclf = partial(
+            wrap_reclassify_by_pons, fasta=fasta, chr_prefixed=chr_prefixed, pons=pons
+        )
         df["predicted_class"], df["reclassified"] = zip(*df.apply(reclf, axis=1))
 
     return df

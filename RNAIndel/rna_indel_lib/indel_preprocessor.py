@@ -58,7 +58,9 @@ def indel_preprocessor(bambinofile, bam, refgene, fasta):
     df = format_indel_report(df)
 
     chr_prefixed = is_chr_prefixed(bam_data)
-    coding = partial(flag_coding_indels, exon_data=exon_data, fasta=fasta, chr_prefixed=chr_prefixed)
+    coding = partial(
+        flag_coding_indels, exon_data=exon_data, fasta=fasta, chr_prefixed=chr_prefixed
+    )
     df["is_coding"] = df.apply(coding, axis=1)
     df = df[df["is_coding"] == True]
 
@@ -82,7 +84,7 @@ def is_chr_prefixed(bam_data):
     """
     header_dict = bam_data.header
     chromosome_names = header_dict["SQ"]
-    
+
     is_prefixed = False
     if chromosome_names[0]["SN"].startswith("chr"):
         is_prefixed = True
@@ -98,7 +100,7 @@ def flag_coding_indels(row, exon_data, fasta, chr_prefixed):
         fasta (str): path to Fasta
     Return:
         is_coding (bool): True for coding indels
-    """ 
+    """
     is_coding = False
 
     if row["ref"] == "-":

@@ -42,4 +42,6 @@ rna_indel -b BAM \
 * ```-p``` number of cores (default=1)
 * ```-n``` user-defined panel of non-somatic indels in VCF format
 * ```-l``` direcotry to store log files
+* ```-h``` print help
+* ```--version``` print RNAIndel version
 

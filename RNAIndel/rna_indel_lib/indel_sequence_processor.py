@@ -46,7 +46,13 @@ def indel_sequence_processor(df, fasta, bam, mapq, chr_prefixed):
 
     # features derived from sequence alingment/map
     bam_data = pysam.AlignmentFile(bam, "rb")
-    sam = partial(sam_features, fasta=fasta, bam_data=bam_data, mapq=mapq, chr_prefixed=chr_prefixed)
+    sam = partial(
+        sam_features,
+        fasta=fasta,
+        bam_data=bam_data,
+        mapq=mapq,
+        chr_prefixed=chr_prefixed,
+    )
     df["s"] = df.apply(sam, axis=1)
     # df['gc'] = df.apply(lambda x: x['s'].gc, axis=1)
     # df['local_gc'] = df.apply(lambda x: x['s'].local_gc, axis=1)
@@ -248,9 +254,13 @@ def sam_features(row, fasta, bam_data, mapq, chr_prefixed):
     idl_seq = row["indel_seq"]
 
     # SequenceWithIndel obj in refrence genome
-    idl_ref_genome = curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq, chr_prefixed)
+    idl_ref_genome = curate_indel_in_genome(
+        fasta, chr, pos, idl_type, idl_seq, chr_prefixed
+    )
     # PileupWithIndel obj in bam
-    idl_bam = curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq, chr_prefixed)
+    idl_bam = curate_indel_in_pileup(
+        bam_data, chr, pos, idl_type, idl_seq, mapq, chr_prefixed
+    )
 
     # global sequence properties
     # derived from reference genome

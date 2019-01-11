@@ -93,7 +93,10 @@ class IndelVcfReport(object):
         if self.ref == "-":
             return peek_left_base(self.generate_indel(), self.fa, self.chr_prefixed)
         else:
-            return peek_left_base(self.generate_indel(), self.fa, self.chr_prefixed) + self.ref
+            return (
+                peek_left_base(self.generate_indel(), self.fa, self.chr_prefixed)
+                + self.ref
+            )
 
     @property
     def ALT(self):

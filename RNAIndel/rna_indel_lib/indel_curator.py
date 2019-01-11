@@ -46,7 +46,7 @@ def curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq, chr_prefixed):
     """
     # extract flanking seq +- window-nt
     window = 50
-    
+
     if not chr_prefixed:
         chr = chr.replace("chr", "")
 

@@ -37,7 +37,7 @@ def indel_vcf_preprocessor(vcffile, bam, refgene, fasta):
 
     chr_prefixed = is_chr_prefixed(bam_data)
     df = pd.DataFrame(make_data_list(vcf_data))
-    
+
     datasize = len(df)
     if len(df) == 0:
         logging.warning("No indels detected in input vcf. Analysis done.")

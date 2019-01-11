@@ -236,7 +236,7 @@ class SequenceWithIndel(Indel):
                     return True
                 else:
                     return False
-    
+
 
 class PileupWithIndelNotFound(Indel):
     """Represents indels not aligned/found as specified by caller
