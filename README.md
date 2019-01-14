@@ -1,5 +1,4 @@
-# RNAIndel_dev
-
+# RNAIndel_dev (Visit https://github.com/stjude/RNAIndel for released version)
 
 
 RNAIndel calls coding indels and classifies them into 
