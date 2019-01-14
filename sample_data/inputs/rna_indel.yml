@@ -1,0 +1,13 @@
+bam:
+  class: File
+  path: /Users/lding/Git/RNAIndel/sample_data/inputs/sample.bam
+reference_fasta:
+  class: File
+  path: /Users/lding/Git/RNAIndel/data_dir/GRCh38_no_alt_ERCC92_SpikeIn.fa
+bambino_output:
+  class: File
+  path: /Users/lding/Git/RNAIndel/sample_data/outputs/bambino_calls.txt
+data_dir:
+  class: Directory
+  path: /Users/lding/Git/RNAIndel/data_dir
+output_vcf: rna_indel_out.vcf
