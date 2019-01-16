@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 version = {}
-with open("./RNAIndel/version.py") as fp:
+with open("./rna_indel/version.py") as fp:
     exec(fp.read(), version)
 
 setup(
@@ -21,7 +21,7 @@ setup(
     python_requires=">=3.5.2",
     packages=find_packages(exclude=["contrib", "docs", "tests"]),
     package_data={
-        "RNAIndel": ["testdata/*"],
+        "rna_indel": ["testdata/*"],
         "Bambino": [
             "bambino-1.0.jar",
             "mysql-connector-java-5.1.10.jar",

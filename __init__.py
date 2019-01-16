@@ -1,1 +1,1 @@
-from .rna_indel_lib import *
+from .rna_indel import *
