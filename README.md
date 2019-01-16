@@ -13,8 +13,7 @@ The Python dependencies will be [installed](#installation). Users need to instal
     * [pandas>=0.23.0](https://pandas.pydata.org/)
     * [numpy>=1.12.0](https://www.scipy.org/scipylib/download.html)
     * [scikit-learn=0.18.1](http://scikit-learn.org/stable/install.html#)
-    * [pysam=0.15.1](https://pysam.readthedocs.io/en/latest/index.html)
-    * [pyvcf=0.6.8](https://pyvcf.readthedocs.io/en/latest/index.html)
+    * [pysam>=0.13](https://pysam.readthedocs.io/en/latest/index.html)
 * [java>=1.8.0](https://www.java.com/en/download/) (required for the built-in Bambino caller)
 
 ## Download
