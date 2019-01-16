@@ -33,11 +33,11 @@ def indel_vcf_preprocessor(vcffile, bam, refgene, fasta):
     vcf_data = open(vcffile)
     df = pd.DataFrame(make_data_list(vcf_data))
     vcf_data.close()
-
+    
     bam_data = pysam.AlignmentFile(bam)
-    exon_data = pysam.TabixFile(refgene)
-
     chr_prefixed = is_chr_prefixed(bam_data)
+    
+    exon_data = pysam.TabixFile(refgene)
 
     datasize = len(df)
     if len(df) == 0:
@@ -69,16 +69,17 @@ def make_data_list(vcf_data):
     """
     data = []
     for line in vcf_data:
-        parsed_line = parse_vcf_line(line)
-        if parsed_line:
-            d = {
-                "chr": parsed_line[0],
-                "pos": parsed_line[1],
-                "ref": parsed_line[2],
-                "alt": parsed_line[3],
-            }
+        parsed_line_lst = parse_vcf_line(line)
+        if parsed_line_lst:
+            for parsed_line in parsed_line_lst:
+                d = {
+                    "chr": parsed_line[0],
+                    "pos": parsed_line[1],
+                    "ref": parsed_line[2],
+                    "alt": parsed_line[3],
+                }
 
-            data.append(d)
+                data.append(d)
 
     return data
 
@@ -88,8 +89,7 @@ def parse_vcf_line(line):
     Args:
         line (str): line in VCF file obj.
     Returns:
-        parsed_line (tuple): (chr, pos, ref, alt) 
-                             Bambino compatible format
+        parsed_line_lst (lst): with tuple elem (chr, pos, ref, alt)
     Example:
       deletion
               pos 123456789012
@@ -115,38 +115,38 @@ def parse_vcf_line(line):
             chr   pos ref alt
             chr_N 5   -   GTA   
     """
-    parsed_line = None
+    parsed_line_lst = []
 
     # skip header lines
     if line.startswith("#"):
-        return parsed_line
+        return parsed_line_lst
 
     lst = line.rstrip().split("\t")
     chr = lst[0]
-    pos = int(lst[1])
-    ref = lst[3]
-    alts = lst[4].split(",")  # possibly multi-allelic
+    vcf_pos = int(lst[1])
+    vcf_ref = lst[3]
+    vcf_alts = lst[4].split(",")  # possibly multi-allelic
 
     if not chr.startswith("chr"):
         chr = "chr" + chr
 
     # skip non canonical chrmosomes
     if not is_canonical_chromosome(chr):
-        return parsed_line
+        return parsed_line_lst
 
-    for alt in alts:
-        n = count_padding_bases(ref, alt)
-        pos += n
-
-        if len(ref) < len(alt):
+    for vcf_alt in vcf_alts:
+        n = count_padding_bases(vcf_ref, vcf_alt)
+        pos = vcf_pos + n
+        
+        if len(vcf_ref) < len(vcf_alt):
             ref = "-"
-            alt = alt[n:]
-        elif len(ref) > len(alt):
-            ref = ref[n:]
+            alt = vcf_alt[n:]
+            parsed_line_lst.append((chr, pos, ref, alt))
+        elif len(vcf_ref) > len(vcf_alt):
+            ref = vcf_ref[n:]
             alt = "-"
+            parsed_line_lst.append((chr, pos, ref, alt))
         else:
-            return parsed_line  # not indel
+            pass  # not indel
 
-        parsed_line = (chr, pos, ref, alt)
-
-    return parsed_line
+    return parsed_line_lst
