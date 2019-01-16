@@ -2,5 +2,4 @@ python>=3.5.2
 pandas>=0.23.0
 numpy>=1.12.0
 sklearn==0.18.1
-pysam>=0.15.1
-pyvcf>=0.6.8
+pysam>=0.13

@@ -7,7 +7,6 @@ Convert .vcf to a format compatible with Bambino
 """
 
 import sys
-import vcf
 import pysam
 import logging
 import pandas as pd
@@ -31,12 +30,14 @@ def indel_vcf_preprocessor(vcffile, bam, refgene, fasta):
     Returns:
         df (pandas.DataFrame): df with indels reported as in Bambino output
     """
-    vcf_data = vcf.Reader(open(vcffile, "r"))
+    vcf_data = open(vcffile)
+    df = pd.DataFrame(make_data_list(vcf_data))
+    vcf_data.close()
+
     bam_data = pysam.AlignmentFile(bam)
     exon_data = pysam.TabixFile(refgene)
 
     chr_prefixed = is_chr_prefixed(bam_data)
-    df = pd.DataFrame(make_data_list(vcf_data))
 
     datasize = len(df)
     if len(df) == 0:
@@ -60,15 +61,21 @@ def indel_vcf_preprocessor(vcffile, bam, refgene, fasta):
 
 
 def make_data_list(vcf_data):
+    """
+    Args:
+        vcf_data (File obj.): VCF content 
+    Returns:
+        data (list): with dict element 
+    """
     data = []
-    for record in vcf_data:
-        parsed_record = parse_vcf_record(record)
-        if parsed_record != None:
+    for line in vcf_data:
+        parsed_line = parse_vcf_line(line)
+        if parsed_line:
             d = {
-                "chr": parsed_record[0],
-                "pos": parsed_record[1],
-                "ref": parsed_record[2],
-                "alt": parsed_record[3],
+                "chr": parsed_line[0],
+                "pos": parsed_line[1],
+                "ref": parsed_line[2],
+                "alt": parsed_line[3],
             }
 
             data.append(d)
@@ -76,13 +83,13 @@ def make_data_list(vcf_data):
     return data
 
 
-def parse_vcf_record(record):
+def parse_vcf_line(line):
     """
     Args:
-        record (vcf.Record): record in .vcf 
+        line (str): line in VCF file obj.
     Returns:
-        parsed_record (tuple): (chr, pos, ref, alt) 
-                               Bambino compatible format
+        parsed_line (tuple): (chr, pos, ref, alt) 
+                             Bambino compatible format
     Example:
       deletion
               pos 123456789012
@@ -108,27 +115,38 @@ def parse_vcf_record(record):
             chr   pos ref alt
             chr_N 5   -   GTA   
     """
-    parsed_record = None
+    parsed_line = None
 
-    chr = record.CHROM  # from input VCF, may or may not be "chr"-prefixed
+    # skip header lines
+    if line.startswith("#"):
+        return parsed_line
+
+    lst = line.rstrip().split("\t")
+    chr = lst[0]
+    pos = int(lst[1])
+    ref = lst[3]
+    alts = lst[4].split(",")  # possibly multi-allelic
+
     if not chr.startswith("chr"):
         chr = "chr" + chr
 
-    if record.is_indel and is_canonical_chromosome(chr):
-        ref = record.REF
-        alts = record.ALT
-        for alt in alts:
-            alt = str(alt)  # cast to str from _Substitution obj
-            n = count_padding_bases(ref, alt)
-            pos = record.POS + n  # converts to Bambino coordinate
+    # skip non canonical chrmosomes
+    if not is_canonical_chromosome(chr):
+        return parsed_line
 
-            if len(ref) < len(alt):
-                ref = "-"
-                alt = alt[n:]
-            else:
-                ref = ref[n:]
-                alt = "-"
+    for alt in alts:
+        n = count_padding_bases(ref, alt)
+        pos += n
 
-            parsed_record = (chr, pos, ref, alt)
+        if len(ref) < len(alt):
+            ref = "-"
+            alt = alt[n:]
+        elif len(ref) > len(alt):
+            ref = ref[n:]
+            alt = "-"
+        else:
+            return parsed_line  # not indel
 
-    return parsed_record
+        parsed_line = (chr, pos, ref, alt)
+
+    return parsed_line
