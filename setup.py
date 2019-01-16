@@ -7,8 +7,8 @@ with open("./RNAIndel/version.py") as fp:
 setup(
     name="RNAIndel",
     version=version["__version__"],
-    description="Somatic Indel Detector for Tumor RNA-Seq Data",
-    url="https://github.com/adamdingliang/RNAIndel",
+    description="Somatic indel discovery tool for tumor RNA-Seq data",
+    url="https://github.com/stjude/RNAIndel",
     author="Kohei Hagiwara, Liang Ding",
     author_email="kohei.hagiwara@stjude.org, liang.ding@stjude.org",
     license="Apache License 2.0",
