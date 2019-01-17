@@ -5,9 +5,9 @@ class: CommandLineTool
 
 baseCommand: rnaindel
 
-hints:
-  DockerRequirement:
-    dockerPull: adamdingliang/rnaindel:0.1.0
+#hints:
+#  DockerRequirement:
+#    dockerPull: adamdingliang/rnaindel:0.1.0
 
 inputs:
   bam:
@@ -80,6 +80,17 @@ outputs:
     type: File
     outputBinding:
       glob: $(inputs.output_vcf)
+
+
+s:mainEntity:
+  class: s:SoftWareSourceCode
+  s:name: RNAIndel
+  s:url: https://github.com/stjude/RNAIndel
+  s:codeRepository: https://github.com/stjude/RNAIndel.git
+  s:author:
+  - class: s:Person
+    s:name: Kohei Hagiwara
+    s:email: mailto:Kohei.Hagiwara@stjude.org 
 
 s:author:
   class: s:Person

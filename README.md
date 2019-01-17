@@ -8,10 +8,7 @@ Users can also classify indels called by their own callers by
 supplying a VCF file. RNAIndel supports GRCh38 as well as GRCh37. 
 
 ## Prerequisites
-The Python dependencies will be [installed](#installation). 
-Note that pandas and scikit-learn require [numpy](http://www.numpy.org/) 
-and scikit-learn also requires [scipy](https://www.scipy.org/). 
-Users need to install Java.
+The Python dependencies will be [installed](#installation). Users need to install Java.
 * [python>=3.5.2](https://www.python.org/downloads/)
     * [pandas>=0.23.0](https://pandas.pydata.org/) 
     * [scikit-learn>=0.18.1](http://scikit-learn.org/stable/install.html#)
@@ -47,8 +44,8 @@ tar xzvf data_dir_38.tar.gz  # for GRCh38
 ```
 
 ## Usage
-Indels are called by the built-in caller, a [Bambino](https://academic.oup.com/bioinformatics/article/27/6/865/236751) caller 
-with optimizations for RNA-Seq indel calling, and classified into somatic, germline, and artifact. 
+Indels are called by the built-in caller [Bambino](https://academic.oup.com/bioinformatics/article/27/6/865/236751) 
+which is optimized for RNA-Seq indel calling, and classified into somatic, germline, and artifact. 
 ```
 rnaindel -b BAM -o OUTPUT_VCF -f FASTA -d DATA_DIR [other options]
 ```
@@ -72,8 +69,9 @@ rnaindel -b BAM -c INPUT_VCF -o OUTPUT_VCF -f FASTA -d DATA_DIR [other options]
 * ```--version``` print version
 ### Use CWL Workflow
 ```
-cwl-runner --outdir OUT_DIR bambino_rna_indel.cwl INPUT_YML
+cwl-runner rnaindel.cwl INPUT_YML
 ```
+A sample input YAML file is [here](./sample_data/sample.yml).
 
 ### Docker
 RNAIndel has a `Dockerfile` to create a Docker image with all the dependencies installed for running `bambino` and `rna_indel`.
