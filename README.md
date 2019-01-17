@@ -1,6 +1,4 @@
-# RNAIndel_dev 
-## Please visit https://github.com/stjude/RNAIndel for released version
-
+# RNAIndel
 
 RNAIndel calls coding indels and classifies them into 
 somatic, germline, and artifact from tumor RNA-Seq data.
@@ -29,14 +27,13 @@ pip install rnaindel
 ## Data directory set up
 Download datafile: [data_dir_37.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_37.tar.gz) 
 for GRCh37 and [data_dir_38.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz) for GRCh38.
-Place the gzipped file under a directory of your choice and unpack it. In [Demo](#demo), 
-the data directory (GRCh38 version) is located under the RNAIndel root direcotry.<br>  
+Place the gzipped file under a directory of your choice and unpack it. 
 ```
 tar xzvf data_dir_37.tar.gz  # for GRCh37
 tar xzvf data_dir_38.tar.gz  # for GRCh38
 ```
 
-## Usage
+## Usage ([demo](./sample_data)) 
 Indels are called by the built-in caller [Bambino](https://academic.oup.com/bioinformatics/article/27/6/865/236751), which is optimized 
 for RNA-Seq indel calling, and classified into somatic, germline, and artifact. 
 ```
@@ -65,21 +62,6 @@ rnaindel -b BAM -c INPUT_VCF -o OUTPUT_VCF -f FASTA -d DATA_DIR [other options]
 cwl-runner rnaindel.cwl INPUT_YML
 ```
 A sample input YAML file is [here](./sample_data/inputs/sample.yml).
-
-### Docker
-RNAIndel has a `Dockerfile` to create a Docker image with all the dependencies installed for running `bambino` and `rna_indel`.
-To use this image, [install Docker](https://docs.docker.com/install/) for your platform. It is highly recommended to use
-the CWL script to pull the pre-built [docker images](https://cloud.docker.com/u/adamdingliang/repository/docker/adamdingliang/rnaindel)
-and run `bambino` and/or `rna_indel`. The docker image can also be used without the CWL script:
-```
-$ docker run -it adamdingliang/rnaindel:0.1.0 rna_indel
-usage: rna_indel [-h] -b FILE (-i FILE | -c FILE) -o FILE -f FILE -d DIR
-                 [-q INT] [-p INT] [-n FILE] [-l DIR]
-rna_indel: error: the following arguments are required: -b/--bam, -o/--output-vcf, -f/--fasta, -d/--data-dir
-```
-
-## Demo 
-A demo analysis using sample data is [HERE](./sample_data).<br>
 
 ## Input BAM file
 Please prepare your BAM file as follows:<br>
