@@ -61,7 +61,7 @@ A sample input YAML file is [here](./sample_data/inputs/sample.yml).
 ## Input BAM file
 Please prepare your BAM file as follows:<br>
 
-1. Map your reads with the STAR 2-pass mode to GRCh38.<br>
+1. Map your reads with the STAR 2-pass mode to GRCh37 or 38.<br>
 2. Add read groups, sort, mark duplicates, and index the BAM file with Picard.<br>
 
 Please input the BAM file from Step 2 without caller-specific preprocessing such as indel realignment.<br>
