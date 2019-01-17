@@ -44,8 +44,8 @@ tar xzvf data_dir_38.tar.gz  # for GRCh38
 ```
 
 ## Usage
-Indels are called by the built-in caller [Bambino](https://academic.oup.com/bioinformatics/article/27/6/865/236751) 
-which is optimized for RNA-Seq indel calling, and classified into somatic, germline, and artifact. 
+Indels are called by the built-in caller [Bambino](https://academic.oup.com/bioinformatics/article/27/6/865/236751) ,which is optimized 
+for RNA-Seq indel calling, and classified into somatic, germline, and artifact. 
 ```
 rnaindel -b BAM -o OUTPUT_VCF -f FASTA -d DATA_DIR [other options]
 ```
