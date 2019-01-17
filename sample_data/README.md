@@ -4,13 +4,16 @@ This cell line harbors two known indels in the *PTEN* tumor suppressor gene: a 2
 We apply the RNAIndel pipeline to a sample BAM file ([sample.bam](./inputs/sample.bam)), which contains the GRCh38 region chr10:80,000,000-90,000,000 (the *PTEN* locus is chr10:87,863,113-87,971,930). 
 
 ## Setup
-**Step 1:** [Clone](../README.md#download) the RNAIndel repository and [install](../README.md#installation) RNAIndel. <br>
+We assume RNAIndel is [installed](../README.md#installation).<br>
+**Step 1:** Download the sample dataset.<br>
 Your direcotry will be structured:
 ```
+git clone https://github.com/stjude/RNAIndel.git 
+
 RNAIndel
      |_ rnaindel
      ...
-     |_ sample_data
+     |_ sample_data <------ sample dataset (GRCh38) 
      ...
 ```
 **Step 2:**  Setup Data Directory.<br> 
