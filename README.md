@@ -67,7 +67,7 @@ rnaindel -b BAM -c INPUT_VCF -o OUTPUT_VCF -f FASTA -d DATA_DIR [other options]
 * ```-l``` direcotry to store log files 
 * ```-h``` print usage  message
 * ```--version``` print version
-### Use CWL Workflow
+### CWL
 ```
 cwl-runner rnaindel.cwl INPUT_YML
 ```
