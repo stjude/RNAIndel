@@ -5,10 +5,6 @@ class: CommandLineTool
 
 baseCommand: rnaindel
 
-hints:
-  DockerRequirement:
-    dockerPull: adamdingliang/rnaindel:0.3.0
-
 inputs:
   bam:
     type: File
