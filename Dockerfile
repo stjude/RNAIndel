@@ -1,7 +1,7 @@
 ############################################################
-# Purpose   : Dockerize RNAIndel and Bambino
+# Purpose   : Dockerize RNAIndel
 # OS        : Ubuntu 18.04
-# VERSION   : 0.1.0
+# VERSION   : 0.3.0
 ############################################################
 FROM adamdingliang/rnaindel:base
 MAINTAINER Liang.Ding@stjude.org
@@ -10,4 +10,4 @@ WORKDIR /RNAIndel
 COPY . .
 RUN python3 setup.py install
 
-CMD ["echo", "rna_indel image created"]
+CMD ["echo", "rnaindel image created"]
