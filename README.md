@@ -40,7 +40,7 @@ Specify the input VCF file by -c. <br>
 rnaindel -b BAM -c INPUT_VCF -o OUTPUT_VCF -f FASTA -d DATA_DIR [other options]
 ```
 #### Options
-* ```-b``` input BAM file (required)
+* ```-b``` input [STAR](https://academic.oup.com/bioinformatics/article/29/1/15/272537)-mapped BAM file (required)
 * ```-c``` VCF file from other caller (required for using other callers, e.g., [GATK](https://software.broadinstitute.org/gatk/))
 * ```-o``` output VCF file (required)
 * ```-f``` reference genome (GRCh37 or 38) FASTA file (required)
