@@ -5,7 +5,7 @@ We apply the RNAIndel pipeline to a sample BAM file ([sample.bam](./inputs/sampl
 
 ## Setup
 We assume RNAIndel is [installed](../README.md#installation).<br>
-**Step 1:** Download the sample dataset.<br>
+**Step 1:** Download the sample dataset.
 ```
 git clone https://github.com/stjude/RNAIndel.git 
 
