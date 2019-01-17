@@ -6,7 +6,6 @@ We apply the RNAIndel pipeline to a sample BAM file ([sample.bam](./inputs/sampl
 ## Setup
 We assume RNAIndel is [installed](../README.md#installation).<br>
 **Step 1:** Download the sample dataset.<br>
-Your direcotry will be structured:
 ```
 git clone https://github.com/stjude/RNAIndel.git 
 
@@ -16,30 +15,18 @@ RNAIndel
      |_ sample_data <------ sample dataset (GRCh38) 
      ...
 ```
-**Step 2:**  Setup Data Directory.<br> 
-Unpack [data_dir_38.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz) under the RNAIndel root.  
+**Step 2:**  Download and unpack [data_dir_38.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz).  
 ```
 RNAIndel
     |_ rnaindel
     ...
     |_ sample_data
     ...
-    |_ data_dir_38
+    |_ data_dir_38 <--- Unpacked here for demo. 
     ...
 ```
 
 ## Perform analysis
-We are assumed to be in the RNAIndel root directory.
-
-```
-RNAIndel <----------- We are here.     
-    |_ rnaindel
-    ...
-    |_ sample_data
-    ...
-    |_ data_dir_38
-    ...
-```
 
 ### Working with the built-in Bambino caller
 ```
