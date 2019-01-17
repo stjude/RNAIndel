@@ -8,13 +8,15 @@ Users can also classify indels called by their own callers by
 supplying a VCF file. RNAIndel supports GRCh38 as well as GRCh37. 
 
 ## Prerequisites
-The Python dependencies will be [installed](#installation). Users need to install Java.
+The Python dependencies will be [installed](#installation). 
+Note that [pandas](https://www.python.org/downloads/) and [scikit-learn](https://scikit-learn.org/)
+require [numpy](http://www.numpy.org/) and [scikit-learn](https://scikit-learn.org/) also requires 
+[scipy](https://www.scipy.org/). Users need to install Java.
 * [python>=3.5.2](https://www.python.org/downloads/)
-    * [pandas>=0.23.0](https://pandas.pydata.org/)
-    * [numpy>=1.12.0](https://www.scipy.org/scipylib/download.html)
+    * [pandas>=0.23.0](https://pandas.pydata.org/) 
     * [scikit-learn>=0.18.1](http://scikit-learn.org/stable/install.html#)
     * [pysam>=0.13.0](https://pysam.readthedocs.io/en/latest/index.html)
-* [java>=1.8.0](https://www.java.com/en/download/) (required for the built-in Bambino caller)
+* [java>=1.8.0](https://www.java.com/en/download/) (required for the built-in caller)
 
 ## Download
 ```
@@ -45,7 +47,8 @@ tar xzvf data_dir_38.tar.gz  # for GRCh38
 ```
 
 ## Usage
-Indels are called by the built-in caller and classified into somatic, germline, and artifact. 
+Indels are called by the built-in caller, a [Bambino](https://academic.oup.com/bioinformatics/article/27/6/865/236751) caller 
+with optimizations for RNA-Seq indel calling, and classified into somatic, germline, and artifact. 
 ```
 rnaindel -b BAM -o OUTPUT_VCF -f FASTA -d DATA_DIR [other options]
 ```
@@ -119,9 +122,6 @@ a cohort of 330 samples with RNA-Seq and T/N-paired WES & PCR-free WGS. When no 
 
 ## Citations
 1. Hagiwara, K., Ding, L., Edmonson, M.N., Rice, S.V., Newman, S., Meshinchi, S., Ries, R.E., Rusch, M., Zhang, J. 
-RNAIndel: a machine-learning framework for discovery of somatic coding indels using tumor RNA-Seq data. [preprint](https://www.biorxiv.org/content/early/2019/01/07/512749?rss=1)  
+RNAIndel: a machine-learning framework for discovery of somatic coding indels using tumor RNA-Seq data.
+([preprint](https://www.biorxiv.org/content/early/2019/01/07/512749?rss=1))  
 
-2. Edmonson, M.N., Zhang, J., Yan, C., Finney, R.P., Meerzaman, D.M., and Buetow, K.H. (2011) Bambino: A Variant Detector 
-and Alignment Viewer for next-Generation Sequencing Data in 
-the SAM/BAM Format. Bioinformatics 27: 865–866. 
-DOI: [10.1093/bioinformatics/btr032](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3051333/)
