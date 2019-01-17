@@ -6,7 +6,7 @@
 FROM adamdingliang/rnaindel:base
 MAINTAINER Liang.Ding@stjude.org
 
-WORKDIR /RNAIndel
+WORKDIR /RNAIndel_dev
 COPY . .
 RUN python3 setup.py install
 

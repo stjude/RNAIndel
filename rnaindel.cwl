@@ -5,9 +5,9 @@ class: CommandLineTool
 
 baseCommand: rnaindel
 
-#hints:
-#  DockerRequirement:
-#    dockerPull: adamdingliang/rnaindel:0.1.0
+hints:
+  DockerRequirement:
+    dockerPull: adamdingliang/rnaindel:0.3.0
 
 inputs:
   bam:

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-version_num=$(grep -o '".*"' version.py | sed 's/"//g')
+version_num=$(grep -o '".*"' /rnaindel/version.py | sed 's/"//g')
 echo "Version: $version_num" >&2
 
 usage() {
@@ -8,7 +8,7 @@ usage() {
    echo "    build_docker_image <SUBCOMMAND> [args...]"
    echo "Subcommands:"
    echo "    base           build a base image with all the dependencies installed for Bambino and RNAIndel"
-   echo "    rna_indel      build an image for rnaindel"
+   echo "    rnaindel       build an image for rnaindel"
    exit 1
 }
 

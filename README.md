@@ -8,17 +8,12 @@ Users can also classify indels called by their own callers by
 supplying a VCF file. RNAIndel supports GRCh38 as well as GRCh37. 
 
 ## Prerequisites
-The Python dependencies will be [installed](#installation). Users need to install Java.
+Please make sure that the dependencies are satisfied before installing RNAIndel.
 * [python>=3.5.2](https://www.python.org/downloads/)
     * [pandas>=0.23.0](https://pandas.pydata.org/) 
     * [scikit-learn>=0.18.1](http://scikit-learn.org/stable/install.html#)
     * [pysam>=0.13.0](https://pysam.readthedocs.io/en/latest/index.html)
 * [java>=1.8.0](https://www.java.com/en/download/) (required for the built-in caller)
-
-## Download
-```
-git clone https://github.com/stjude/RNAIndel.git  # Clone the repo
-```
 
 ## Installation
 Setup a virtual python environment using [conda](https://conda.io/docs/). This step is optional but highly recommended.
@@ -26,11 +21,9 @@ Setup a virtual python environment using [conda](https://conda.io/docs/). This s
 conda create -n py36 python=3.6 anaconda    # Create a python3.6 virtual environment
 source activate py36                        # Activate the virtual environment
 ```
-Install RNAIndel in the virtual environment.
+Install RNAIndel.
 ```
-cd RNAIndel                 # Switch to the RNAIndel root directory
-python setup.py install     # Install bambino and rna_indel from source
-rnaindel -h                  # Check if rnaindel works correctly
+pip install rnaindel
 ```
 
 ## Data directory set up
