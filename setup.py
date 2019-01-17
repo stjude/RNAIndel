@@ -16,7 +16,7 @@ setup(
         "pandas >= 0.23.0",
         "numpy >= 1.12.0",
         "scikit-learn >= 0.18.1",
-        "pysam >= 0.13.0",
+        "pysam >= 0.13.0, <= 0.15.0", 
     ],
     package_data={
         "rnaindel": [
