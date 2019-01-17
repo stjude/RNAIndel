@@ -118,7 +118,8 @@ a cohort of 330 samples with RNA-Seq and T/N-paired WES & PCR-free WGS. When no 
 ```
 
 ## Citations
-1. Hagiwara, K., Ding, L., Edmonson, M.N., Rice, S.V., Newman, S., Meshinchi, S., Ries, R.E., Rusch, M., Zhang, J. RNAIndel: a machine-learning framework for discovery of somatic coding indels using tumor RNA-Seq data.    
+1. Hagiwara, K., Ding, L., Edmonson, M.N., Rice, S.V., Newman, S., Meshinchi, S., Ries, R.E., Rusch, M., Zhang, J. 
+RNAIndel: a machine-learning framework for discovery of somatic coding indels using tumor RNA-Seq data. [preprint](https://www.biorxiv.org/content/early/2019/01/07/512749?rss=1)  
 
 2. Edmonson, M.N., Zhang, J., Yan, C., Finney, R.P., Meerzaman, D.M., and Buetow, K.H. (2011) Bambino: A Variant Detector 
 and Alignment Viewer for next-Generation Sequencing Data in 
