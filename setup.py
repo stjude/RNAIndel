@@ -21,21 +21,14 @@ setup(
     python_requires=">=3.5.2",
     packages=find_packages(exclude=["contrib", "docs", "tests"]),
     package_data={
-        "rna_indel": ["testdata/*"],
-        "Bambino": [
-            "bambino-1.0.jar",
-            "mysql-connector-java-5.1.10.jar",
-            "picard.jar",
-            "third_party.jar",
-            "testdata/*",
-        ],
+        "rna_indel": ["bambino_lib/bambino-1.0.jar", "bambino_lib/mysql-connector-java-5.1.10.jar", "bambino_lib/picard.jar", "bambino_lib/third_party.jar"]
     },
     include_package_data=True,
     test_suite="tests",
+    # I want have only one entry ponint
     entry_points={
         "console_scripts": [
-            "rna_indel=RNAIndel.rna_indel:main",
-            "bambino=Bambino.bambino:main",
+            "rna_indel=rna_indel.rna_indel:main",
         ]
     },
 )

@@ -3,50 +3,11 @@
 import os
 import sys
 import shlex
-import argparse
 import subprocess
 from functools import partial
 
 
-def main():
-    head_description = (
-        """Bambino wrapper (with hardcoded parameters) that works with RNAIndel."""
-    )
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        description=head_description,
-    )
-    parser.add_argument(
-        "-m",
-        "---heap-memory",
-        metavar="STR",
-        default="6000m",
-        help="maximum heap space (default: 6000m)"
-    )
-    parser.add_argument(
-        "-b", 
-        "--bam", 
-        metavar="FILE", 
-        required=True, 
-        type=partial(check_file, file_name="BAM file (.bam)"),
-        help="input tumor bam file"
-    )
-    parser.add_argument(
-        "-f",
-        "--fasta",
-        metavar="FILE",
-        required=True,
-        type=partial(check_file, file_name="FASTA file"),
-        help="reference genome (GRCh37/38) FASTA file. Use the same FASTA file used for mapping.",
-    )
-    parser.add_argument(
-        "-o",
-        "--output-file",
-        metavar="FILE",
-        required=True,
-        help="Bambino output file",
-    )
-    args = parser.parse_args()
+def bambino(bam, fasta, output_file, heap_memory="6000m"):
 
     # Add Bambino home dir to CLASSPATH
     bambino_home = os.path.dirname(os.path.realpath(__file__))
@@ -66,16 +27,16 @@ def main():
         "-mmf-min-hq-quality 15 -mmf-max-lq-mismatches 8 "
         "-unique-filter-coverage 2 -no-strand-skew-filter -illumina-q2 1 "
         "-poly-x-min-run-length 10 -autotune -query-mode".format(
-            args.heap_memory, args.output_file, args.fasta, args.bam
+            heap_memory, output_file, fasta, bam
         )
     )
     stdout, stderr, return_code = run_shell_command(cmd_str)
     if return_code != 0:
-        print("Failed while running unpaired Bambino.", file=sys.stderr)
+        print("Failed while calling indels.", file=sys.stderr)
         print(stderr, file=sys.stderr)
         sys.exit(return_code)
     else:
-        print("bambino completed successfully.", file=sys.stderr)
+        print("indel calling completed successfully.", file=sys.stderr)
 
 
 def run_shell_command(command_string):

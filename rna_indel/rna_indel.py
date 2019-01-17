@@ -1,21 +1,20 @@
-#!/usr/bin/env python3
-# Somatic indel detector for tumor RNA-Seq data.
+#!/usr/bin/env python3 
 
 import os
 import sys
 import pathlib
 import logging
+import warnings
 import argparse
+import tempfile
 import pandas as pd
 from functools import partial
 from .version import __version__
 
-try:
-    import rna_indel.rna_indel_lib as ri
-except ImportError:
-    # try import rna_indel_lib package directly
-    import rna_indel as ri
+import rna_indel.bambino_lib as bl
+import rna_indel_lib as rl
 
+warnings.filterwarnings("ignore", category=UserWarning)
 
 def main():
     args = get_args()
@@ -25,20 +24,30 @@ def main():
     dbsnp = "{}/dbsnp/dbsnp.indel.vcf.gz".format(data_dir)
     clinvar = "{}/clinvar/clinvar.indel.vcf.gz".format(data_dir)
     model_dir = "{}/models".format(data_dir)
-
-    # Preprocessing
-    if args.input_bambino:
-        df, chr_prefixed = ri.indel_preprocessor(
-            args.input_bambino, args.bam, refgene, args.fasta
+    
+    # Preprocessing 
+    # Variant calling will be performed if no external VCF is supplied
+    if not args.input_vcf:
+        # indel calling
+        bambino_output = os.path.join(tempfile.mkdtemp(), "bambino.txt")
+        bl.bambino(args.bam, args.fasta, bambino_output, args.heap_memory)
+        
+        # preprocess indels from the built-in caller
+        df, chr_prefixed = rl.indel_preprocessor(
+            bambino_output, args.bam, refgene, args.fasta
         )
-        df = ri.indel_rescuer(
+        df = rl.indel_rescuer(
             df, args.fasta, args.bam, chr_prefixed, num_of_processes=args.process_num
         )
+        
+        # delete the temp file
+        os.remove(bambino_output)
     else:
-        df, chr_prefixed = ri.indel_vcf_preprocessor(
+        # preprocess indels from external VCF
+        df, chr_prefixed = rl.indel_vcf_preprocessor(
             args.input_vcf, args.bam, refgene, args.fasta
         )
-        df = ri.indel_rescuer(
+        df = rl.indel_rescuer(
             df,
             args.fasta,
             args.bam,
@@ -49,20 +58,20 @@ def main():
         )
 
     # Analysis 1: indel annotation
-    df = ri.indel_annotator(df, refgene, args.fasta, chr_prefixed)
+    df = rl.indel_annotator(df, refgene, args.fasta, chr_prefixed)
     # Analysis 2: feature calculation using
-    df, df_filtered_premerge = ri.indel_sequence_processor(
+    df, df_filtered_premerge = rl.indel_sequence_processor(
         df, args.fasta, args.bam, args.uniq_mapq, chr_prefixed
     )
-    df = ri.indel_protein_processor(df, refgene)
+    df = rl.indel_protein_processor(df, refgene)
     # Analysis 3: merging equivalent indels
-    df, df_filtered_postmerge = ri.indel_equivalence_solver(
+    df, df_filtered_postmerge = rl.indel_equivalence_solver(
         df, args.fasta, refgene, chr_prefixed
     )
     # Analysis 4: dbSNP annotation
-    df = ri.indel_snp_annotator(df, args.fasta, dbsnp, clinvar, chr_prefixed)
+    df = rl.indel_snp_annotator(df, args.fasta, dbsnp, clinvar, chr_prefixed)
     # Analysis 5: prediction
-    df = ri.indel_classifier(df, model_dir, num_of_processes=args.process_num)
+    df = rl.indel_classifier(df, model_dir, num_of_processes=args.process_num)
 
     # Analysis 6: concatenating invalid(filtered) entries
     df_filtered = pd.concat(
@@ -74,13 +83,13 @@ def main():
 
     # Analysis 7(Optional): custom refinement of somatic prediction
     if args.non_somatic_panel:
-        df = ri.indel_reclassifier(df, args.fasta, chr_prefixed, args.non_somatic_panel)
+        df = rl.indel_reclassifier(df, args.fasta, chr_prefixed, args.non_somatic_panel)
 
     # PostProcessing & VCF formatting
-    df, df_filtered = ri.indel_postprocessor(
+    df, df_filtered = rl.indel_postprocessor(
         df, df_filtered, refgene, args.fasta, chr_prefixed
     )
-    ri.indel_vcf_writer(
+    rl.indel_vcf_writer(
         df,
         df_filtered,
         args.bam,
@@ -101,27 +110,7 @@ def get_args():
         metavar="FILE",
         required=True,
         type=partial(check_file, file_name="BAM file (.bam)"),
-        help="input tumor bam file",
-    )
-
-    # input indel calls required either: bambino output or a vcf file
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument(
-        "-i",
-        "--input-bambino",
-        metavar="FILE",
-        type=partial(check_file, file_name="Bambino Call Format file"),
-        help="input file with calls from Bambino",
-    )
-    group.add_argument(
-        "-c",
-        "--input-vcf",
-        metavar="FILE",
-        type=partial(check_file, file_name="VCF (.vcf) file"),
-        help="input vcf file from other callers",
-    )
-    parser.add_argument(
-        "-o", "--output-vcf", metavar="FILE", required=True, help="output vcf file"
+        help="input tumor RNA-Seq bam file (must be STAR-mapped).",
     )
     parser.add_argument(
         "-f",
@@ -129,7 +118,7 @@ def get_args():
         metavar="FILE",
         required=True,
         type=partial(check_file, file_name="FASTA file"),
-        help="reference genome (GRCh38) FASTA file. Use the same FASTA file used for mapping",
+        help="reference genome FASTA file.",
     )
     parser.add_argument(
         "-d",
@@ -138,6 +127,17 @@ def get_args():
         required=True,
         help="data directory contains refgene, dbsnp and clinvar databases and models",
         type=check_folder_existence,
+    )
+    parser.add_argument(
+        "-o", "--output-vcf", metavar="FILE", required=True, help="output vcf file"
+    )
+    # input VCF from other callers (optional)
+    parser.add_argument(
+        "-c",
+        "--input-vcf",
+        metavar="FILE",
+        type=partial(check_file, file_name="VCF (.vcf) file"),
+        help="input vcf file from other callers",
     )
     parser.add_argument(
         "-q",
@@ -163,17 +163,24 @@ def get_args():
         help="user-defined panel of non-somatic indels in VCF format",
     )
     parser.add_argument(
+        "-m",
+        "--heap-memory",
+        metavar="STR",
+        default="6000m",
+        help="maximum heap space (defalt: 6000m)",
+    )
+    parser.add_argument(
         "-l",
         "--log-dir",
         metavar="DIR",
         type=check_folder_existence,
         help="directory for storing log files",
     )
-    parser.add_argument(
-        "--version",
-        action="version",
-        version="%(prog)s {version}".format(version=__version__),
-    )
+    #parser.add_argument(
+    #    "--version",
+    #    action="version",
+    #    version="%(prog)s {version}".format(version=__version__),
+    #)
     args = parser.parse_args()
     return args
 
