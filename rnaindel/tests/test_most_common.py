@@ -3,9 +3,9 @@
 from unittest import TestCase
 
 try:
-    from RNAIndel.rna_indel_lib import most_common
+    from rnaindel.rnaindel_lib import most_common
 except:
-    from ..rna_indel_lib import most_common
+    from ..rnaindel_lib import most_common
 
 class MostCommon(TestCase):
 

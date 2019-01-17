@@ -3,9 +3,9 @@
 from unittest import TestCase
 
 try:
-    from RNAIndel.rna_indel_lib import SequenceWithIndel
+    from rnaindel.rnaindel_lib import SequenceWithIndel
 except:
-    from ..rna_indel_lib import SequenceWithIndel
+    from ..rnaindel_lib import SequenceWithIndel
 
 
 class TestIndelEquivalentSolver(TestCase):

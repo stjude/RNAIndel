@@ -3,9 +3,9 @@
 from  unittest import TestCase
 
 try:
-    from RNAIndel.rna_indel_lib import sequence_properties as sp
+    from rnaindel.rnaindel_lib import sequence_properties as sp
 except:
-    from ..rna_indel_lib import sequence_properties as sp
+    from ..rnaindel_lib import sequence_properties as sp
 
 
 class SequenceProperties(TestCase):
