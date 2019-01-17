@@ -9,9 +9,9 @@ supplying a VCF file. RNAIndel supports GRCh38 as well as GRCh37.
 
 ## Prerequisites
 The Python dependencies will be [installed](#installation). 
-Note that [pandas](https://www.python.org/downloads/) and [scikit-learn](https://scikit-learn.org/)
-require [numpy](http://www.numpy.org/) and [scikit-learn](https://scikit-learn.org/) also requires 
-[scipy](https://www.scipy.org/). Users need to install Java.
+Note that pandas and scikit-learn require [numpy](http://www.numpy.org/) 
+and scikit-learn also requires [scipy](https://www.scipy.org/). 
+Users need to install Java.
 * [python>=3.5.2](https://www.python.org/downloads/)
     * [pandas>=0.23.0](https://pandas.pydata.org/) 
     * [scikit-learn>=0.18.1](http://scikit-learn.org/stable/install.html#)
@@ -120,7 +120,7 @@ a cohort of 330 samples with RNA-Seq and T/N-paired WES & PCR-free WGS. When no 
 -n path/to/data_dir/non_somatic/non_somatic.vcf.gz
 ```
 
-## Citations
+## Reference
 1. Hagiwara, K., Ding, L., Edmonson, M.N., Rice, S.V., Newman, S., Meshinchi, S., Ries, R.E., Rusch, M., Zhang, J. 
 RNAIndel: a machine-learning framework for discovery of somatic coding indels using tumor RNA-Seq data.
 ([preprint](https://www.biorxiv.org/content/early/2019/01/07/512749?rss=1))  
