@@ -18,6 +18,15 @@ setup(
         "scikit-learn >= 0.18.1",
         "pysam >= 0.13",
     ],
+    package_data={
+        "rnaindel": [
+            "bambino_lib/bambino-1.0.jar",
+            "bambino_lib/mysql-connector-java-5.1.10.jar",
+            "bambino_lib/picard.jar",
+            "bambino_lib/third_party.jar",
+        ]
+    },
+    include_package_data=True,
     python_requires=">=3.5.2",
     packages=find_packages(exclude=["contrib", "docs", "tests"]),
     entry_points={"console_scripts": ["rnaindel=rnaindel.rnaindel:main"]},

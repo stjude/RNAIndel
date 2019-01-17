@@ -103,7 +103,7 @@ def main():
 
 
 def get_args():
-    parser = argparse.ArgumentParser(prog="RNAIndel")
+    parser = argparse.ArgumentParser(prog="rnaindel")
     parser.add_argument(
         "-b",
         "--bam",
@@ -176,11 +176,11 @@ def get_args():
         type=check_folder_existence,
         help="directory for storing log files",
     )
-    #parser.add_argument(
-    #    "--version",
-    #    action="version",
-    #    version="%(prog)s {version}".format(version=__version__),
-    #)
+    parser.add_argument(
+        "--version",
+        action="version",
+        version="%(prog)s {version}".format(version=__version__),
+    )
     args = parser.parse_args()
     return args
 
