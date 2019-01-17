@@ -99,7 +99,7 @@ def main():
         __version__,
     )
 
-    print("rna_indel completed successfully.", file=sys.stderr)
+    print("rnaindel completed successfully.", file=sys.stderr)
 
 
 def get_args():

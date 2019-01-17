@@ -8,9 +8,7 @@ We apply the RNAIndel pipeline to a sample BAM file ([sample.bam](./inputs/sampl
 Your direcotry will be structured:
 ```
 RNAIndel
-     |_ Bambino
-     ...
-     |_ RNAIndel
+     |_ rnaindel
      ...
      |_ sample_data
      ...
@@ -19,13 +17,11 @@ RNAIndel
 Unpack [data_dir_38.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz) under the RNAIndel root.  
 ```
 RNAIndel
-    |_ Bambino
-    ...
-    |_ data_dir_38
-    ...
-    |_ RNAIndel
+    |_ rnaindel
     ...
     |_ sample_data
+    ...
+    |_ data_dir_38
     ...
 ```
 
@@ -34,25 +30,23 @@ We are assumed to be in the RNAIndel root directory.
 
 ```
 RNAIndel <----------- We are here.     
-    |_ Bambino
-    ...
-    |_ data_dir_38
-    ...
-    |_ RNAIndel
+    |_ rnaindel
     ...
     |_ sample_data
+    ...
+    |_ data_dir_38
     ...
 ```
 
 ### Working with the built-in Bambino caller
 ```
-$ ./rna_indel_pipeline.sh -b ./sample_data/inputs/sample.bam \
-                          -o ./sample_data/outputs/sample.vcf \
-                          -f path/to/your_GRCh38.fa \
-                          -d ./data_dir_38
+$ rnaindel  -b ./sample_data/inputs/sample.bam \
+            -o ./sample_data/outputs/sample.vcf \
+            -f path/to/your_GRCh38.fa \
+            -d ./data_dir_38
 
-bambino completed successfully.
-rna_indel completed successfully.
+indel calling completed successfully. # indel calling by the built-in caller is done.
+rnaindel completed successfully.      # all steps done. 
 ```
 Fifteen coding indels are reported in the ouput [VCF](./outputs/sample.vcf) file: 2 somatic, 1 germline, and 12 artifact indels (see INFO field).
 The two *PTEN* indels are predicted as somatic. The first indel is a complex indel in which a 2-nt deletion and a 9-nt insertion 
@@ -64,13 +58,13 @@ The sample BAM file was preprocessed following GATK RNA-Seq Variant Calling [Bes
 GATK-HC (ver 4.0.2.1) called variants in the preprocessed BAM file ([sample.gatk.bam](./inputs/sample.gatk.bam)) and 
 generated a [VCF](./inputs/sample_gatk.vcf) file.Now, the indels in the GATK VCF file are classified. **Please input the original BAM file (sample.bam), not the preprocessed one (sample.gatk.bam)**.
 ```
-$ ./rna_indel_pipeline.sh -b ./sample_data/inputs/sample.bam \
-                          -c ./sample_data/inputs/sample_gatk.vcf \
-                          -o ./sample_data/outputs/sample_gatk_classified.vcf \
-                          -f path/to/your_GRCh38.fa \
-                          -d ./data_dir_38
+$ rnaindel -b ./sample_data/inputs/sample.bam \
+           -c ./sample_data/inputs/sample_gatk.vcf \
+           -o ./sample_data/outputs/sample_gatk_classified.vcf \
+           -f path/to/your_GRCh38.fa \
+           -d ./data_dir_38
 
-rna_indel completed successfully.
+rnaindel completed successfully. # all steps done (indel calling by the built-in caller is not performed)
 ```
 Four coding indels are reported in the output [VCF](./outputs/sample_gatk_classified.vcf) file: 2 somatic, 1 germline, and 1 artifact. 
 Both *PTEN* indels are predicated as somatic. The 39-nt insertion at codon 246 is also detected as a 7-nt insertion by GATK-HC. 
