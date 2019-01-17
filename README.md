@@ -71,7 +71,7 @@ rnaindel -b BAM -c INPUT_VCF -o OUTPUT_VCF -f FASTA -d DATA_DIR [other options]
 ```
 cwl-runner rnaindel.cwl INPUT_YML
 ```
-A sample input YAML file is [here](./sample_data/sample.yml).
+A sample input YAML file is [here](./sample_data/inputs/sample.yml).
 
 ### Docker
 RNAIndel has a `Dockerfile` to create a Docker image with all the dependencies installed for running `bambino` and `rna_indel`.
