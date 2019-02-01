@@ -177,6 +177,7 @@ def rescue_by_nearest(row, fasta, bam, search_window, chr_prefixed):
         alt = idl_found.alt
         fa = pysam.FastaFile(fasta)
         idl_vcf = IndelVcfReport(fa, chr, pos, ref, alt, chr_prefixed)
+        idl_vcf.left_align()
         in_vcf_style = (
             idl_vcf.CHROM
             + ":"

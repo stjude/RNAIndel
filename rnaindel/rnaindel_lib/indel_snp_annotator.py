@@ -145,15 +145,29 @@ def negate_on_dbsnp_if_pathogenic(row):
 
     return is_on_dbsnp
 
+    
+def right_trim(seq1, seq2):
+    """Trim 3'bases if they are identical
+    Args:
+      seq1, seq2 (str): alleles in .vcf
+    Returns:
+      seq1, seq2 (str)
+    """
+    if len(seq1) == 1 or len(seq2) == 1:
+        return seq1, seq2
+
+    while seq1[-1] == seq2[-1]:
+        seq1, seq2 = seq1[:-1], seq2[:-1]
+
+    return seq1, seq2
+
 
 def count_padding_bases(seq1, seq2):
     """Count the number of bases padded to
     report indels in .vcf
 
     Args:
-       seq1 (str): REF in .vcf
-       seq2 (str): ALT in .vcf
-    
+       seq1, seq2 (str): alleles in .vcf
     Returns:
        n (int): 
 
@@ -170,13 +184,11 @@ def count_padding_bases(seq1, seq2):
        The first 3 bases are left-aligned.
        In this case, 3 will be returned
     """
-    if len(seq1) <= len(seq2):
-        shorter, longer = seq1, seq2
-    else:
-        shorter, longer = seq2, seq1
+    if len(seq2) < len(seq1):
+        return count_padding_bases(seq2, seq1)
 
     n = 0
-    for base1, base2 in zip(shorter, longer[: len(shorter)]):
+    for base1, base2 in zip(seq1, seq2[: len(seq1)]):
         if base1 == base2:
             n += 1
         else:

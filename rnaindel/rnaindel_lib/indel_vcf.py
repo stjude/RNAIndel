@@ -3,6 +3,7 @@
 import re
 from .indel_sequence import Indel
 from .left_aligner import peek_left_base
+from .left_aligner import lt_aln
 
 snp_ptn = re.compile(r"rs[0-9]+")
 
@@ -36,6 +37,14 @@ class IndelVcfReport(object):
 
         return idl
 
+    def left_align(self):
+        idl = lt_aln(self.generate_indel(), self.fa, self.chr_prefixed)
+        self.pos = idl.pos
+        if self.ref == "-":
+            self.alt = idl.idl_seq
+        else:
+            self.ref = idl.idl_seq
+    
     @property
     def CHROM(self):
         return self.chr
