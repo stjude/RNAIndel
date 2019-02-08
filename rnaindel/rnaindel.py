@@ -9,14 +9,21 @@ import argparse
 import tempfile
 import pandas as pd
 from functools import partial
-from .version import __version__
+#from .version import __version__
 
-import rnaindel.bambino_lib as bl
-import rnaindel.rnaindel_lib as rl
+#import rnaindel.bambino_lib as bl
+import bambino_lib as bl
+#import rnaindel.rnaindel_lib as rl
+import rnaindel_lib as rl
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
 def main():
+    if len(sys.argv) == 1:
+        print("aaa")
+
+
+
     args = get_args()
     create_logger(args.log_dir)
     data_dir = args.data_dir.rstrip("/")
@@ -96,7 +103,7 @@ def main():
         args.fasta,
         chr_prefixed,
         args.output_vcf,
-        __version__,
+        #__version__,
     )
 
     print("rnaindel completed successfully.", file=sys.stderr)
@@ -104,6 +111,7 @@ def main():
 
 def get_args():
     parser = argparse.ArgumentParser(prog="rnaindel")
+    
     parser.add_argument(
         "-b",
         "--bam",
@@ -176,11 +184,11 @@ def get_args():
         type=check_folder_existence,
         help="directory for storing log files",
     )
-    parser.add_argument(
-        "--version",
-        action="version",
-        version="%(prog)s {version}".format(version=__version__),
-    )
+    #parser.add_argument(
+    #    "--version",
+    #    action="version",
+    #    version="%(prog)s {version}".format(version=__version__),
+    #)
     args = parser.parse_args()
     return args
 
