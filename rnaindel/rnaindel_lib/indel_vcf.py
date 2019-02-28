@@ -203,10 +203,6 @@ class IndelVcfReport(object):
         else:
             prob = "PROB=" + ",".join([str(p) for p in self.PROB])
 
-        db = "DB"
-        if not self.DB or self.DB == "-":
-            db = ""
-
         anno = "ANNO=" + self.ANNO
 
         if not self.MAXMAF or self.MAXMAF == -1:
@@ -223,25 +219,89 @@ class IndelVcfReport(object):
         else:
             clin = "CLIN=" + self.CLIN
 
-        if not self.ICP:
-            icp = ""
-        else:
-            icp = "ICP=" + str(self.ICP)
-
-        if not self.DSM:
-            dsm = ""
-        else:
-            dsm = "DSM=" + str(self.DSM)
-
-        if not self.ISZ:
-            isz = ""
-        else:
-            isz = "ISZ=" + str(self.ISZ)
-
         if not self.REP:
             rep = ""
         else:
             rep = "REP=" + str(self.REP)
+        
+        if not self.LC:
+            lc = ""
+        else:
+            lc = "LC=" + str(self.LC)
+        
+        if not self.LLC:
+            llc = ""
+        else:
+            llc = "LLC=" + str(self.LLC)
+        
+        if not self.GC:
+            gc = ""
+        else:
+            gc = "GC=" + str(self.GC)
+
+        if not self.LGC:
+            lgc = ""
+        else:
+            lgc = "LGC=" + str(self.LGC)
+        
+        if not self.SG:
+            sg = ""
+        else:
+            sg = "SG=" + str(self.SG)
+       
+        if not self.LSG:
+            lsg = ""
+        else:
+            lsg = "LSG=" + str(self.LSG)
+       
+        if not self.DSM:
+            dsm = ""
+        else:
+            dsm = "DSM=" + str(self.DSM)
+        
+        if not self.ICP:
+            icp = ""
+        else:
+            icp = "ICP=" + str(self.ICP)
+        
+        if not self.ISZ:
+            isz = ""
+        else:
+            isz = "ISZ=" + str(self.ISZ)
+        
+        ins = "INS"
+        if not self.INS or self.INS == 0:
+            ins = ""
+
+        ati = "ATI"
+        if not self.ATI or self.ATI == 0:
+            ati = ""
+
+        atd = "ATD"
+        if not self.ATD or self.ATD == 0:
+            atd = ""
+
+        gci = "GCI"
+        if not self.GCI or self.GCI == 0:
+            gci = ""
+
+        gcd = "GCD"
+        if not self.GCD or self.GCD == 0:
+            gcd = ""
+
+        if not self.REFC:
+            refc = ""
+        else:
+            refc = "REFC=" + str(self.REFC)
+
+        if not self.ALTC:
+            altc = ""
+        else:
+            altc = "ALTC=" + str(self.ALTC)
+        
+        bid = "BID"
+        if not self.BID or self.BID == 0:
+            bid = ""
 
         uqm = "UQM"
         if not self.UQM or self.UQM == 0:
@@ -251,13 +311,34 @@ class IndelVcfReport(object):
         if not self.NEB or self.NEB == 0:
             neb = ""
 
-        bid = "BID"
-        if not self.BID or self.BID == 0:
-            bid = ""
+        eqx = "EQX"
+        if not self.EQX or self.EQX == 0:
+            eqx = ""
 
         mta = "MTA"
         if not self.MTA or self.MTA == 0:
             mta = ""
+        
+        frm = "FRM"
+        if not self.FRM or self.FRM == 0:
+            frm = ""
+        
+        spl = "SPL"
+        if not self.SPL or self.SPL == 0:
+            spl = ""
+        
+        trc = "TRC"
+        if not self.TRC or self.TRC == 0:
+            trc = ""
+        
+        cdd = "CDD"
+        if not self.CDD or self.CDD == 0:
+            cdd = ""
+
+        if not self.LOC:
+            loc = ""
+        else:
+            loc = "LOC=" + str(self.LOC)
 
         nmd = "NMD"
         if not self.NMD or self.NMD == 0:
@@ -268,18 +349,14 @@ class IndelVcfReport(object):
         else:
             ipg = "IPG=" + str(self.IPG)
 
-        if not self.LSG:
-            lsg = ""
+        if not self.LEN:
+            len = ""
         else:
-            lsg = "LSG=" + str(self.LSG)
+            len = "LEN=" + str(self.LEN)
 
-        ati = "ATI"
-        if not self.ATI or self.ATI == 0:
-            ati = ""
-
-        atd = "ATD"
-        if not self.ATD or self.ATD == 0:
-            atd = ""
+        dbsnp = "DBSNP"
+        if not self.DBSNP or self.DBSNP == 0:
+            dbsnp = ""
 
         rcf = "RCF"
         if not self.RCF or self.RCF == "-":
@@ -293,24 +370,41 @@ class IndelVcfReport(object):
         info_lst = [
             pred,
             prob,
-            db,
             anno,
             maxmaf,
             common,
             clin,
-            icp,
-            dsm,
-            isz,
             rep,
-            uqm,
-            neb,
-            bid,
-            mta,
-            nmd,
-            ipg,
+            lc,
+            llc,
+            gc,
+            lgc,
+            sg,
             lsg,
+            dsm,
+            icp,
+            isz,
+            ins,
             ati,
             atd,
+            gci,
+            gcd,
+            refc,
+            altc,
+            bid,
+            uqm,
+            neb,
+            eqx,
+            mta,
+            frm,
+            spl,
+            trc,
+            cdd,
+            loc,
+            nmd,
+            ipg,
+            len,
+            dbsnp,
             rcf,
             rqb,
         ]
@@ -321,25 +415,41 @@ class IndelVcfReport(object):
     def INFO(self, INFO):
         self.PRED = INFO["PRED"]
         self.PROB = INFO["PROB"]
-        self.DB = INFO["DB"]
         self.ANNO = INFO["ANNO"]
         self.MAXMAF = INFO["MAXMAF"]
         self.COMMON = INFO["COMMON"]
         self.CLIN = INFO["CLIN"]
-        self.ICP = INFO["ICP"]
-        self.DSM = INFO["DSM"]
-        self.ISZ = INFO["ISZ"]
         self.REP = INFO["REP"]
-        self.UQM = INFO["UQM"]
-        self.NEB = INFO["NEB"]
-        self.BID = INFO["BID"]
-        self.MTA = INFO["MTA"]
-        self.TRC = INFO["TRC"]
-        self.NMD = INFO["NMD"]
-        self.IPG = INFO["IPG"]
+        self.LC = INFO["LC"]
+        self.LLC = INFO["LLC"]
+        self.GC = INFO["GC"]
+        self.LGC = INFO["LGC"]
+        self.SG = INFO["SG"]
         self.LSG = INFO["LSG"]
+        self.DSM = INFO["DSM"]
+        self.ICP = INFO["ICP"]
+        self.ISZ = INFO["ISZ"]
+        self.INS = INFO["INS"]
         self.ATI = INFO["ATI"]
         self.ATD = INFO["ATD"]
+        self.GCI = INFO["GCI"]
+        self.GCD = INFO["GCD"]
+        self.REFC = INFO["REFC"]
+        self.ALTC = INFO["ALTC"]
+        self.BID = INFO["BID"]
+        self.UQM = INFO["UQM"]
+        self.NEB = INFO["NEB"]
+        self.EQX = INFO["EQX"]
+        self.MTA = INFO["MTA"]
+        self.FRM = INFO["FRM"]
+        self.SPL = INFO["SPL"]
+        self.TRC = INFO["TRC"]
+        self.CDD = INFO["CDD"]
+        self.LOC = INFO["LOC"]
+        self.NMD = INFO["NMD"]
+        self.IPG = INFO["IPG"]
+        self.LEN = INFO["LEN"]
+        self.DBSNP= INFO["DBSNP"]
         self.RCF = INFO["RCF"]
         self.RQB = INFO["RQB"]
 

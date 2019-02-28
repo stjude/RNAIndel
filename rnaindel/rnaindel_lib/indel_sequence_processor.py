@@ -31,17 +31,17 @@ def indel_sequence_processor(df, fasta, bam, mapq, chr_prefixed):
         df_filtered_premerge (pandas.DataFrame): dataframe with invalid entries
     """
     # features derived from Bambino output
-    # df['is_gc_ins'] = df.apply(is_gc_ins, axis=1)
-    # df['is_gc_del'] = df.apply(is_gc_del, axis=1)
+    df['is_gc_ins'] = df.apply(is_gc_ins, axis=1)
+    df['is_gc_del'] = df.apply(is_gc_del, axis=1)
     df["is_at_ins"] = df.apply(is_at_ins, axis=1)
     df["is_at_del"] = df.apply(is_at_del, axis=1)
     df["indel_size"] = df.apply(indel_size, axis=1)
 
     # features derived from annotation
     df["a"] = df.apply(anno_features, axis=1)
-    # df['is_inframe'] = df.apply(lambda x: x['a'].is_inframe, axis=1)
+    df['is_inframe'] = df.apply(lambda x: x['a'].is_inframe, axis=1)
     df["is_truncating"] = df.apply(lambda x: x["a"].is_truncating, axis=1)
-    # df['is_splice'] = df.apply(lambda x: x['a'].is_splice, axis=1)
+    df['is_splice'] = df.apply(lambda x: x['a'].is_splice, axis=1)
     df["is_nmd_insensitive"] = df.apply(lambda x: x["a"].is_nmd_insensitive, axis=1)
 
     # features derived from sequence alingment/map
@@ -54,11 +54,11 @@ def indel_sequence_processor(df, fasta, bam, mapq, chr_prefixed):
         chr_prefixed=chr_prefixed,
     )
     df["s"] = df.apply(sam, axis=1)
-    # df['gc'] = df.apply(lambda x: x['s'].gc, axis=1)
-    # df['local_gc'] = df.apply(lambda x: x['s'].local_gc, axis=1)
-    # df['lc'] = df.apply(lambda x: x['s'].lc, axis=1)
-    # df['local_lc'] = df.apply(lambda x: x['s'].local_lc, axis=1)
-    # df['strength'] = df.apply(lambda x: x['s'].strength, axis=1)
+    df['gc'] = df.apply(lambda x: x['s'].gc, axis=1)
+    df['local_gc'] = df.apply(lambda x: x['s'].local_gc, axis=1)
+    df['lc'] = df.apply(lambda x: x['s'].lc, axis=1)
+    df['local_lc'] = df.apply(lambda x: x['s'].local_lc, axis=1)
+    df['strength'] = df.apply(lambda x: x['s'].strength, axis=1)
     df["local_strength"] = df.apply(lambda x: x["s"].local_strength, axis=1)
     df["repeat"] = df.apply(lambda x: x["s"].repeat, axis=1)
     df["dissimilarity"] = df.apply(lambda x: x["s"].dissimilarity, axis=1)

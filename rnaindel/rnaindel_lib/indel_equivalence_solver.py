@@ -252,7 +252,7 @@ def merge_equivalents(df):
 
     # if no equivalent indels, return the input
     if len(df) == 1:
-        df.loc[:, "equivalents_exist"] = 0
+        df.loc[:, "equivalence_exists"] = 0
 
         return df
 
@@ -285,7 +285,7 @@ def merge_equivalents(df):
         df.loc[:, "is_uniq_mapped"] = 1
 
     # flags the presence of equivalents
-    df.loc[:, "equivalents_exist"] = 1
+    df.loc[:, "equivalence_exists"] = 1
 
     return df
 

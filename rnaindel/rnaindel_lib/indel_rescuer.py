@@ -257,10 +257,7 @@ def get_most_common_indel_seq(bam_data, chr, pos, idl_type, chr_prefixed):
     """
     idl_seq = None
 
-    if idl_type == 1:
-        ins_or_del = "I"
-    else:
-        ins_or_del = "D"
+    ins_or_del = "I" if idl_type == 1 else "D"
 
     # convert 0-based coordinate
     pos = pos - 1

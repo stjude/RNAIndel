@@ -33,8 +33,8 @@ def indel_protein_processor(df, refgene, proteincdd=None):
     )
 
     # check if the indel is in conserved domain (CDD)
-    # acc_dom = acc_domain_dict(proteincdd)
-    # df['is_in_cdd'] = df.apply(partial(is_in_conserved_domain, d=acc_dom), axis=1)
+    acc_dom = acc_domain_dict(proteincdd)
+    df["is_in_cdd"] = df.apply(partial(is_in_conserved_domain, d=acc_dom), axis=1)
 
     return df
 

@@ -48,38 +48,11 @@ def calculate_proba(df, model_dir, num_of_processes):
     Returns:
         df (pandas.DataFrame): with prediction probabaility for somatic, germline, artifact
     """
-    # DO NOT CHANGE THE FEATURE ORDER
-    mono_features = [
-        "repeat",
-        "is_at_del",
-        "is_on_dbsnp",
-        "alt_count",
-        "ref_count",
-        "is_at_ins",
-        "is_nmd_insensitive",
-        "is_near_boundary",
-        "indel_complexity",
-        "ipg",
-        "is_uniq_mapped",
-    ]
+    feature_dict = make_feature_dict(model_dir)
 
-    non_mono_features = [
-        "indel_size",
-        "ipg",
-        "dissimilarity",
-        "alt_count",
-        "is_on_dbsnp",
-        "ref_count",
-        "is_near_boundary",
-        "is_truncating",
-        "local_strength",
-        "indel_complexity",
-        "is_uniq_mapped",
-        "is_ins",
-        "is_multiallelic",
-        "is_bidirectional",
-    ]
-
+    mono_features = feature_dict["single_nucleotide_indels"]
+    non_mono_features = feature_dict["multi_nucleotide_indels"]
+    
     # to keep the original row order
     df["order"] = df.index
     df_mono, df_non_mono = split_by_indel_size(df)
@@ -140,6 +113,19 @@ def split_by_indel_size(df):
 
     return df_mono, df_non_mono
 
+
+def make_feature_dict(model_dir):
+    """Parse features.txt to dict
+    Args:
+        model_dir (str): path to data directory where "features.txt" is located.
+    Returns:
+        feature_dict (dict): {indel_class : [feture names]}
+    """ 
+    features = os.path.join(model_dir, "features.txt")
+    f = open(features)
+    feature_dict = {line.split("\t")[0]: line.rstrip().split("\t")[1].split(";") for line in f}
+    f.close()
+    return feature_dict
 
 def predict(model, data, features):
     """ Calculate prediction probabaility

@@ -28,6 +28,7 @@ def main():
     create_logger(args.log_dir)
     data_dir = args.data_dir.rstrip("/")
     refgene = "{}/refgene/refCodingExon.bed.gz".format(data_dir)
+    protein = "{}/protein/proteinConservedDomains.txt".format(data_dir)
     dbsnp = "{}/dbsnp/dbsnp.indel.vcf.gz".format(data_dir)
     clinvar = "{}/clinvar/clinvar.indel.vcf.gz".format(data_dir)
     model_dir = "{}/models".format(data_dir)
@@ -70,13 +71,16 @@ def main():
     df, df_filtered_premerge = rl.indel_sequence_processor(
         df, args.fasta, args.bam, args.uniq_mapq, chr_prefixed
     )
-    df = rl.indel_protein_processor(df, refgene)
+    df = rl.indel_protein_processor(df, refgene, protein)
     # Analysis 3: merging equivalent indels
     df, df_filtered_postmerge = rl.indel_equivalence_solver(
         df, args.fasta, refgene, chr_prefixed
     )
     # Analysis 4: dbSNP annotation
     df = rl.indel_snp_annotator(df, args.fasta, dbsnp, clinvar, chr_prefixed)
+    
+    df.to_csv("intermediate.txt", sep="\t", index=False)
+    
     # Analysis 5: prediction
     df = rl.indel_classifier(df, model_dir, num_of_processes=args.process_num)
 
@@ -103,6 +107,8 @@ def main():
         args.fasta,
         chr_prefixed,
         args.output_vcf,
+        model_dir,
+        "test_version" # REMOVE this later!!
         #__version__,
     )
 
