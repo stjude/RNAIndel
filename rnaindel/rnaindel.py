@@ -79,7 +79,8 @@ def main():
     # Analysis 4: dbSNP annotation
     df = rl.indel_snp_annotator(df, args.fasta, dbsnp, clinvar, chr_prefixed)
     
-    df.to_csv("intermediate.txt", sep="\t", index=False)
+    #dff = rl.report_features(df, args.fasta, chr_prefixed)
+    #dff.to_csv("intermediate.txt", sep="\t", index=False)
     
     # Analysis 5: prediction
     df = rl.indel_classifier(df, model_dir, num_of_processes=args.process_num)
