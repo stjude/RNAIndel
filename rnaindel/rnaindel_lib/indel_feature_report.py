@@ -13,6 +13,10 @@ def report_features(df, fasta, reportname, chr_prefixed):
     df["pos"] = df.apply(lambda x: x["vcf"].POS, axis=1)
     df["ref"] = df.apply(lambda x: x["vcf"].REF, axis=1)
     df["alt"] = df.apply(lambda x: x["vcf"].ALT, axis=1)
+    
+    # add truth column. this is to be filled by user
+    df["truth"] = ""
+
 
     df.drop(
         [

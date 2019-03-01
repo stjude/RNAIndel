@@ -1,30 +1,55 @@
-#!/usr/bin/env python3 
+#!/usr/bin/env python3
 
 import os
 import sys
-import pathlib
 import logging
-import warnings
+import pathlib
 import argparse
+import warnings
 import tempfile
 import pandas as pd
 from functools import partial
-#from .version import __version__
 
-#import rnaindel.bambino_lib as bl
 import bambino_lib as bl
-#import rnaindel.rnaindel_lib as rl
 import rnaindel_lib as rl
+
+
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
-def main():
-    if len(sys.argv) == 1:
-        print("aaa")
+class RNAIndelCommand(object):
+    def __init__(self):
+        parser = argparse.ArgumentParser(
+            usage="""rnaindel <command> [<args>]
+            
+rnaindel commands are:
+    analysis    Predict somatic indels from tumor RNA-Seq data
+    feature     Calculate and report features for training
+    training    Train models""",
+        )
+
+        parser.add_argument("command", help="analysis, feature, or training")
+        args = parser.parse_args(sys.argv[1:2])
+
+        if not hasattr(self, args.command):
+            print("Invalid command.")
+            parser.print_help()
+            sys.exit(1)
+
+        getattr(self, args.command)()
+        
+    def analysis(self):
+        main("analysis")
+
+    def feature(self): 
+        main("feature")
+            
+    def training(self): 
+        train()
 
 
-
-    args = get_args()
+def main(command):
+    args = main_args(command)
     create_logger(args.log_dir)
     data_dir = args.data_dir.rstrip("/")
     refgene = "{}/refgene/refCodingExon.bed.gz".format(data_dir)
@@ -33,8 +58,8 @@ def main():
     clinvar = "{}/clinvar/clinvar.indel.vcf.gz".format(data_dir)
     model_dir = "{}/models".format(data_dir)
     
-    # Preprocessing 
-    # Variant calling will be performed if no external VCF is supplied
+    # preprocessing 
+    # variant calling will be performed if no external VCF is supplied
     if not args.input_vcf:
         # indel calling
         bambino_output = os.path.join(tempfile.mkdtemp(), "bambino.txt")
@@ -65,27 +90,30 @@ def main():
             external_vcf=True,
         )
 
-    # Analysis 1: indel annotation
+    # indel annotation
     df = rl.indel_annotator(df, refgene, args.fasta, chr_prefixed)
-    # Analysis 2: feature calculation using
+    # feature calculation
     df, df_filtered_premerge = rl.indel_sequence_processor(
         df, args.fasta, args.bam, args.uniq_mapq, chr_prefixed
     )
     df = rl.indel_protein_processor(df, refgene, protein)
-    # Analysis 3: merging equivalent indels
+    # merging equivalent indels
     df, df_filtered_postmerge = rl.indel_equivalence_solver(
         df, args.fasta, refgene, chr_prefixed
     )
-    # Analysis 4: dbSNP annotation
+    # dbSNP annotation
     df = rl.indel_snp_annotator(df, args.fasta, dbsnp, clinvar, chr_prefixed)
     
-    #dff = rl.report_features(df, args.fasta, chr_prefixed)
-    #dff.to_csv("intermediate.txt", sep="\t", index=False)
-    
-    # Analysis 5: prediction
+    # command "feature" exits here
+    if command == "feature":
+        df = rl.report_features(df, args.fasta, args.output_tab, chr_prefixed)
+        print("rnaindel feature completed successfully.", file=sys.stdout)
+        sys.exit(0)
+
+    # prediction
     df = rl.indel_classifier(df, model_dir, num_of_processes=args.process_num)
 
-    # Analysis 6: concatenating invalid(filtered) entries
+    # concatenating invalid(filtered) entries
     df_filtered = pd.concat(
         [df_filtered_premerge, df_filtered_postmerge],
         axis=0,
@@ -93,11 +121,11 @@ def main():
         sort=True,
     )
 
-    # Analysis 7(Optional): custom refinement of somatic prediction
+    # custom refinement of somatic prediction
     if args.non_somatic_panel:
         df = rl.indel_reclassifier(df, args.fasta, chr_prefixed, args.non_somatic_panel)
 
-    # PostProcessing & VCF formatting
+    # postProcessing & VCF formatting
     df, df_filtered = rl.indel_postprocessor(
         df, df_filtered, refgene, args.fasta, chr_prefixed
     )
@@ -113,11 +141,12 @@ def main():
         #__version__,
     )
 
-    print("rnaindel completed successfully.", file=sys.stderr)
+    print("rnaindel analysis completed successfully.", file=sys.stdout)
 
 
-def get_args():
-    parser = argparse.ArgumentParser(prog="rnaindel")
+def main_args(command):
+    prog = "rnaindel " + command
+    parser = argparse.ArgumentParser(prog=prog)
     
     parser.add_argument(
         "-b",
@@ -143,9 +172,16 @@ def get_args():
         help="data directory contains refgene, dbsnp and clinvar databases and models",
         type=check_folder_existence,
     )
-    parser.add_argument(
-        "-o", "--output-vcf", metavar="FILE", required=True, help="output vcf file"
-    )
+    if command == "analysis":
+        parser.add_argument(
+            "-o", "--output-vcf", metavar="FILE", required=True, help="output vcf file"
+        )
+    elif command == "feature":
+        parser.add_argument(
+            "-o", "--output-tab", metavar="FILE", required=True, help="output tab-delimited file"
+        )
+    else:
+        pass
     # input VCF from other callers (optional)
     parser.add_argument(
         "-c",
@@ -170,13 +206,14 @@ def get_args():
         type=check_pos_int,
         help="number of processes (default: 1)",
     )
-    parser.add_argument(
-        "-n",
-        "--non-somatic-panel",
-        metavar="FILE",
-        type=partial(check_file, file_name="Panel of non-somatic (.vcf)"),
-        help="user-defined panel of non-somatic indels in VCF format",
-    )
+    if command == "analysis":
+        parser.add_argument(
+            "-n",
+            "--non-somatic-panel",
+            metavar="FILE",
+            type=partial(check_file, file_name="Panel of non-somatic (.vcf)"),
+            help="user-defined panel of non-somatic indels in VCF format",
+        )   
     parser.add_argument(
         "-m",
         "--heap-memory",
@@ -196,9 +233,14 @@ def get_args():
     #    action="version",
     #    version="%(prog)s {version}".format(version=__version__),
     #)
-    args = parser.parse_args()
+    args = parser.parse_args(sys.argv[2:])
     return args
 
+def train():
+    train_args()
+
+def train_args():
+    pass
 
 def create_logger(log_dir):
     logger = logging.getLogger("")
@@ -246,5 +288,12 @@ def check_file(file_path, file_name):
     return file_path
 
 
+
+
+
+
+
+
+
 if __name__ == "__main__":
-    main()
+    RNAIndelCommand()
