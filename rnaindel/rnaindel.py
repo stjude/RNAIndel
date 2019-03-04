@@ -12,192 +12,321 @@ from functools import partial
 
 import bambino_lib as bl
 import rnaindel_lib as rl
-
+import training_lib as tl
 
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
-class RNAIndelCommand(object):
+
+class Commands(object):
     def __init__(self):
-        parser = argparse.ArgumentParser(
+        parser = argparse.ArgumentParser(prog = "rnaindel",
             usage="""rnaindel <command> [<args>]
             
-rnaindel commands are:
+commands are:
     analysis    Predict somatic indels from tumor RNA-Seq data
     feature     Calculate and report features for training
-    training    Train models""",
+    training    Train models"""
         )
 
         parser.add_argument("command", help="analysis, feature, or training")
+        parser.add_argument("--version", action="version", 
+            version="%(prog)s {version}".format(version="1.0.0"),  #change later
+        )
+
         args = parser.parse_args(sys.argv[1:2])
 
         if not hasattr(self, args.command):
-            print("Invalid command.")
-            parser.print_help()
-            sys.exit(1)
+            sys.exit("Error: invalid command")
 
         getattr(self, args.command)()
-        
+
     def analysis(self):
         main("analysis")
 
-    def feature(self): 
+    def feature(self):
         main("feature")
-            
-    def training(self): 
-        train()
+
+    def training(self):
+        main("training")
 
 
 def main(command):
-    args = main_args(command)
-    create_logger(args.log_dir)
+    args = get_args(command)
     data_dir = args.data_dir.rstrip("/")
+    log_dir = args.log_dir.rstrip("/")
     refgene = "{}/refgene/refCodingExon.bed.gz".format(data_dir)
     protein = "{}/protein/proteinConservedDomains.txt".format(data_dir)
     dbsnp = "{}/dbsnp/dbsnp.indel.vcf.gz".format(data_dir)
     clinvar = "{}/clinvar/clinvar.indel.vcf.gz".format(data_dir)
     model_dir = "{}/models".format(data_dir)
-    
-    # preprocessing 
-    # variant calling will be performed if no external VCF is supplied
-    if not args.input_vcf:
-        # indel calling
-        bambino_output = os.path.join(tempfile.mkdtemp(), "bambino.txt")
-        bl.bambino(args.bam, args.fasta, bambino_output, args.heap_memory)
-        
-        # preprocess indels from the built-in caller
-        df, chr_prefixed = rl.indel_preprocessor(
-            bambino_output, args.bam, refgene, args.fasta
+
+    if command == "training":
+        df = tl.input_validator(args.training_data)
+
+        # downsampling
+        artifact_ratio, ds_f_beta, ds_precision = tl.downsampler(
+            df, args.k_fold, args.indel_class, args.ds_beta, args.process_num
         )
-        df = rl.indel_rescuer(
-            df, args.fasta, args.bam, chr_prefixed, num_of_processes=args.process_num
-        )
-        
-        # delete the temp file
-        os.remove(bambino_output)
-    else:
-        # preprocess indels from external VCF
-        df, chr_prefixed = rl.indel_vcf_preprocessor(
-            args.input_vcf, args.bam, refgene, args.fasta
-        )
-        df = rl.indel_rescuer(
+
+        # feature_selection
+        selected_features, fs_f_beta, fs_precision = tl.selector(
             df,
-            args.fasta,
-            args.bam,
-            chr_prefixed,
-            num_of_processes=args.process_num,
-            left_aligned=True,
-            external_vcf=True,
+            args.k_fold,
+            args.indel_class,
+            artifact_ratio,
+            args.fs_beta,
+            args.process_num,
         )
 
-    # indel annotation
-    df = rl.indel_annotator(df, refgene, args.fasta, chr_prefixed)
-    # feature calculation
-    df, df_filtered_premerge = rl.indel_sequence_processor(
-        df, args.fasta, args.bam, args.uniq_mapq, chr_prefixed
-    )
-    df = rl.indel_protein_processor(df, refgene, protein)
-    # merging equivalent indels
-    df, df_filtered_postmerge = rl.indel_equivalence_solver(
-        df, args.fasta, refgene, chr_prefixed
-    )
-    # dbSNP annotation
-    df = rl.indel_snp_annotator(df, args.fasta, dbsnp, clinvar, chr_prefixed)
-    
-    # command "feature" exits here
-    if command == "feature":
-        df = rl.report_features(df, args.fasta, args.output_tab, chr_prefixed)
-        print("rnaindel feature completed successfully.", file=sys.stdout)
-        sys.exit(0)
+        # parameter tuning
+        feature_lst = selected_features.split(";")
+        max_features, pt_f_beta, pt_precision = tl.tuner(
+            df,
+            args.k_fold,
+            args.indel_class,
+            artifact_ratio,
+            feature_lst,
+            args.pt_beta,
+            args.process_num,
+        )
 
-    # prediction
-    df = rl.indel_classifier(df, model_dir, num_of_processes=args.process_num)
+        # update models
+        tl.updater(
+            df, args.indel_class, artifact_ratio, feature_lst, max_features, model_dir
+        )
 
-    # concatenating invalid(filtered) entries
-    df_filtered = pd.concat(
-        [df_filtered_premerge, df_filtered_postmerge],
-        axis=0,
-        ignore_index=True,
-        sort=True,
-    )
+        # make report
+        tl.reporter(
+            args.indel_class,
+            args.ds_beta,
+            ds_f_beta,
+            ds_precision,
+            artifact_ratio,
+            args.fs_beta,
+            fs_f_beta,
+            fs_precision,
+            selected_features,
+            args.pt_beta,
+            pt_f_beta,
+            pt_precision,
+            max_features,
+            args.log_dir,
+        )
 
-    # custom refinement of somatic prediction
-    if args.non_somatic_panel:
-        df = rl.indel_reclassifier(df, args.fasta, chr_prefixed, args.non_somatic_panel)
+        msg = (
+            "single-nucleotide indels"
+            if args.indel_class == "s"
+            else "multi-nucleotide indels"
+        )
+        print(
+            "rnaindel training for " + msg + " completed successfully.", file=sys.stdout
+        )
 
-    # postProcessing & VCF formatting
-    df, df_filtered = rl.indel_postprocessor(
-        df, df_filtered, refgene, args.fasta, chr_prefixed
-    )
-    rl.indel_vcf_writer(
-        df,
-        df_filtered,
-        args.bam,
-        args.fasta,
-        chr_prefixed,
-        args.output_vcf,
-        model_dir,
-        "test_version" # REMOVE this later!!
-        #__version__,
-    )
+    else:
+        create_logger(log_dir)
 
-    print("rnaindel analysis completed successfully.", file=sys.stdout)
+        # preprocessing
+        # variant calling will be performed if no external VCF is supplied
+        if not args.input_vcf:
+            # indel calling
+            bambino_output = os.path.join(tempfile.mkdtemp(), "bambino.txt")
+            bl.bambino(args.bam, args.fasta, bambino_output, args.heap_memory)
+
+            # preprocess indels from the built-in caller
+            df, chr_prefixed = rl.indel_preprocessor(
+                bambino_output, args.bam, refgene, args.fasta
+            )
+            df = rl.indel_rescuer(
+                df,
+                args.fasta,
+                args.bam,
+                chr_prefixed,
+                num_of_processes=args.process_num,
+            )
+
+            # delete the temp file
+            os.remove(bambino_output)
+        else:
+            # preprocess indels from external VCF
+            df, chr_prefixed = rl.indel_vcf_preprocessor(
+                args.input_vcf, args.bam, refgene, args.fasta
+            )
+            df = rl.indel_rescuer(
+                df,
+                args.fasta,
+                args.bam,
+                chr_prefixed,
+                num_of_processes=args.process_num,
+                left_aligned=True,
+                external_vcf=True,
+            )
+
+        # indel annotation
+        df = rl.indel_annotator(df, refgene, args.fasta, chr_prefixed)
+        # feature calculation
+        df, df_filtered_premerge = rl.indel_sequence_processor(
+            df, args.fasta, args.bam, args.uniq_mapq, chr_prefixed
+        )
+        df = rl.indel_protein_processor(df, refgene, protein)
+        # merging equivalent indels
+        df, df_filtered_postmerge = rl.indel_equivalence_solver(
+            df, args.fasta, refgene, chr_prefixed
+        )
+        # dbSNP annotation
+        df = rl.indel_snp_annotator(df, args.fasta, dbsnp, clinvar, chr_prefixed)
+
+        # command "feature" exits here
+        if command == "feature":
+            df = rl.report_features(df, args.fasta, args.output_tab, chr_prefixed)
+            print("rnaindel feature completed successfully.", file=sys.stdout)
+            sys.exit(0)
+
+        # prediction
+        df = rl.indel_classifier(df, model_dir, num_of_processes=args.process_num)
+
+        # concatenating invalid(filtered) entries
+        df_filtered = pd.concat(
+            [df_filtered_premerge, df_filtered_postmerge],
+            axis=0,
+            ignore_index=True,
+            sort=True,
+        )
+
+        # custom refinement of somatic prediction
+        if args.non_somatic_panel:
+            df = rl.indel_reclassifier(
+                df, args.fasta, chr_prefixed, args.non_somatic_panel
+            )
+
+        # postProcessing & VCF formatting
+        df, df_filtered = rl.indel_postprocessor(
+            df, df_filtered, refgene, args.fasta, chr_prefixed
+        )
+        rl.indel_vcf_writer(
+            df,
+            df_filtered,
+            args.bam,
+            args.fasta,
+            chr_prefixed,
+            args.output_vcf,
+            model_dir,
+            "test_version"  # REMOVE this later!!
+            # __version__,
+        )
+
+        print("rnaindel analysis completed successfully.", file=sys.stdout)
 
 
-def main_args(command):
+def get_args(command):
     prog = "rnaindel " + command
     parser = argparse.ArgumentParser(prog=prog)
-    
-    parser.add_argument(
-        "-b",
-        "--bam",
-        metavar="FILE",
-        required=True,
-        type=partial(check_file, file_name="BAM file (.bam)"),
-        help="input tumor RNA-Seq bam file (must be STAR-mapped).",
-    )
-    parser.add_argument(
-        "-f",
-        "--fasta",
-        metavar="FILE",
-        required=True,
-        type=partial(check_file, file_name="FASTA file"),
-        help="reference genome FASTA file.",
-    )
-    parser.add_argument(
-        "-d",
-        "--data-dir",
-        metavar="DIR",
-        required=True,
-        help="data directory contains refgene, dbsnp and clinvar databases and models",
-        type=check_folder_existence,
-    )
+
+    if command != "training":
+        parser.add_argument(
+            "-b",
+            "--bam",
+            metavar="FILE",
+            required=True,
+            type=partial(check_file, file_name="BAM file (.bam)"),
+            help="input tumor RNA-Seq BAM file (must be STAR-mapped).",
+        )
+
+    if command == "training":
+        parser.add_argument(
+            "-t",
+            "--training-data",
+            metavar="FILE",
+            required=True,
+            type=partial(check_file, file_name="data file (.tab)"),
+            help="input training data file (tab delimited).",
+        )
+
+    if command != "training":
+        parser.add_argument(
+            "-f",
+            "--fasta",
+            metavar="FILE",
+            required=True,
+            type=partial(check_file, file_name="FASTA file"),
+            help="reference genome FASTA file.",
+        )
+
+    if command != "training":
+        parser.add_argument(
+            "-d",
+            "--data-dir",
+            metavar="DIR",
+            required=True,
+            help="data directory contains databases and models",
+            type=check_folder_existence,
+        )
+
+    if command == "training":
+        parser.add_argument(
+            "-d",
+            "--data-dir",
+            metavar="DIR",
+            required=True,
+            help="data directory contains databases and models. training will update the models in the directory",
+            type=check_folder_existence,
+        )
+
     if command == "analysis":
         parser.add_argument(
-            "-o", "--output-vcf", metavar="FILE", required=True, help="output vcf file"
+            "-o", "--output-vcf", metavar="FILE", required=True, help="output VCF file"
         )
     elif command == "feature":
         parser.add_argument(
-            "-o", "--output-tab", metavar="FILE", required=True, help="output tab-delimited file"
+            "-o",
+            "--output-tab",
+            metavar="FILE",
+            required=True,
+            help="output tab-delimited file",
         )
     else:
         pass
+
+    if command == "training":
+        parser.add_argument(
+            "-c",
+            "--indel-class",
+            metavar="STR",
+            required=True,
+            help="indel class to be trained: s for 1-nt or m for >1-nt indels",
+            type=check_indel_class,
+        )
+
     # input VCF from other callers (optional)
-    parser.add_argument(
-        "-c",
-        "--input-vcf",
-        metavar="FILE",
-        type=partial(check_file, file_name="VCF (.vcf) file"),
-        help="input vcf file from other callers",
-    )
-    parser.add_argument(
-        "-q",
-        "--uniq-mapq",
-        metavar="INT",
-        default=255,
-        type=check_mapq,
-        help="STAR mapping quality MAPQ for unique mappers (default: 255)",
-    )
+    if command != "training":
+        parser.add_argument(
+            "-v",
+            "--input-vcf",
+            metavar="FILE",
+            type=partial(check_file, file_name="VCF (.vcf) file"),
+            help="input VCF file from other callers",
+        )
+
+    if command != "training":
+        parser.add_argument(
+            "-q",
+            "--uniq-mapq",
+            metavar="INT",
+            default=255,
+            type=check_mapq,
+            help="STAR mapping quality MAPQ for unique mappers (default: 255)",
+        )
+
+    if command == "training":
+        parser.add_argument(
+            "-k",
+            "--k-fold",
+            metavar="INT",
+            default=5,
+            type=check_k_fold,
+            help="number of folds in k-fold cross-validation (default: 5)",
+        )
+
     parser.add_argument(
         "-p",
         "--process-num",
@@ -206,6 +335,7 @@ def main_args(command):
         type=check_pos_int,
         help="number of processes (default: 1)",
     )
+
     if command == "analysis":
         parser.add_argument(
             "-n",
@@ -213,34 +343,59 @@ def main_args(command):
             metavar="FILE",
             type=partial(check_file, file_name="Panel of non-somatic (.vcf)"),
             help="user-defined panel of non-somatic indels in VCF format",
-        )   
-    parser.add_argument(
-        "-m",
-        "--heap-memory",
-        metavar="STR",
-        default="6000m",
-        help="maximum heap space (defalt: 6000m)",
-    )
+        )
+
+    if command != "training":
+        parser.add_argument(
+            "-m",
+            "--heap-memory",
+            metavar="STR",
+            default="6000m",
+            help="maximum heap space (default: 6000m)",
+        )
+    
     parser.add_argument(
         "-l",
         "--log-dir",
         metavar="DIR",
+        default=os.getcwd(),
         type=check_folder_existence,
-        help="directory for storing log files",
+        help="directory to ouput log files (default: current)",
     )
-    #parser.add_argument(
+
+    if command == "training":
+        parser.add_argument(
+            "--ds-beta",
+            metavar="INT",
+            default="10",
+            type=check_beta,
+            help="F_beta to be optimized in down_sampling step. optimized for TPR when beta >100 given. (default: 10)",
+        )
+        parser.add_argument(
+            "--fs-beta",
+            metavar="INT",
+            default="10",
+            type=check_beta,
+            help="F_beta to be optimized in feature selection step. optimized for TPR when beta >100 given. (default: 10)",
+        )
+        parser.add_argument(
+            "--pt-beta",
+            metavar="INT",
+            default="10",
+            type=check_beta,
+            help="F_beta to be optimized in parameter_tuning step. optimized for TPR when beta >100 given. (default: 10)",
+        )
+
+
+    # parser.add_argument(
     #    "--version",
     #    action="version",
     #    version="%(prog)s {version}".format(version=__version__),
-    #)
+    # )
+
     args = parser.parse_args(sys.argv[2:])
     return args
 
-def train():
-    train_args()
-
-def train_args():
-    pass
 
 def create_logger(log_dir):
     logger = logging.getLogger("")
@@ -264,7 +419,16 @@ def create_logger(log_dir):
 def check_pos_int(val):
     val = int(val)
     if val <= 0:
-        sys.exit("Error: The number of processes must be a positive integer.")
+        sys.exit("Error: the number of processes must be a positive integer.")
+    return val
+
+
+def check_k_fold(val):
+    val = int(val)
+    if val <= 1:
+        sys.exit(
+            "Error: the number of folds must be a positive integer greater than 1."
+        )
     return val
 
 
@@ -273,6 +437,26 @@ def check_mapq(val):
     if not 0 <= val <= 255:
         sys.exit("Error: the MAPQ value must be between 0 and 255.")
     return val
+
+
+def check_indel_class(val):
+    if val != "s" and val != "m":
+        sys.exit("Error: indel class must be s for 1-nt or m for >1-nt indels")
+    return val
+
+
+def check_beta(val):
+    val = int(val)
+    if val < 1:
+        sys.exit("Error: beta must be an interger larger than 0.")
+    return val
+
+
+# def check_skip(val):
+#    valid_input = ["down_sampling", "feature_selection", "param_tuning"]
+#    if not val in valid_input:
+#        sys.exit("Error: must be down_sampling, feature_selection, or param_tuning")
+#    return val
 
 
 def check_folder_existence(folder):
@@ -288,12 +472,5 @@ def check_file(file_path, file_name):
     return file_path
 
 
-
-
-
-
-
-
-
 if __name__ == "__main__":
-    RNAIndelCommand()
+    Commands()

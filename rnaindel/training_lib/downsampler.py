@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+
+import numpy as np
+import pandas as pd
+from .model_selection import features
+from .model_selection import make_k_folds
+from .model_selection import perform_k_fold_cv
+from .model_selection import make_score_dict
+from .model_selection import report_result
+
+def downsampler(df, k, indel_class, beta, num_of_processes, max_features="auto"):
+    all_features = features(indel_class)
+
+    folds = make_k_folds(df, k, indel_class)
+    
+    # somatic:germline:artifact = 1:1:x for 1 <= x <= 20
+    result_dict_lst = []
+    for x in range(1, 21):
+        # k-fold CrossValidation
+        stats = perform_k_fold_cv(folds, all_features, x, num_of_processes, max_features)
+        d = make_score_dict(x, stats, beta)
+        
+        result_dict_lst.append(d)
+     
+#### Remove later!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    df = pd.DataFrame(result_dict_lst)
+    df.to_csv("downsampling.m.txt", sep="\t", index=False)
+    
+    return report_result(pd.DataFrame(result_dict_lst, beta))

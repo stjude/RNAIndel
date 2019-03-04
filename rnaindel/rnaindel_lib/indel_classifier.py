@@ -39,7 +39,8 @@ def indel_classifier(df, model_dir, **kwargs):
 
 
 def calculate_proba(df, model_dir, num_of_processes):
-    """ Calculates prediction probability for 1-nt (mono) and >1-mt (non-mono) indels
+    """ Calculates prediction probability for 1-nt (single-nucleotide indels (sni)) 
+        and >1-mt (multi-nucleotide indels (mni)) indels
     Args:
         df (pandas.DataFrame): with features calculated 
         model_dir (str): path to dir where model pickle files are located
@@ -50,46 +51,46 @@ def calculate_proba(df, model_dir, num_of_processes):
     """
     feature_dict = make_feature_dict(model_dir)
 
-    mono_features = feature_dict["single_nucleotide_indels"]
-    non_mono_features = feature_dict["multi_nucleotide_indels"]
+    sni_features = feature_dict["single_nucleotide_indels"]
+    mni_features = feature_dict["multi_nucleotide_indels"]
     
     # to keep the original row order
     df["order"] = df.index
-    df_mono, df_non_mono = split_by_indel_size(df)
+    df_sni, df_mni = split_by_indel_size(df)
 
     pool = Pool(num_of_processes)
     header = ["prob_a", "prob_g", "prob_s"]
 
-    # prediction for mono indels
-    if len(df_mono) > 0:
-        mono_models = [
+    # prediction for 1-nt (sni) indels
+    if len(df_sni) > 0:
+        sni_models = [
             os.path.join(model_dir, "mono." + str(i) + ".pkl.gz") for i in range(20)
         ]
-        mono_pred = partial(predict, data=df_mono, features=mono_features)
-        mono_proba = np.average(pool.map(mono_pred, mono_models), axis=0)
-        dfp_mono = pd.DataFrame(data=mono_proba)
-        dfp_mono.columns = header
+        sni_pred = partial(predict, data=df_sni, features=sni_features)
+        sni_proba = np.average(pool.map(sni_pred, sni_models), axis=0)
+        dfp_sni = pd.DataFrame(data=sni_proba)
+        dfp_sni.columns = header
     else:
-        dfp_mono = pd.DataFrame(columns=header)
+        dfp_sni = pd.DataFrame(columns=header)
 
-    df_mono = pd.concat([df_mono, dfp_mono], axis=1)
+    df_sni = pd.concat([df_sni, dfp_sni], axis=1)
 
-    # prediction for non mono indels
-    if len(df_non_mono) > 0:
-        non_mono_models = [
-            os.path.join(model_dir, "non_mono." + str(i) + ".pkl.gz") for i in range(20)
+    # prediction for >1-nt (mni) indels
+    if len(df_mni) > 0:
+        mni_models = [
+            os.path.join(model_dir, "mni." + str(i) + ".pkl.gz") for i in range(20)
         ]
-        non_mono_pred = partial(predict, data=df_non_mono, features=non_mono_features)
-        non_mono_proba = np.average(pool.map(non_mono_pred, non_mono_models), axis=0)
-        dfp_non_mono = pd.DataFrame(data=non_mono_proba)
-        dfp_non_mono.columns = header
+        mni_pred = partial(predict, data=df_mni, features=mni_features)
+        mni_proba = np.average(pool.map(mni_pred, mni_models), axis=0)
+        dfp_mni = pd.DataFrame(data=mni_proba)
+        dfp_mni.columns = header
     else:
-        dfp_non_mono = pd.DataFrame(columns=header)
+        dfp_mni= pd.DataFrame(columns=header)
 
-    df_non_mono = pd.concat([df_non_mono, dfp_non_mono], axis=1)
+    df_mni = pd.concat([df_mni, dfp_mni], axis=1)
 
     # format output
-    df = pd.concat([df_mono, df_non_mono], axis=0)
+    df = pd.concat([df_sni, df_mni], axis=0)
     df.sort_values("order", inplace=True)
     df.drop("order", axis=1, inplace=True)
     df.reset_index(drop=True, inplace=True)
@@ -102,16 +103,16 @@ def split_by_indel_size(df):
     Args:
         df (pandas.DataFrame)
     Returns:
-        df_mono (pandas.DataFrame): df for 1-nt indels
-        df_non_mono (pandas.DataFrame): df for >1-nt indels
+        df_sni (pandas.DataFrame): df for 1-nt indels
+        df_mni (pandas.DataFrame): df for >1-nt indels
     """
-    df_mono = df[df["indel_size"] == 1]
-    df_non_mono = df[df["indel_size"] > 1]
+    df_sni = df[df["indel_size"] == 1]
+    df_mni = df[df["indel_size"] > 1]
 
-    df_mono.reset_index(drop=True, inplace=True)
-    df_non_mono.reset_index(drop=True, inplace=True)
+    df_sni.reset_index(drop=True, inplace=True)
+    df_mni.reset_index(drop=True, inplace=True)
 
-    return df_mono, df_non_mono
+    return df_sni, df_mni
 
 
 def make_feature_dict(model_dir):
@@ -131,7 +132,7 @@ def predict(model, data, features):
     """ Calculate prediction probabaility
     Args:
         model (file): trained model stored in .pkl.gz 
-        data (pandas.DataFrame): df_mono or df_non_mono
+        data (pandas.DataFrame): df_sni or df_mni
         features (list): a subset of features used for prediction
     Returns:
         prob (tuple): (artifact_prob, germline_prob, somatic_prob) 
