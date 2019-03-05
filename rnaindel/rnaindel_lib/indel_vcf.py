@@ -327,9 +327,9 @@ class IndelVcfReport(object):
         if not self.SPL or self.SPL == 0:
             spl = ""
         
-        trc = "TRC"
-        if not self.TRC or self.TRC == 0:
-            trc = ""
+        trn = "TRN"
+        if not self.TRN or self.TRN == 0:
+            trn = ""
         
         cdd = "CDD"
         if not self.CDD or self.CDD == 0:
@@ -398,7 +398,7 @@ class IndelVcfReport(object):
             mta,
             frm,
             spl,
-            trc,
+            trn,
             cdd,
             loc,
             nmd,
@@ -443,7 +443,7 @@ class IndelVcfReport(object):
         self.MTA = INFO["MTA"]
         self.FRM = INFO["FRM"]
         self.SPL = INFO["SPL"]
-        self.TRC = INFO["TRC"]
+        self.TRN = INFO["TRN"]
         self.CDD = INFO["CDD"]
         self.LOC = INFO["LOC"]
         self.NMD = INFO["NMD"]

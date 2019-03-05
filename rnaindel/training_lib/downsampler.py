@@ -26,4 +26,4 @@ def downsampler(df, k, indel_class, beta, num_of_processes, max_features="auto")
     df = pd.DataFrame(result_dict_lst)
     df.to_csv("downsampling.m.txt", sep="\t", index=False)
     
-    return report_result(pd.DataFrame(result_dict_lst, beta))
+    return report_result(pd.DataFrame(result_dict_lst), beta)

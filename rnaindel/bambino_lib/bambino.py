@@ -26,7 +26,7 @@ def bambino(bam, fasta, output_file, heap_memory="6000m"):
         "-mmf-max-hq-mismatches 8 -mmf-max-hq-mismatches-xt-u 10 "
         "-mmf-min-hq-quality 15 -mmf-max-lq-mismatches 8 "
         "-unique-filter-coverage 2 -no-strand-skew-filter -illumina-q2 1 "
-        "-poly-x-min-run-length 10 -autotune -query-mode".format(
+        "-poly-x-min-run-length 10 -merge-equivalent-indels -autotune -query-mode".format(
             heap_memory, output_file, fasta, bam
         )
     )

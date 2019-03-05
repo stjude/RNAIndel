@@ -61,5 +61,5 @@ def greedy_search(
         scores.append(make_score_dict(feature, stats, beta))
 
         del selected_features[-1]
-        print(feature, stats)
+    
     return report_result(pd.DataFrame(scores), beta)

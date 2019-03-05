@@ -9,7 +9,7 @@ from .model_selection import report_result
 from sklearn.model_selection import ParameterGrid
 
 
-def tuner(df, k, indel_class, artifact_ratio, features, pt_beta, num_of_processes):
+def tuner(df, k, indel_class, artifact_ratio, features, beta, num_of_processes):
   
     n_features = len(features)
     
@@ -21,14 +21,14 @@ def tuner(df, k, indel_class, artifact_ratio, features, pt_beta, num_of_processe
         # k-fold CrossValidation
         max_features = param["max_features"]
         stats = perform_k_fold_cv(folds, features, artifact_ratio, num_of_processes, max_features=max_features)
-        d = make_score_dict(max_features, stats, pt_beta)
+        d = make_score_dict(max_features, stats, beta)
         
         result_dict_lst.append(d)
      
 #### Remove later!!!!!!!!!!!!!!!!!!!!!!!!!!!
     df = pd.DataFrame(result_dict_lst)
     df.to_csv("test_param.m.txt", sep="\t", index=False)
-    return report_result(pd.DataFrame(result_dict_lst))
+    return report_result(pd.DataFrame(result_dict_lst), beta)
 
 def prepare_grid(indel_class, n_features):
     param_grid ={"max_features":range(1, n_features+1)}

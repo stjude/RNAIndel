@@ -207,7 +207,7 @@ def vcf_template(bam, fasta, info_dict, format_dict, model_dir, version):
         "MTA",
         "FRM",
         "SPL",
-        "TRC",
+        "TRN",
         "CDD",
         "LOC",
         "NMD",
@@ -279,7 +279,7 @@ def format_used_features(model_dir):
         "is_multiallelic": "MTA",
         "is_inframe": "FRM",
         "is_splice": "SPL",
-        "is_truncating": "TRC",
+        "is_truncating": "TRN",
         "is_in_cdd": "CDD",
         "indel_location": "LOC",
         "is_nmd_insensitive": "NMD",
@@ -313,8 +313,8 @@ def format_used_features(model_dir):
     features_used_for_mni.sort()
 
     d = {}
-    d["##features_used_for_1-nt_indels"] = ";".join(features_used_for_sni)
-    d["##features_used_for_>1-nt_indels"] = ";".join(features_used_for_mni)
+    d["##features_used_for_single_nucleotide_indels"] = ";".join(features_used_for_sni)
+    d["##features_used_for_multi_nucleotide_indels"] = ";".join(features_used_for_mni)
 
     return d
 
@@ -455,7 +455,7 @@ def define_info_dict():
             "Type": "Flag",
             "Description": "Flagged if occurred in splice region",
         },
-        "TRC": {
+        "TRN": {
             "COLUMN": ["is_truncating"],
             "Number": "0",
             "Type": "Flag",

@@ -8,7 +8,7 @@ from .model_selection import train_classifiers
 def updater(df, indel_class, artifact_ratio, features, max_features, model_dir):
     models = train_classifiers(df, artifact_ratio, features, max_features)
     
-    prefix = "sni" if indel_class == "s" else "mni."
+    prefix = "sni." if indel_class == "s" else "mni."
     
     i = 0
     for model in models:

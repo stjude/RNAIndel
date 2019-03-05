@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """7th step of analysis
 
-Make prediction for 1-nt (mono) and >1-nt (non-mono) indels
+Make prediction for single nucleotide indels (sni) 
+and multi_nucleotide indels (mni) indels
 
 'indel_classifier' is the main routine of this module
 """
@@ -64,7 +65,7 @@ def calculate_proba(df, model_dir, num_of_processes):
     # prediction for 1-nt (sni) indels
     if len(df_sni) > 0:
         sni_models = [
-            os.path.join(model_dir, "mono." + str(i) + ".pkl.gz") for i in range(20)
+            os.path.join(model_dir, "sni." + str(i) + ".pkl.gz") for i in range(20)
         ]
         sni_pred = partial(predict, data=df_sni, features=sni_features)
         sni_proba = np.average(pool.map(sni_pred, sni_models), axis=0)

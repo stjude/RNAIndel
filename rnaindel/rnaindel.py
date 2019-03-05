@@ -20,18 +20,21 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 class Commands(object):
     def __init__(self):
-        parser = argparse.ArgumentParser(prog = "rnaindel",
+        parser = argparse.ArgumentParser(
+            prog="rnaindel",
             usage="""rnaindel <command> [<args>]
             
 commands are:
     analysis    Predict somatic indels from tumor RNA-Seq data
     feature     Calculate and report features for training
-    training    Train models"""
+    training    Train models""",
         )
 
         parser.add_argument("command", help="analysis, feature, or training")
-        parser.add_argument("--version", action="version", 
-            version="%(prog)s {version}".format(version="1.0.0"),  #change later
+        parser.add_argument(
+            "--version",
+            action="version",
+            version="%(prog)s {version}".format(version="1.0.0"),  # change later
         )
 
         args = parser.parse_args(sys.argv[1:2])
@@ -119,6 +122,7 @@ def main(command):
             if args.indel_class == "s"
             else "multi-nucleotide indels"
         )
+
         print(
             "rnaindel training for " + msg + " completed successfully.", file=sys.stdout
         )
@@ -193,12 +197,13 @@ def main(command):
             sort=True,
         )
 
-        # custom refinement of somatic prediction
-        if args.non_somatic_panel:
-            df = rl.indel_reclassifier(
-                df, args.fasta, chr_prefixed, args.non_somatic_panel
-            )
+        # panel of non somatic
+        pons = os.join.path(args.data_dir, "non_somatic/nonsomatic.vcf.gz") if not args.non_somatic_panel else args.non_somatic_panel
 
+        df = rl.indel_reclassifier(
+                df, args.fasta, chr_prefixed, pons
+             )
+            
         # postProcessing & VCF formatting
         df, df_filtered = rl.indel_postprocessor(
             df, df_filtered, refgene, args.fasta, chr_prefixed
@@ -221,7 +226,7 @@ def main(command):
 def get_args(command):
     prog = "rnaindel " + command
     parser = argparse.ArgumentParser(prog=prog)
-
+    
     if command != "training":
         parser.add_argument(
             "-b",
@@ -353,7 +358,7 @@ def get_args(command):
             default="6000m",
             help="maximum heap space (default: 6000m)",
         )
-    
+
     parser.add_argument(
         "-l",
         "--log-dir",
@@ -371,6 +376,7 @@ def get_args(command):
             type=check_beta,
             help="F_beta to be optimized in down_sampling step. optimized for TPR when beta >100 given. (default: 10)",
         )
+
         parser.add_argument(
             "--fs-beta",
             metavar="INT",
@@ -378,6 +384,7 @@ def get_args(command):
             type=check_beta,
             help="F_beta to be optimized in feature selection step. optimized for TPR when beta >100 given. (default: 10)",
         )
+
         parser.add_argument(
             "--pt-beta",
             metavar="INT",
@@ -385,13 +392,6 @@ def get_args(command):
             type=check_beta,
             help="F_beta to be optimized in parameter_tuning step. optimized for TPR when beta >100 given. (default: 10)",
         )
-
-
-    # parser.add_argument(
-    #    "--version",
-    #    action="version",
-    #    version="%(prog)s {version}".format(version=__version__),
-    # )
 
     args = parser.parse_args(sys.argv[2:])
     return args
@@ -441,7 +441,9 @@ def check_mapq(val):
 
 def check_indel_class(val):
     if val != "s" and val != "m":
-        sys.exit("Error: indel class must be s for 1-nt or m for >1-nt indels")
+        sys.exit(
+            "Error: indel class must be s for single-nucleotide indels (1-nt) or m for multi-nucleotide indels (>1-nt) indels"
+        )
     return val
 
 
@@ -450,13 +452,6 @@ def check_beta(val):
     if val < 1:
         sys.exit("Error: beta must be an interger larger than 0.")
     return val
-
-
-# def check_skip(val):
-#    valid_input = ["down_sampling", "feature_selection", "param_tuning"]
-#    if not val in valid_input:
-#        sys.exit("Error: must be down_sampling, feature_selection, or param_tuning")
-#    return val
 
 
 def check_folder_existence(folder):
