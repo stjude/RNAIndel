@@ -11,6 +11,9 @@ import pysam
 from functools import partial
 from .indel_features import IndelSnpFeatures
 from .indel_curator import curate_indel_in_genome
+from .indel_vcf_preprocessor import right_trim
+from .indel_vcf_preprocessor import parse_vcf_line
+from .indel_vcf_preprocessor import count_padding_bases
 
 
 def indel_snp_annotator(df, fasta, dbsnp, clnvr, chr_prefixed):
@@ -90,7 +93,7 @@ def annotate_indel_on_db(row, fasta, dbsnp, clnvr, chr_prefixed):
                     rs = record[2]
                     report.add_dbsnp_id(rs)
                     report.add_dbsnp_freq(dbsnp_freq(record))
-                    #                   report.add_dbsnp_origin(dbsnp_origin(record))
+                    # report.add_dbsnp_origin(dbsnp_origin(record))
                     report.add_dbsnp_common(dbsnp_common(record))
 
     for record in clnvr.fetch(chr_vcf, start, end, parser=pysam.asTuple()):
@@ -104,7 +107,7 @@ def annotate_indel_on_db(row, fasta, dbsnp, clnvr, chr_prefixed):
                     id = record[2]
                     report.add_clnvr_id(id)
                     report.add_clnvr_freq(clnvr_freq(record))
-                    #                   report.add_clnvr_origin(clnvr_origin(record))
+                    # report.add_clnvr_origin(clnvr_origin(record))
                     report.add_clnvr_info(cln_info(record))
 
     return report
@@ -118,10 +121,7 @@ def is_on_dbsnp(row):
     Returns:
         is_on_dbsnp (int): 1 if yes 0 othewise
     """
-    is_on_dbsnp = 1
-
-    if row["dbsnp"] == "-":
-        is_on_dbsnp = 0
+    is_on_dbsnp = 0 if row["dbsnp"] == "-" else 1
 
     return is_on_dbsnp
 
@@ -145,119 +145,32 @@ def negate_on_dbsnp_if_pathogenic(row):
 
     return is_on_dbsnp
 
-    
-def right_trim(seq1, seq2):
-    """Trim 3'bases if they are identical
-    Args:
-      seq1, seq2 (str): alleles in .vcf
-    Returns:
-      seq1, seq2 (str)
-    """
-    if len(seq1) == 1 or len(seq2) == 1:
-        return seq1, seq2
-
-    while seq1[-1] == seq2[-1]:
-        seq1, seq2 = seq1[:-1], seq2[:-1]
-
-    return seq1, seq2
-
-
-def count_padding_bases(seq1, seq2):
-    """Count the number of bases padded to
-    report indels in .vcf
-
-    Args:
-       seq1, seq2 (str): alleles in .vcf
-    Returns:
-       n (int): 
-
-    Examples:
-        REF    ALT
-        
-        GCG    GCGCG
-        
-        By 'left-alignment', REF and ATL are alignmed: 
-             GCG 
-             |||      
-             GCGCG
-       
-       The first 3 bases are left-aligned.
-       In this case, 3 will be returned
-    """
-    if len(seq2) < len(seq1):
-        return count_padding_bases(seq2, seq1)
-
-    n = 0
-    for base1, base2 in zip(seq1, seq2[: len(seq1)]):
-        if base1 == base2:
-            n += 1
-        else:
-            break
-
-    return n
-
 
 def vcf2bambino(record):
-    """Converts .vcf format to Bambino compatible format
+    """Generate IndelSnpFeatures obj. with bambibo coordinate from VCF record
     
     Args:
        record (tuple): vcf line with fields separated in tuple
     Returns:
        parsed (list): a list of IndelSnpFeatures obj
-
-    Example:
-      
-       deletion
-                 pos 123456789012
-           reference ATTAGTAGATGT
-           deletion  ATTA---GATGT
-           
-           VCF:
-               CHROM POS REF  ALT
-               N     4   AGTA A
-           Bambino:
-               chr   pos ref alt
-               chr_N 5   GTA -
-       
-       insertion
-                 pos 1234***56789012
-           reference ATTA***GTAGATGT
-           insertion ATTAGTAGTAGATGT
-           
-           VCF: 
-               CHROM POS REF ALT
-               N     4   A   AGTA
-           Bambino:
-               chr   pos ref alt
-               chr_N 5   -   GTA  
-              
     """
-    chr = "chr" + record[0]
-    pos = int(record[1])
-    ref = record[3]
+    vcf_line = "\t".join(["chr" + record[0],
+                           record[1],
+                           record[2],
+                           record[3],
+                           record[4]]) 
+    
+    parsed = parse_vcf_line(vcf_line)
+    
+    indels_in_bambino_format = []
+    for elem in parsed:
+        chr, pos, ref, alt = elem[0], elem[1], elem[2], elem[3]
+        idl_type = 1 if ref == "-" else 0
+        idl_seq = alt if idl_type else ref
+        
+        indels_in_bambino_format.append(IndelSnpFeatures(chr, pos, idl_type, idl_seq))
 
-    # multiallelic contains multiple alt
-    alts = record[4].split(",")
-
-    parsed = []
-    for alt in alts:
-        n = count_padding_bases(ref, alt)
-        # insertion
-        if len(ref) < len(alt):
-            idl_type = 1
-            idl_seq = alt[n:]
-            idl = IndelSnpFeatures(chr, pos + n, idl_type, idl_seq)
-            parsed.append(idl)
-        # deletion
-        elif len(ref) > len(alt):
-            idl_type = 0
-            idl_seq = ref[n:]
-            idl = IndelSnpFeatures(chr, pos + n, idl_type, idl_seq)
-            parsed.append(idl)
-        else:
-            pass
-
-    return parsed
+    return indels_in_bambino_format
 
 
 def dbsnp_freq(record):

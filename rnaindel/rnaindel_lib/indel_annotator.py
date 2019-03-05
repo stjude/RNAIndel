@@ -73,11 +73,7 @@ def is_insertion(row):
     Returns:
         is_insertion (int): 0 if insertion, 1 if deletion
     """
-    is_insertion = 0
-
-    if row["ref"] == "-":
-        is_insertion = 1
-
+    is_insertion = 1 if row["ref"] == "-" else 0
     return is_insertion
 
 
@@ -89,11 +85,7 @@ def get_indel_seq(row):
     Returns:
         indel_seq (str): inserted or deleted  sequence
     """
-    if row["ref"] == "-":
-        indel_seq = row["alt"]
-    else:
-        indel_seq = row["ref"]
-
+    indel_seq = row["alt"] if row["ref"] == "-" else row["ref"]
     return indel_seq
 
 

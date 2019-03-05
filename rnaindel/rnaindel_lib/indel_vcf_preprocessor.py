@@ -12,8 +12,6 @@ import logging
 import pandas as pd
 from functools import partial
 from .indel_preprocessor import flag_coding_indels
-from .indel_snp_annotator import right_trim
-from .indel_snp_annotator import count_padding_bases
 from .indel_preprocessor import is_chr_prefixed
 from .indel_preprocessor import is_canonical_chromosome
 from .indel_postprocessor import generate_lt_aln_indel
@@ -102,7 +100,7 @@ def make_data_list(vcf_data):
 def parse_vcf_line(line):
     """
     Args:
-        line (str): line in VCF file obj.
+        line (str): a line in VCF file.
     Returns:
         parsed_line_lst (lst): with tuple elem (chr, pos, ref, alt)
     Example:
@@ -119,7 +117,7 @@ def parse_vcf_line(line):
             chr_N 5   GTA -
          
       insertion
-           pos 1234***56789012
+              pos 1234***56789012
         reference ATTA***GTAGATGT
         insertion ATTAGTAGTAGATGT
          
@@ -166,3 +164,54 @@ def parse_vcf_line(line):
             pass  # not indel
 
     return parsed_line_lst
+
+
+def right_trim(seq1, seq2):
+    """Trim 3'bases if they are identical
+    Args:
+      seq1, seq2 (str): alleles in .vcf
+    Returns:
+      seq1, seq2 (str)
+    """
+    if len(seq1) == 1 or len(seq2) == 1:
+        return seq1, seq2
+
+    while seq1[-1] == seq2[-1] and len(seq1) > 1 and len(seq2) > 1:
+        seq1, seq2 = seq1[:-1], seq2[:-1]
+
+    return seq1, seq2
+
+
+def count_padding_bases(seq1, seq2):
+    """Count the number of bases padded to
+    report indels in .vcf
+
+    Args:
+       seq1, seq2 (str): alleles in .vcf
+    Returns:
+       n (int): 
+
+    Examples:
+        REF    ALT
+        
+        GCG    GCGCG
+        
+        By 'left-alignment', REF and ATL are alignmed: 
+             GCG 
+             |||      
+             GCGCG
+       
+       The first 3 bases are left-aligned.
+       In this case, 3 will be returned
+    """
+    if len(seq2) < len(seq1):
+        return count_padding_bases(seq2, seq1)
+
+    n = 0
+    for base1, base2 in zip(seq1, seq2[: len(seq1)]):
+        if base1 == base2:
+            n += 1
+        else:
+            break
+
+    return n

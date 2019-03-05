@@ -9,9 +9,13 @@ import warnings
 import tempfile
 import pandas as pd
 from functools import partial
+# from .version import __version__
 
+# import rnaindel.bambino_lib as bl
 import bambino_lib as bl
+# import rnaindel.rnaindel_lib as rl
 import rnaindel_lib as rl
+# import rnaindel.training_lib as tl
 import training_lib as tl
 
 
@@ -35,6 +39,7 @@ commands are:
             "--version",
             action="version",
             version="%(prog)s {version}".format(version="1.0.0"),  # change later
+            #version="%(prog)s {version}".format(version=__version__),
         )
 
         args = parser.parse_args(sys.argv[1:2])
@@ -198,12 +203,14 @@ def main(command):
         )
 
         # panel of non somatic
-        pons = os.join.path(args.data_dir, "non_somatic/nonsomatic.vcf.gz") if not args.non_somatic_panel else args.non_somatic_panel
+        pons = (
+            os.path.join(args.data_dir, "non_somatic/non_somatic.vcf.gz")
+            if not args.non_somatic_panel
+            else args.non_somatic_panel
+        )
 
-        df = rl.indel_reclassifier(
-                df, args.fasta, chr_prefixed, pons
-             )
-            
+        df = rl.indel_reclassifier(df, args.fasta, chr_prefixed, pons)
+
         # postProcessing & VCF formatting
         df, df_filtered = rl.indel_postprocessor(
             df, df_filtered, refgene, args.fasta, chr_prefixed
@@ -226,7 +233,7 @@ def main(command):
 def get_args(command):
     prog = "rnaindel " + command
     parser = argparse.ArgumentParser(prog=prog)
-    
+
     if command != "training":
         parser.add_argument(
             "-b",

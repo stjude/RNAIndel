@@ -36,7 +36,7 @@ def bambino(bam, fasta, output_file, heap_memory="6000m"):
         print(stderr, file=sys.stderr)
         sys.exit(return_code)
     else:
-        print("indel calling completed successfully.", file=sys.stderr)
+        print("indel calling completed successfully.", file=sys.stdout)
 
 
 def run_shell_command(command_string):
