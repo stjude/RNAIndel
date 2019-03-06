@@ -153,7 +153,7 @@ def main(command):
                 chr_prefixed,
                 num_of_processes=args.process_num,
             )
-
+            
             # delete the temp file
             os.remove(bambino_output)
         else:
@@ -167,7 +167,6 @@ def main(command):
                 args.bam,
                 chr_prefixed,
                 num_of_processes=args.process_num,
-                left_aligned=True,
                 external_vcf=True,
             )
 

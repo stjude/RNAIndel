@@ -14,8 +14,7 @@ from functools import partial
 from .indel_preprocessor import flag_coding_indels
 from .indel_preprocessor import is_chr_prefixed
 from .indel_preprocessor import is_canonical_chromosome
-from .indel_postprocessor import generate_lt_aln_indel
-from .indel_postprocessor import left_align_report
+from .indel_preprocessor import perform_left_alignment
 
 logger = logging.getLogger(__name__)
 
@@ -43,17 +42,8 @@ def indel_vcf_preprocessor(vcffile, bam, refgene, fasta):
     chr_prefixed = is_chr_prefixed(pysam.AlignmentFile(bam))
 
     # left-alignment
-    df["is_ins"] = df.apply(lambda x: 1 if x["ref"] == "-" else 0, axis=1)
-    df["indel_seq"] = df.apply(
-        lambda x: x["alt"] if x["ref"] == "-" else x["ref"], axis=1
-    )
-    lt_aln_indel_generator = partial(
-        generate_lt_aln_indel, fa=pysam.FastaFile(fasta), chr_prefixed=chr_prefixed
-    )
-    df["lt"] = df.apply(lt_aln_indel_generator, axis=1)
-    df["pos"], df["ref"], df["alt"] = zip(*df.apply(left_align_report, axis=1))
-    df.drop(["lt", "is_ins", "indel_seq"], axis=1, inplace=True)
-
+    df = perform_left_alignment(df, fasta, chr_prefixed)
+    
     coding = partial(
         flag_coding_indels,
         exon_data=pysam.TabixFile(refgene),

@@ -15,7 +15,6 @@ from .indel_curator import extract_all_valid_reads
 def indel_rescuer(df, fasta, bam, chr_prefixed, **kwargs):
 
     num_of_processes = kwargs.pop("num_of_processes", 1)
-    left_aligned = kwargs.pop("left_aligned", False)
     external_vcf = kwargs.pop("external_vcf", False)
 
     pool = Pool(num_of_processes)
@@ -29,7 +28,6 @@ def indel_rescuer(df, fasta, bam, chr_prefixed, **kwargs):
         bam=bam,
         search_window=50,
         pool=pool,
-        left_aligned=left_aligned,
         chr_prefixed=chr_prefixed,
     )
 
@@ -65,9 +63,7 @@ def indel_rescuer(df, fasta, bam, chr_prefixed, **kwargs):
     return df
 
 
-def rescue_by_equivalence(
-    row, fasta, bam, search_window, pool, left_aligned, chr_prefixed
-):
+def rescue_by_equivalence(row, fasta, bam, search_window, pool, chr_prefixed):
     """Recover equivalent indels from left-aligned indel report
     
     Args:
@@ -76,7 +72,6 @@ def rescue_by_equivalence(
         bam (str): path to bam
         search_window (int): to define search range
         pool (Multiprocessing.Pool obj)
-        left_aligned (bool): True if input indels are left-aligned.
         chr_prefixed (bool): True if chromosome names are "chr" prefixed
     Returns
         equivalents (list): dict element
@@ -99,10 +94,7 @@ def rescue_by_equivalence(
         fasta, chr, pos, idl_type, idl_seq, chr_prefixed
     )
 
-    if left_aligned:
-        rt_window, lt_window = search_window, search_window - search_window
-    else:
-        rt_window, lt_window = int(search_window / 2), int(search_window / 2)
+    rt_window, lt_window = search_window, search_window - search_window
 
     rescue = partial(
         extract_indel,
@@ -220,30 +212,35 @@ def extract_indel(pos, fasta, bam, chr, idl_type, chr_prefixed, **kwargs):
     KwArgs:
         equivalent_to (SequenceWithIndel obj): indel obj to be compared for equivalence
     Returns:
-        equivalent_indel(SequenceWithIndel or None) :SequenceWithIndel if found
+        target_indel(SequenceWithIndel or None) :SequenceWithIndel if found
                                                      None if not found
     """
-    idl_at_this_locus = None
+    target_indel = None
+
     bam_data = pysam.AlignmentFile(bam, "rb")
     idl_to_compare = kwargs.pop("equivalent_to", None)
 
-    inferred_idl_seq = get_most_common_indel_seq(
-        bam_data, chr, pos, idl_type, chr_prefixed
-    )
+    collected_seqs = collect_indel_seqs(bam_data, chr, pos, idl_type, chr_prefixed)
 
-    if inferred_idl_seq:
-        idl_at_this_locus = curate_indel_in_genome(
-            fasta, chr, pos, idl_type, inferred_idl_seq, chr_prefixed
+    # equivalence search
+    if idl_to_compare and collected_seqs:
+        indels_at_this_locus = [
+            curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq, chr_prefixed)
+            for idl_seq in set(collected_seqs)
+        ]
+        for idl in indels_at_this_locus:
+            if idl_to_compare == idl:
+                target_indel = idl
+
+    # nearest indel search
+    if not idl_to_compare and collected_seqs:
+        target_indel = curate_indel_in_genome(
+            fasta, chr, pos, idl_type, most_common(collected_seqs), chr_prefixed
         )
-
-        if idl_to_compare:
-            if idl_to_compare != idl_at_this_locus:
-                idl_at_this_locus = None
-
-    return idl_at_this_locus
+    return target_indel
 
 
-def get_most_common_indel_seq(bam_data, chr, pos, idl_type, chr_prefixed):
+def collect_indel_seqs(bam_data, chr, pos, idl_type, chr_prefixed):
     """Extract most frequent indel sequnece from bam data
 
     Args:
@@ -253,9 +250,9 @@ def get_most_common_indel_seq(bam_data, chr, pos, idl_type, chr_prefixed):
         idl_type (int): 1 for insertion, 0 for deletion
         chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
     Returns:
-        idl_seq (str or None): None type if no indels found
+        idl_seqs (list): empty list if no indels found
     """
-    idl_seq = None
+    idl_seqs = []
 
     ins_or_del = "I" if idl_type == 1 else "D"
 
@@ -265,23 +262,23 @@ def get_most_common_indel_seq(bam_data, chr, pos, idl_type, chr_prefixed):
     try:
         valid_reads = extract_all_valid_reads(bam_data, chr, pos, chr_prefixed)
     except:
-        return idl_seq
+        return idl_seqs
 
     try:
         parsed_indel_reads = extract_indel_reads(valid_reads, pos, ins_or_del)
     except:
-        return idl_seq
+        return idl_seqs
 
     if not parsed_indel_reads:
-        return idl_seq
+        return idl_seqs
     else:
         decomposed = [
             decompose_indel_read(parsed_read) for parsed_read in parsed_indel_reads
         ]
 
-    idl_seq = most_common([decomp[1] for decomp in decomposed])
+    idl_seqs = [decomp[1] for decomp in decomposed]
 
-    return idl_seq
+    return idl_seqs
 
 
 def sort_positionally(df):

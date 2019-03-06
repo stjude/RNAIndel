@@ -14,6 +14,8 @@ import logging
 import pandas as pd
 from functools import partial
 from .indel_annotator import generate_coding_indels
+from .indel_postprocessor import generate_lt_aln_indel
+from .indel_postprocessor import left_align_report
 
 logger = logging.getLogger(__name__)
 
@@ -53,11 +55,14 @@ def indel_preprocessor(bambinofile, bam, refgene, fasta):
     if len(df) == 0:
         logging.warning("No indels detected in variant calling. Analysis done.")
         sys.exit(0)
+    
 
     df = rename_header(df)
-    df = format_indel_report(df)
-
     chr_prefixed = is_chr_prefixed(bam_data)
+
+    # left-alignment
+    df = perform_left_alignment(df, fasta, chr_prefixed)
+
     coding = partial(
         flag_coding_indels, exon_data=exon_data, fasta=fasta, chr_prefixed=chr_prefixed
     )
@@ -256,5 +261,17 @@ def format_indel_report(df):
     """
     df["ref"] = df.apply(lambda x: "-" if x["ref"] != x["ref"] else x["ref"], axis=1)
     df["alt"] = df.apply(lambda x: "-" if x["alt"] != x["alt"] else x["alt"], axis=1)
+    df["is_ins"] = df.apply(lambda x: 1 if x["ref"] == "-" else 0, axis=1)
+    df["indel_seq"] = df.apply(lambda x : x["alt"] if x["is_ins"] else x["ref"], axis=1)
+    return df
+
+def perform_left_alignment(df, fasta, chr_prefixed):
+    df = format_indel_report(df)
+
+    lt_aln_indel_generator = partial(
+        generate_lt_aln_indel, fa=pysam.FastaFile(fasta), chr_prefixed=chr_prefixed
+    )
+    df["lt"] = df.apply(lt_aln_indel_generator, axis=1)
+    df["pos"], df["ref"], df["alt"] = zip(*df.apply(left_align_report, axis=1))
 
     return df
