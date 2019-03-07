@@ -172,6 +172,7 @@ def main(command):
 
         # indel annotation
         df = rl.indel_annotator(df, refgene, args.fasta, chr_prefixed)
+        
         # feature calculation
         df, df_filtered_premerge = rl.indel_sequence_processor(
             df, args.fasta, args.bam, args.uniq_mapq, chr_prefixed

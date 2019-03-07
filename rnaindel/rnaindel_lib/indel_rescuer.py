@@ -16,10 +16,7 @@ def indel_rescuer(df, fasta, bam, chr_prefixed, **kwargs):
 
     num_of_processes = kwargs.pop("num_of_processes", 1)
     external_vcf = kwargs.pop("external_vcf", False)
-
     pool = Pool(num_of_processes)
-
-    df["rescued"] = "-"
 
     # rescue by equivalence
     rqxeq = partial(
@@ -30,32 +27,25 @@ def indel_rescuer(df, fasta, bam, chr_prefixed, **kwargs):
         pool=pool,
         chr_prefixed=chr_prefixed,
     )
-
     df["rescued_indels"] = df.apply(rqxeq, axis=1)
     df["rescued"] = df.apply(flag_indel_rescued_by_equivalence, axis=1)
 
     # rescue by nearest
     if external_vcf:
         rqxnr = partial(
-            rescue_by_nearest,
-            fasta=fasta,
-            bam=bam,
-            search_window=10,
-            chr_prefixed=chr_prefixed,
+            rescue_by_nearest, fasta=fasta, bam=bam, chr_prefixed=chr_prefixed
         )
+        # not applied if already rescued by equivalence
         df["rescued_indels"] = df.apply(
-            lambda x: rqxnr(x) if x["rescued_indels"] == [] else x["rescued_indels"],
-            axis=1,
+            lambda x: x["rescued_indels"] if x["rescued_indels"] else rqxnr(x), axis=1
         )
     df["rescued"] = df.apply(flag_indel_rescued_by_nearest, axis=1)
-
+    
+    # create and format dataframe
     list_of_data_dict = df["rescued_indels"].sum()
     df_rescued = pd.DataFrame(list_of_data_dict)
-
     df = df[["chr", "pos", "ref", "alt", "rescued"]]
-
     df = pd.concat([df, df_rescued], axis=0, sort=True)
-
     df = sort_positionally(df)
     df = df.drop_duplicates(["chr", "pos", "ref", "alt"])
     df.reset_index(drop=True, inplace=True)
@@ -75,10 +65,13 @@ def rescue_by_equivalence(row, fasta, bam, search_window, pool, chr_prefixed):
         chr_prefixed (bool): True if chromosome names are "chr" prefixed
     Returns
         equivalents (list): dict element
-                            {'chr':chromosome,
-                             'pos':1-based pos,
-                             'ref':ref allele,
-                             'alt':alt allele}
+                            {
+                              'chr':chromosome,
+                              'pos':1-based pos,
+                              'ref':ref allele,
+                              'alt':alt allele,
+                              'rescued':rescue status
+                             }
 
                             empty list if no equivalent indels found
     """
@@ -130,22 +123,36 @@ def rescue_by_equivalence(row, fasta, bam, search_window, pool, chr_prefixed):
 
 
 def flag_indel_rescued_by_equivalence(row):
-    flag = row["rescued"]
-
-    if row["rescued_indels"] != []:
-        flag = "by_equivalence"
-
+    flag = "by_equivalence" if row["rescued_indels"] else "-"
     return flag
 
 
-def rescue_by_nearest(row, fasta, bam, search_window, chr_prefixed):
+def rescue_by_nearest(row, fasta, bam, chr_prefixed):
+    """Recover nearest non-equivalent indel
+       within an internally defined search window
 
+    Args:
+        row (pandas.Series)
+        fasta (str): path to fasta
+        bam (str): path to bam
+        chr_prefixed (bool): True if chromosome names are "chr" prefixed
+    Returns
+        nearests (list): dict element
+                         {
+                            'chr':chromosome,
+                             'pos':1-based pos,
+                             'ref':ref allele,
+                             'alt':alt allele,
+                             'rescued': rescue status
+                         }             
+                         empty list if no equivalent indels found
+    """
     chr = row["chr"]
     pos = row["pos"]
-    idl_type = 0
 
-    if row["ref"] == "-":
-        idl_type = 1
+    idl_type = 1 if row["ref"] == "-" else 0
+    idl_size = len(row["alt"]) if idl_type else len(row["ref"])
+    search_window = 10 if idl_size < 4 else 20
 
     # make [0, 1, -1, 2, -2, ...]
     pos_move = [
@@ -191,10 +198,11 @@ def rescue_by_nearest(row, fasta, bam, search_window, chr_prefixed):
 
 
 def flag_indel_rescued_by_nearest(row):
-    flag = row["rescued"]
-    if row["rescued_indels"] != [] and flag != "by_equivalence":
-        flag = row["rescued_indels"][0]["rescued"]
-
+    flag = (
+        row["rescued_indels"][0]["rescued"]
+        if row["rescued_indels"] and row["rescued"] != "by_equivalence"
+        else row["rescued"]
+    )
     return flag
 
 
