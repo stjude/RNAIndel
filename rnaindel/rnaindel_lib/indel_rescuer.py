@@ -12,9 +12,9 @@ from .indel_curator import curate_indel_in_genome
 from .indel_curator import extract_all_valid_reads
 
 
-def indel_rescuer(df, fasta, bam, chr_prefixed, **kwargs):
+def indel_rescuer(df, fasta, bam, chr_prefixed, num_of_processes=1, **kwargs):
 
-    num_of_processes = kwargs.pop("num_of_processes", 1)
+    #num_of_processes = kwargs.pop("num_of_processes", 1)
     external_vcf = kwargs.pop("external_vcf", False)
     pool = Pool(num_of_processes)
 
@@ -104,7 +104,7 @@ def rescue_by_equivalence(row, fasta, bam, search_window, pool, chr_prefixed):
 
     lt_range = [pos - i for i in range(lt_window)]
     lt_equivalents = pool.map(rescue, lt_range)
-
+    
     equivalents = rt_equivalents + lt_equivalents
 
     equivalents = [

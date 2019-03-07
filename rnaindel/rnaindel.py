@@ -2,6 +2,7 @@
 
 import os
 import sys
+import pysam
 import logging
 import pathlib
 import argparse
@@ -135,6 +136,10 @@ def main(command):
     else:
         create_logger(log_dir)
 
+        genome = pysam.FastaFile(args.fasta)
+        alignments = pysam.AlignmentFile(args.bam)
+        exons = pysam.TabixFile(refgene)
+        
         # preprocessing
         # variant calling will be performed if no external VCF is supplied
         if not args.input_vcf:
@@ -144,14 +149,14 @@ def main(command):
 
             # preprocess indels from the built-in caller
             df, chr_prefixed = rl.indel_preprocessor(
-                bambino_output, args.bam, refgene, args.fasta
+                bambino_output, genome, alignments, exons, 
             )
             df = rl.indel_rescuer(
                 df,
                 args.fasta,
                 args.bam,
                 chr_prefixed,
-                num_of_processes=args.process_num,
+                args.process_num,
             )
             
             # delete the temp file
@@ -159,14 +164,14 @@ def main(command):
         else:
             # preprocess indels from external VCF
             df, chr_prefixed = rl.indel_vcf_preprocessor(
-                args.input_vcf, args.bam, refgene, args.fasta
+                args.input_vcf, genome, alignments, exons,
             )
             df = rl.indel_rescuer(
                 df,
                 args.fasta,
                 args.bam,
                 chr_prefixed,
-                num_of_processes=args.process_num,
+                args.process_num,
                 external_vcf=True,
             )
 

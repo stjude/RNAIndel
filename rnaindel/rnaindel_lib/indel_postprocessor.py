@@ -73,19 +73,19 @@ def indel_postprocessor(df, df_filtered, refgene, fasta, chr_prefixed):
     return df, df_filtered
 
 
-def generate_lt_aln_indel(row, fa, chr_prefixed):
+def generate_lt_aln_indel(row, genome, chr_prefixed):
     """Generates a left-aligned Indel object
 
     Args:
         row (pandas.Series): with 'chr', 'pos', 'is_ins', 'indel_seq'
                             specifies original (not lt-aligned) indel  
-        fa (pysam.FastaFile): obj storing reference seq
+        genome (pysam.FastaFile): reference genome
         chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
     Returns:
         idl (Indel obj): Indel obj left-aligned against reference
     """
     idl = Indel(row["chr"], row["pos"], row["is_ins"], row["indel_seq"])
-    idl = lt_aln(idl, fa, chr_prefixed)
+    idl = lt_aln(idl, genome, chr_prefixed)
 
     return idl
 

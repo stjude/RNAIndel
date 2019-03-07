@@ -9,19 +9,18 @@ from .indel_sequence import SequenceWithIndel
 from .indel_sequence import PileupWithIndel
 from .indel_sequence import PileupWithIndelNotFound
 
-
 random.seed(123)
 cigar_ptn = re.compile(r"[0-9]+[MIDNSHPX=]")
 
 
-def curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq, chr_prefixed):
+def curate_indel_in_genome(genome, chr, pos, idl_type, idl_seq, chr_prefixed):
     """Gerenates an indel object with reference flanking sequences.
        Splicing will NOT be considered.
        
     Args:
-        fasta (str): path to. fa
+        genome (pysam.FastaFile): reference genome
         chr (str): chr1-22, chrX, chrY. Note "chr"-prefixed. 
-        pos (int): 1-based pos of indel
+        pos (int): 1-based 
         idl_type (int): 1 for insertion 0 for deletion
         idl_seq (str): inserted or deleted sequence
         chr_prefixed (bool): True if chromosome names in BAM or FASTA is prefixed with "chr"
@@ -44,37 +43,26 @@ def curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq, chr_prefixed):
         
         Note that the right flanking sequence is not spliced.             
     """
-    # extract flanking seq +- window-nt
+    # extract flanking seq +- window(nt)
     window = 50
 
     if not chr_prefixed:
         chr = chr.replace("chr", "")
 
     # left flank seq
-    start, end = pos - window, pos - 1
-    # retrieve left flank sequence in FASTA format
-    lt_fasta = pysam.faidx(fasta, chr + ":" + str(start) + "-" + str(end))
-    # extract the sequence string
-    lt_seq = lt_fasta.split("\n")[1]
+    start, end = pos - 1 - window, pos - 1
+    lt_seq = genome.fetch(chr, start, end)
 
     # right flank seq
     # for insertion
-    if idl_type == 1:
-        start, end = pos, pos - 1 + window
+    if idl_type:
+        start, end = pos - 1, pos - 1 + window
+        rt_seq = genome.fetch(chr, start, end)
 
-        # retrieve right flank sequence in FASTA format
-        rt_fasta = pysam.faidx(fasta, chr + ":" + str(start) + "-" + str(end))
-        # extract the seqence string
-        rt_seq = rt_fasta.split("\n")[1]
     # for deletion
     else:
-        size = len(idl_seq)  # needed to adjust by the indel length
-        start, end = pos + size, pos - 1 + size + window
-
-        # retrieve right flank sequence in FASTA format
-        rt_fasta = pysam.faidx(fasta, chr + ":" + str(start) + "-" + str(end))
-        # extract the seqence string
-        rt_seq = rt_fasta.split("\n")[1]
+        start, end = pos - 1 + size, pos - 1 + len(idl_seq) + window
+        rt_seq = genome.fetch(chr, start, end)
 
     # adding back "chr" if removed above
     if not chr_prefixed:

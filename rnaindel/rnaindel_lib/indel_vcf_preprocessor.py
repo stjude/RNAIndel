@@ -7,10 +7,8 @@ Convert .vcf to a format compatible with Bambino
 """
 
 import sys
-import pysam
 import logging
 import pandas as pd
-from functools import partial
 from .indel_preprocessor import flag_coding_indels
 from .indel_preprocessor import is_chr_prefixed
 from .indel_preprocessor import is_canonical_chromosome
@@ -19,14 +17,14 @@ from .indel_preprocessor import perform_left_alignment
 logger = logging.getLogger(__name__)
 
 
-def indel_vcf_preprocessor(vcffile, bam, refgene, fasta):
+def indel_vcf_preprocessor(vcffile, genome, alignments, exons):
     """Convert input VCF to Bambino format and check chromosome name format
     
     Args:
         vcffile (str): path to input vcf
-        bam (str): path to bam
-        refgene (str): path to refCodingExon.bed.gz
-        fasta (str): path to fasta
+        genome (pysam.FastaFile): reference genome
+        alignments (pysam.AlignmentFile): bam data
+        exons (pysam.TabixFile): coding exon data
     Returns:
         df (pandas.DataFrame): df with indels reported as in Bambino output
     """
@@ -34,24 +32,25 @@ def indel_vcf_preprocessor(vcffile, bam, refgene, fasta):
     df = pd.DataFrame(make_data_list(vcf_data))
     vcf_data.close()
 
-    datasize = len(df)
     if len(df) == 0:
         logging.warning("No indels detected in input vcf. Analysis done.")
         sys.exit(0)
 
-    chr_prefixed = is_chr_prefixed(pysam.AlignmentFile(bam))
+    # check chromosome name format
+    chr_prefixed = is_chr_prefixed(alignments)
 
     # left-alignment
-    df = perform_left_alignment(df, fasta, chr_prefixed)
-    
-    coding = partial(
+    df = perform_left_alignment(df, genome, chr_prefixed)
+
+    # filter non coding indels
+    df["is_coding"] = df.apply(
         flag_coding_indels,
-        exon_data=pysam.TabixFile(refgene),
-        fasta=fasta,
+        genome=genome,
+        exons=exons,
         chr_prefixed=chr_prefixed,
+        axis=1,
     )
-    df["is_coding"] = df.apply(coding, axis=1)
-    df = df[df["is_coding"] == True]
+    df = df[df["is_coding"]]
 
     if len(df) == 0:
         logging.warning("No coding indels annotated. Analysis done.")
@@ -66,7 +65,7 @@ def indel_vcf_preprocessor(vcffile, bam, refgene, fasta):
 def make_data_list(vcf_data):
     """
     Args:
-        vcf_data (File obj.): VCF content 
+        vcf_data (file): VCF content 
     Returns:
         data (list): with dict element 
     """
@@ -142,11 +141,11 @@ def parse_vcf_line(line):
         n = count_padding_bases(trimmed_ref, trimmed_alt)
         pos = vcf_pos + n
 
-        if len(trimmed_ref) < len(trimmed_alt):
+        if len(trimmed_ref) < len(trimmed_alt) and len(trimmed_alt) <= 50:
             ref = "-"
             alt = trimmed_alt[n:]
-            parsed_line_lst.append((chr, pos, ref, alt))
-        elif len(trimmed_ref) > len(trimmed_alt):
+            parsed_line_lst.append((chr, pos, ref, alt)) 
+        elif len(trimmed_ref) > len(trimmed_alt) and len(trimmed_ref) <= 50:
             ref = trimmed_ref[n:]
             alt = "-"
             parsed_line_lst.append((chr, pos, ref, alt))

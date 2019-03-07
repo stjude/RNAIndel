@@ -17,13 +17,13 @@ from .indel_sequence import CodingSequenceWithIndel
 logger = logging.getLogger(__name__)
 
 
-def indel_annotator(df, refgene, fasta, chr_prefixed):
+def indel_annotator(df, genome, exons, chr_prefixed):
     """Sort coding indels and annotate coding indels with variant effect
 
     Args:
         df (pandas.DataFrame): with a header:'chr', 'pos', 'ref', 'alt' 
-        refgene (str): path to refCodingExon.bed.gz
-        fasta (str): path to fasta
+        genome (pysam.FastaFile): reference genome
+        exons (pysam.TabixFile): coding exon data
     Returns:
         df (pandas.DataFrame): with indels annotated
     """
@@ -32,18 +32,14 @@ def indel_annotator(df, refgene, fasta, chr_prefixed):
 
     # annotate coding indels
     df["annotation"] = df.apply(
-        annotate_indels,
-        exon_data=pysam.TabixFile(refgene),
-        fasta=fasta,
-        chr_prefixed=chr_prefixed,
-        axis=1,
+        annotate_indels, genome=genome, exons=exons, chr_prefixed=chr_prefixed, axis=1
     )
 
     # annotate non-coding indels equivalent to a coding indel (occurs in 3' splice and 3'UTR)
     df["annotation"] = df.apply(
         annotate_equivalent_non_coding_indels,
         df=df,
-        fasta=fasta,
+        genome=genome,
         chr_prefixed=chr_prefixed,
         axis=1,
     )
@@ -99,14 +95,14 @@ def get_indel_seq(row):
     return indel_seq
 
 
-def annotate_indels(row, exon_data, fasta, chr_prefixed, postprocess=False):
+def annotate_indels(row, genome, exons, chr_prefixed, postprocess=False):
     """Annotates indels for all RefSeq isoforms
 
     Args: 
         row (pandas.Series): a Series with indices 
                              'chr', 'pos', 'is_ins', 'indel_seq'
-        exon_data (pysam.TabixFile): coding exon database 
-        fasta (str): path to fasta file
+        genome (pysam.FastaFile): reference genome
+        exons (pysam.TabixFile): coding exon data
         chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
         postprocess (bool): True if used in indel_postprocessor. Default to False 
     
@@ -134,12 +130,12 @@ def annotate_indels(row, exon_data, fasta, chr_prefixed, postprocess=False):
 
     # generates CodingSequenceWithIndel instances
     idls = generate_coding_indels(
-        chr, pos, idl_type, idl_seq, exon_data, fasta, chr_prefixed
+        chr, pos, idl_type, idl_seq, genome, exons, chr_prefixed
     )
 
     # annotates for all RefSeq isoforms
     annots = []
-    if idls != []:
+    if idls:
         for idl in idls:
             gene = idl.gene_symbol
             refseq_acc = idl.accession
@@ -163,15 +159,12 @@ def annotate_indels(row, exon_data, fasta, chr_prefixed, postprocess=False):
 
             annots.append(anno)
 
-    if len(annots) == 0:
-        annotation = "-"
-    else:
-        annotation = ",".join(annots)
+    annotation = "-" if len(annots) == 0 else ",".join(annots)
 
     return annotation
 
 
-def generate_coding_indels(chr, pos, idl_type, idl_seq, exon_data, fasta, chr_prefixed):
+def generate_coding_indels(chr, pos, idl_type, idl_seq, genome, exons, chr_prefixed):
     """Generate coding indel objects
     
     Args:
@@ -179,9 +172,9 @@ def generate_coding_indels(chr, pos, idl_type, idl_seq, exon_data, fasta, chr_pr
         pos (int): 1-based genomic position
         idl_type (int): 1 for insertion, 0 for deletion
         idl_seq (str): inserted or deleted sequence
-        exon_data (pysam.TabixFile): coding exon database
-        fasta (str): path to fasta file
-        chr_prefixed (bool): True if chromosome names in BAM or FASTA are "chr"-prefixed
+        genome (pysam.FastaFile): reference genome
+        exons (pysam.TabixFile): coding exon data
+        chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
 
     Returns:
         coding_idl_lst (list): a list of CodingSequenceWithIndel obj
@@ -190,7 +183,7 @@ def generate_coding_indels(chr, pos, idl_type, idl_seq, exon_data, fasta, chr_pr
     coding_idl_lst = []
 
     try:
-        candidate_genes = exon_data.fetch(chr, pos - 11, pos + 11)
+        candidate_genes = exons.fetch(chr, pos - 11, pos + 11)
     except:
         candidate_genes = None
 
@@ -240,7 +233,7 @@ def generate_coding_indels(chr, pos, idl_type, idl_seq, exon_data, fasta, chr_pr
                 pass
             else:
                 indel_in_reference_genome = curate_indel_in_genome(
-                    fasta, chr, pos, idl_type, idl_seq, chr_prefixed
+                    genome, chr, pos, idl_type, idl_seq, chr_prefixed
                 )
                 lt_seq = indel_in_reference_genome.lt_seq
                 rt_seq = indel_in_reference_genome.rt_seq
@@ -278,29 +271,34 @@ def generate_coding_indels(chr, pos, idl_type, idl_seq, exon_data, fasta, chr_pr
         return coding_idl_lst
 
 
-def annotate_equivalent_non_coding_indels(row, df, fasta, chr_prefixed):
+def annotate_equivalent_non_coding_indels(row, df, genome, chr_prefixed):
     """Annotate 3'UTR or 3'splice region indels equivalent to 5'coding indels
        
     Args: 
         row (pandas.Series)
         df (pandas.DataFrame): Positionally sorted   
-        fasta (str): path to fasta file
-        chr_prefixed (bool): True if chromosome names in BAM or FASTA are "chr"-prefixed                        
+        genome (pysam.FastaFile): reference genome
+        chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed                        
     Returns:
         annotation (str)
     """
-    if row["annotation"] == "-":
+    if row["annotation"] == "-" and row["rescued"] == "by_equivalence":
         query_idl = curate_indel_in_genome(
-            fasta, row["chr"], row["pos"], row["is_ins"], row["indel_seq"], chr_prefixed
+            genome,
+            row["chr"],
+            row["pos"],
+            row["is_ins"],
+            row["indel_seq"],
+            chr_prefixed,
         )
         idx = row.name
         found = None
         while not found:
-            idx = idx - 1  # look up previous rows 
+            idx = idx - 1  # look up previous rows
             pos = df.iloc[idx]["pos"]
             idl_seq = df.iloc[idx]["indel_seq"]
             subject_idl = curate_indel_in_genome(
-                fasta, row["chr"], pos, row["is_ins"], idl_seq, chr_prefixed
+                genome, row["chr"], pos, row["is_ins"], idl_seq, chr_prefixed
             )
             if query_idl == subject_idl and df.iloc[idx]["annotation"] != "-":
                 found = True

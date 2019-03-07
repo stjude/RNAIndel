@@ -9,23 +9,23 @@ indel calls on canonical chromosomes.
 
 import os
 import sys
-import pysam
 import logging
 import pandas as pd
-from functools import partial
+from .left_aligner import lt_aln
+from .indel_sequence import Indel
 from .indel_annotator import generate_coding_indels
-from .indel_postprocessor import generate_lt_aln_indel
-from .indel_postprocessor import left_align_report
+
 
 logger = logging.getLogger(__name__)
 
 
-def indel_preprocessor(bambinofile, bam, refgene, fasta):
+def indel_preprocessor(bambinofile, genome, alignments, exons):
     """ Validate, extract and format indel calls from Bambino output
     Args:
         bambinofile (str): Bambino output filename (contains SNVs + indels)
-        refgene (bed file): refCodingExon.bed.gz (contained in data_dir)
-        fasta (str): path to reference
+        genome (pysam.FastaFile): reference genome
+        alignments (pysam.AlignmentFile): bam data
+        exons (pysam.TabixFile): coding exon data
     Returns:
         df (pandas.DataFrame): Contains coding indels
                                4 columns formatted as: 
@@ -38,15 +38,14 @@ def indel_preprocessor(bambinofile, bam, refgene, fasta):
                                chrY 987  CCT  -
         chr_prefixed (bool): True if chromosome names are prefixed with "chr" in BAM
     """
-    exon_data = pysam.TabixFile(refgene)
-    bam_data = pysam.AlignmentFile(bam)
-
-    if not exists_bambino_output(bambinofile):
+    if not os.path.exists(bambinofilename):
+        logging.critical("Error: call sets from the built-in caller not found.")
         sys.exit(1)
 
     df = pd.read_csv(bambinofile, sep="\t", dtype={"dbSNP": str})
 
-    if not is_non_trivial_result(df):
+    if len(df) == 0:
+        logging.critical("Error: no variants called by the built-in caller.")
         sys.exit(1)
 
     df = extract_necessary_info(df)
@@ -55,19 +54,24 @@ def indel_preprocessor(bambinofile, bam, refgene, fasta):
     if len(df) == 0:
         logging.warning("No indels detected in variant calling. Analysis done.")
         sys.exit(0)
-    
 
     df = rename_header(df)
-    chr_prefixed = is_chr_prefixed(bam_data)
+
+    # check chromosome name format
+    chr_prefixed = is_chr_prefixed(alignments)
 
     # left-alignment
-    df = perform_left_alignment(df, fasta, chr_prefixed)
+    df = perform_left_alignment(df, genome, chr_prefixed)
 
-    coding = partial(
-        flag_coding_indels, exon_data=exon_data, fasta=fasta, chr_prefixed=chr_prefixed
+    # filter non coding indels
+    df["is_coding"] = df.apply(
+        flag_coding_indels,
+        genome=genome,
+        exons=exons,
+        chr_prefixed=chr_prefixed,
+        axis=1,
     )
-    df["is_coding"] = df.apply(coding, axis=1)
-    df = df[df["is_coding"] == True]
+    df = df[df["is_coding"]]
 
     if len(df) == 0:
         logging.warning("No coding indels annotated. Analysis done.")
@@ -77,84 +81,6 @@ def indel_preprocessor(bambinofile, bam, refgene, fasta):
     df = df.reset_index(drop=True)
 
     return df, chr_prefixed
-
-
-def is_chr_prefixed(bam_data):
-    """Check if chromosome names are prefixed with "chr"
-
-    Args:
-        bam_data (pysam.AlignmeentFile obj)
-    Returns:
-        is_prefixed (bool): True if prefixed.
-    """
-    header_dict = bam_data.header
-    chromosome_names = header_dict["SQ"]
-
-    is_prefixed = False
-    if chromosome_names[0]["SN"].startswith("chr"):
-        is_prefixed = True
-
-    return is_prefixed
-
-
-def flag_coding_indels(row, exon_data, fasta, chr_prefixed):
-    """Flag indels if they are coding indels
-    Args:
-        row (panda.Series)
-        exon_data (pysam.TabixFile obj): coding exon database obj
-        fasta (str): path to Fasta
-    Return:
-        is_coding (bool): True for coding indels
-    """
-    is_coding = False
-
-    if row["ref"] == "-":
-        idl_type, idl_seq = 1, row["alt"]
-    else:
-        idl_type, idl_seq = 0, row["ref"]
-
-    res = generate_coding_indels(
-        row["chr"], row["pos"], idl_type, idl_seq, exon_data, fasta, chr_prefixed
-    )
-    if res != []:
-        is_coding = True
-
-    return is_coding
-
-
-def exists_bambino_output(filename):
-    """Assert if Bambino output file exists
-       
-    Args:
-        filename (str): Bambino output filename
-    Returns:
-        it_exists (bool): True if exists
-    """
-    it_exists = False
-
-    if not os.path.exists(filename):
-        logging.critical("Error: Bambino output file not found.")
-    else:
-        it_exists = True
-    return it_exists
-
-
-def is_non_trivial_result(df):
-    """Assert if Bambino outputs contains data other than the header line
-
-    Args:
-        df (pandas.DataFrame): Bambino output as pd.DataFrame
-    Returns:
-        is_non_trivial (bool): True if it has more than header line
-    """
-    is_non_trivial = False
-
-    if len(df) == 0:
-        logging.critical("Bambino output only contains the header line.")
-    else:
-        is_non_trivial = True
-
-    return is_non_trivial
 
 
 def extract_necessary_info(df):
@@ -246,14 +172,86 @@ def rename_header(df):
     return df
 
 
+def is_chr_prefixed(alignments):
+    """Check if chromosome names are prefixed with "chr"
+
+    Args:
+        alignments (pysam.AlignmeentFile)
+    Returns:
+        is_prefixed (bool): True if prefixed.
+    """
+    header_dict = alignments.header
+    chromosome_names = header_dict["SQ"]
+
+    is_prefixed = True if chromosome_names[0]["SN"].startswith("chr") else False
+
+    return is_prefixed
+
+
+def perform_left_alignment(df, genome, chr_prefixed):
+    """Perform left alignemnt 
+    Args:
+        df (pandas.DataFrame)
+        genome (pysam.FastaFile): reference genome
+        chr_prefixed (bool): True if chromosome names are prefixed with "chr" in BAM
+    Returns:
+        df (pandas.DataFrame): left aligned
+    """
+    df = format_indel_report(df)
+
+    df["lt"] = df.apply(generate_lt_aln_indel, genome=genome, chr_prefixed=chr_prefixed, axis=1)
+
+    df["pos"], df["ref"], df["alt"] = zip(*df.apply(left_align_report, axis=1))
+
+    return df
+
+
+def generate_lt_aln_indel(row, genome, chr_prefixed):
+    """Generates a left-aligned Indel object
+
+    Args:
+        row (pandas.Series): with 'chr', 'pos', 'is_ins', 'indel_seq'
+                            specifies original (not lt-aligned) indel  
+        genome (pysam.FastaFile): reference genome
+        chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
+    Returns:
+        idl (Indel obj): Indel obj left-aligned against reference
+    """
+    idl = Indel(row["chr"], row["pos"], row["is_ins"], row["indel_seq"])
+    idl = lt_aln(idl, genome, chr_prefixed)
+
+    return idl
+
+
+def left_align_report(row):
+    """Gets and formats info from left-aligned indel
+    
+    Args:
+        row (pandas.DataFrame): with 'lt', 'is_ins' labels
+                                in 'lt', left-aligned indels are stored
+    Returns:
+        pos (int): 1-based coordinate
+        alt, ref (str): alt or ref allele 
+    """
+    pos = row["lt"].pos
+    if row["is_ins"] == 1:
+        ref = "-"
+        alt = row["lt"].idl_seq
+    else:
+        ref = row["lt"].idl_seq
+        alt = "-"
+
+    return pos, ref, alt
+
+
 def format_indel_report(df):
     """Format as follows
     For insertion
-           ref          alt
-           -            inserted_seq
+           ref          alt               is_ins      indel_seq
+           -            inserted_seq      1           inserted_seq
     For deletion
-           ref          alt
-           deleted_seq  -
+           ref          alt               is_ins      indel_seq
+           deleted_seq  -                 0           deleted_seq
     Args:
         df (pandas.DataFrame)
     Returns:
@@ -262,16 +260,24 @@ def format_indel_report(df):
     df["ref"] = df.apply(lambda x: "-" if x["ref"] != x["ref"] else x["ref"], axis=1)
     df["alt"] = df.apply(lambda x: "-" if x["alt"] != x["alt"] else x["alt"], axis=1)
     df["is_ins"] = df.apply(lambda x: 1 if x["ref"] == "-" else 0, axis=1)
-    df["indel_seq"] = df.apply(lambda x : x["alt"] if x["is_ins"] else x["ref"], axis=1)
+    df["indel_seq"] = df.apply(lambda x: x["alt"] if x["is_ins"] else x["ref"], axis=1)
+
     return df
 
-def perform_left_alignment(df, fasta, chr_prefixed):
-    df = format_indel_report(df)
 
-    lt_aln_indel_generator = partial(
-        generate_lt_aln_indel, fa=pysam.FastaFile(fasta), chr_prefixed=chr_prefixed
+def flag_coding_indels(row, genome, exons, chr_prefixed):
+    """Flag indels if they are coding indels
+    Args:
+        row (panda.Series)
+        genome (pysam.FastaFile): reference genome
+        exons (pysam.TabixFile): coding exon data
+        chr_prefixed (bool): True if chromosome names are prefixed with "chr" in BAM
+    Return:
+        is_coding (bool): True for coding indels
+    """
+    res = generate_coding_indels(
+        row["chr"], row["pos"], row["is_ins"], row["indel_seq"], genome, exons, chr_prefixed
     )
-    df["lt"] = df.apply(lt_aln_indel_generator, axis=1)
-    df["pos"], df["ref"], df["alt"] = zip(*df.apply(left_align_report, axis=1))
+    is_coding = True if res else False
 
-    return df
+    return is_coding
