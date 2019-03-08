@@ -41,7 +41,7 @@ def indel_vcf_preprocessor(vcffile, genome, alignments, exons):
 
     # left-alignment
     df = perform_left_alignment(df, genome, chr_prefixed)
-
+    
     # filter non coding indels
     df["is_coding"] = df.apply(
         flag_coding_indels,
@@ -141,11 +141,11 @@ def parse_vcf_line(line):
         n = count_padding_bases(trimmed_ref, trimmed_alt)
         pos = vcf_pos + n
 
-        if len(trimmed_ref) < len(trimmed_alt) and len(trimmed_alt) <= 50:
+        if len(trimmed_ref) < len(trimmed_alt) and len(trimmed_alt) <= 300:
             ref = "-"
             alt = trimmed_alt[n:]
             parsed_line_lst.append((chr, pos, ref, alt)) 
-        elif len(trimmed_ref) > len(trimmed_alt) and len(trimmed_ref) <= 50:
+        elif len(trimmed_ref) > len(trimmed_alt) and len(trimmed_ref) <= 300:
             ref = trimmed_ref[n:]
             alt = "-"
             parsed_line_lst.append((chr, pos, ref, alt))

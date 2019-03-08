@@ -8,7 +8,6 @@ indel_annotator is the main routine of this module
 """
 
 import sys
-import pysam
 import logging
 import pandas as pd
 from .indel_curator import curate_indel_in_genome
@@ -27,8 +26,8 @@ def indel_annotator(df, genome, exons, chr_prefixed):
     Returns:
         df (pandas.DataFrame): with indels annotated
     """
-    df["is_ins"] = df.apply(is_insertion, axis=1)
-    df["indel_seq"] = df.apply(get_indel_seq, axis=1)
+    df["is_ins"] = df.apply(lambda x: 1 if x["ref"] == "-" else 0, axis=1)
+    df["indel_seq"] = df.apply(lambda x: x["alt"] if x["is_ins"] else x["ref"], axis=1)
 
     # annotate coding indels
     df["annotation"] = df.apply(
@@ -68,31 +67,8 @@ def indel_annotator(df, genome, exons, chr_prefixed):
             "is_ins",
         ]
     ]
-    return df
-
-
-def is_insertion(row):
-    """Encodes if the indel is an insertion or deletion.
     
-    Args:
-        row (pandas.Series): reference seq (str) at index 'ref' 
-    Returns:
-        is_insertion (int): 0 if insertion, 1 if deletion
-    """
-    is_insertion = 1 if row["ref"] == "-" else 0
-    return is_insertion
-
-
-def get_indel_seq(row):
-    """Gets indel sequence
-       
-    Args: 
-        row (pandas.Series): a Series with 'ref' and 'alt' indices
-    Returns:
-        indel_seq (str): inserted or deleted  sequence
-    """
-    indel_seq = row["alt"] if row["ref"] == "-" else row["ref"]
-    return indel_seq
+    return df
 
 
 def annotate_indels(row, genome, exons, chr_prefixed, postprocess=False):

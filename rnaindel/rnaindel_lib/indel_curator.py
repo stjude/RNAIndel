@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import re
-import pysam
 import random
 import numpy as np
 from .most_common import most_common
@@ -61,7 +60,8 @@ def curate_indel_in_genome(genome, chr, pos, idl_type, idl_seq, chr_prefixed):
 
     # for deletion
     else:
-        start, end = pos - 1 + size, pos - 1 + len(idl_seq) + window
+        size = len(idl_seq)
+        start, end = pos - 1 + size, pos - 1 + size + window
         rt_seq = genome.fetch(chr, start, end)
 
     # adding back "chr" if removed above
@@ -114,14 +114,14 @@ def is_close_to_exon_boundary(cigarstring, idx):
     return is_close
 
 
-def extract_all_valid_reads(bam_data, chr, pos, chr_prefixed):
+def extract_all_valid_reads(alignments, chr, pos, chr_prefixed):
     """Extracts reads that are
         1. non-duplicate
         2. primary alignment
         3. covering the locus specified by chr and pos (non-skipping)
     
     Args:
-        bam_data (pysam.AlignmentFile obj)
+        alignments (pysam.AlignmentFile): bam data
         chr (str): chr1-22, chrX or chrY. Note "chr"-prefixed
         pos (int): 0-based coordinate
         chr_prefixed (bool): True if chromosome names are "chr"-prefixed
@@ -150,7 +150,7 @@ def extract_all_valid_reads(bam_data, chr, pos, chr_prefixed):
     if not chr_prefixed:
         chr = chr.replace("chr", "")
 
-    all_reads = bam_data.fetch(chr, pos, pos + 1, until_eof=True)
+    all_reads = alignments.fetch(chr, pos, pos + 1, until_eof=True)
 
     valid_reads = []
     for read in all_reads:
@@ -169,7 +169,7 @@ def extract_indel_reads(reads, pos, ins_or_del):
     """Extract reads with indel at locus specified by chr and pos
 
     Args:
-        reads (list): a list of pysam.AlignedSegment obj.
+        reads (list): [pysam.AlignedSegment]
         pos (int): 0-based coordinate
         ins_or_del (str): 'I' for insertion or 'D' insertion
     Returns:
@@ -502,12 +502,11 @@ def infer_del_seq_from_data(decomposed_non_idl_reads, idl_flanks, del_seq):
     return inferred_seq
 
 
-def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq, chr_prefixed):
-    """Generates an object describing what indel looks like
-    in the pileup view.
+def curate_indel_in_pileup(alignments, chr, pos, idl_type, idl_seq, mapq, chr_prefixed):
+    """Abstract indels in the alignment pileup
     
     Args:    
-        bam_data (pysam.AlignmentFile obj) 
+        alignments (pysam.AlignmentFile): bam data
         chr (str): chr1-22, chrX or chrY. Note "chr"-prefixed
         pos (int): 1-based position of indel on the reference
         idl_type (int): 1 for insertion 0 for deletion
@@ -532,7 +531,7 @@ def curate_indel_in_pileup(bam_data, chr, pos, idl_type, idl_seq, mapq, chr_pref
         del_or_ins = "I"
 
     # extract all good reads covering the locus of interest
-    all_reads = extract_all_valid_reads(bam_data, chr, pos, chr_prefixed)
+    all_reads = extract_all_valid_reads(alignments, chr, pos, chr_prefixed)
 
     ###########################
     # Analysis of indel reads #

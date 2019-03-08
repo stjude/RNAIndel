@@ -6,8 +6,6 @@ Calculates features at sequence and alignment level
 'indel_sequence_processor' is the main routine of this module
 """
 
-import pysam
-from functools import partial
 from .most_common import most_common
 from .indel_features import SamFeatures
 from .indel_features import AnnotationFeatures
@@ -15,50 +13,49 @@ from .indel_curator import curate_indel_in_genome
 from .indel_curator import curate_indel_in_pileup
 
 
-def indel_sequence_processor(df, fasta, bam, mapq, chr_prefixed):
+def indel_sequence_processor(df, genome, alignments, mapq, chr_prefixed):
     """Calculate features from Bambino output, annotation, and .bam
     
     Features not used for final model are commented out '#'
    
     Args:
         df (pandas.DataFrame)
-        fasta (str): path to fasta
-        bam (str): path to bam
+        genome (pysam.FastaFile): reference genome
+        alignments (pysam.AlignmentFile): bam data
         mapq (int): MAPQ score for uniquely mapped reads
         chr_prefixed (bool): True if chromosome names are "chr"-prefixed
     Returns:
         df (pandas.DataFrame): dataframe with valid entries
         df_filtered_premerge (pandas.DataFrame): dataframe with invalid entries
     """
-    # features derived from Bambino output
-    df['is_gc_ins'] = df.apply(is_gc_ins, axis=1)
-    df['is_gc_del'] = df.apply(is_gc_del, axis=1)
+    # features derived from call set
+    df["is_gc_ins"] = df.apply(is_gc_ins, axis=1)
+    df["is_gc_del"] = df.apply(is_gc_del, axis=1)
     df["is_at_ins"] = df.apply(is_at_ins, axis=1)
     df["is_at_del"] = df.apply(is_at_del, axis=1)
     df["indel_size"] = df.apply(indel_size, axis=1)
 
     # features derived from annotation
     df["a"] = df.apply(anno_features, axis=1)
-    df['is_inframe'] = df.apply(lambda x: x['a'].is_inframe, axis=1)
+    df["is_inframe"] = df.apply(lambda x: x["a"].is_inframe, axis=1)
     df["is_truncating"] = df.apply(lambda x: x["a"].is_truncating, axis=1)
-    df['is_splice'] = df.apply(lambda x: x['a'].is_splice, axis=1)
+    df["is_splice"] = df.apply(lambda x: x["a"].is_splice, axis=1)
     df["is_nmd_insensitive"] = df.apply(lambda x: x["a"].is_nmd_insensitive, axis=1)
 
-    # features derived from sequence alingment/map
-    bam_data = pysam.AlignmentFile(bam, "rb")
-    sam = partial(
+    # features derived from sequence and alingment
+    df["s"] = df.apply(
         sam_features,
-        fasta=fasta,
-        bam_data=bam_data,
+        genome=genome,
+        alignments=alignments,
         mapq=mapq,
         chr_prefixed=chr_prefixed,
+        axis=1,
     )
-    df["s"] = df.apply(sam, axis=1)
-    df['gc'] = df.apply(lambda x: x['s'].gc, axis=1)
-    df['local_gc'] = df.apply(lambda x: x['s'].local_gc, axis=1)
-    df['lc'] = df.apply(lambda x: x['s'].lc, axis=1)
-    df['local_lc'] = df.apply(lambda x: x['s'].local_lc, axis=1)
-    df['strength'] = df.apply(lambda x: x['s'].strength, axis=1)
+    df["gc"] = df.apply(lambda x: x["s"].gc, axis=1)
+    df["local_gc"] = df.apply(lambda x: x["s"].local_gc, axis=1)
+    df["lc"] = df.apply(lambda x: x["s"].lc, axis=1)
+    df["local_lc"] = df.apply(lambda x: x["s"].local_lc, axis=1)
+    df["strength"] = df.apply(lambda x: x["s"].strength, axis=1)
     df["local_strength"] = df.apply(lambda x: x["s"].local_strength, axis=1)
     df["repeat"] = df.apply(lambda x: x["s"].repeat, axis=1)
     df["dissimilarity"] = df.apply(lambda x: x["s"].dissimilarity, axis=1)
@@ -191,7 +188,7 @@ def anno_features(row):
     Args:
         row (pandas.Series): a Series with 'annotation' index
     Returns:
-        AnnotationFeatures (obj) 
+        AnnotationFeatures (class): class to store variant annotation features 
     """
     lst = row["annotation"].split(",")
 
@@ -232,18 +229,18 @@ def anno_features(row):
     )
 
 
-def sam_features(row, fasta, bam_data, mapq, chr_prefixed):
+def sam_features(row, genome, alignments, mapq, chr_prefixed):
     """Encodes features derived from sequence alignment/map(SAM)
     
     Args:
         row (pandas.Series): a Series with 'chr', 'pos', 
                              'is_ins', 'indel_seq' indexes
-        fasta (str): path to fasta
-        bam_data (pysam.AlignmentFile): bam object
+        genome (pysam.FastaFile): reference genome 
+        alignments (pysam.AlignmentFile): bam data
         mapq (int): MAPQ score for unique mappers
         chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
     Returns:
-        SamFeatures (class)            
+        SamFeatures (class): class to store sequence and alignment features            
     """
     dna_window = 50
     rna_window = 6
@@ -255,11 +252,11 @@ def sam_features(row, fasta, bam_data, mapq, chr_prefixed):
 
     # SequenceWithIndel obj in refrence genome
     idl_ref_genome = curate_indel_in_genome(
-        fasta, chr, pos, idl_type, idl_seq, chr_prefixed
+        genome, chr, pos, idl_type, idl_seq, chr_prefixed
     )
     # PileupWithIndel obj in bam
     idl_bam = curate_indel_in_pileup(
-        bam_data, chr, pos, idl_type, idl_seq, mapq, chr_prefixed
+        alignments, chr, pos, idl_type, idl_seq, mapq, chr_prefixed
     )
 
     # global sequence properties

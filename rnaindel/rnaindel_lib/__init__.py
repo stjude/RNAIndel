@@ -2,7 +2,7 @@ from .indel_annotator import *
 from .indel_classifier import *
 from .indel_curator import *
 from .indel_equivalence_solver import *
-from .indel_feature_report import *
+from .indel_feature_reporter import *
 from .indel_features import *
 from .indel_postprocessor import *
 from .indel_preprocessor import *

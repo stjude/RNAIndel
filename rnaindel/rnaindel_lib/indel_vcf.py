@@ -9,11 +9,10 @@ snp_ptn = re.compile(r"rs[0-9]+")
 
 
 class IndelVcfReport(object):
-    """Represent VCF record and meta info of indel 
-    specified by Bambino coordinate
+    """Make VCF record and meta info of indel from Bambino coordinate
 
     Attributes:
-        fa (pysam.FastaFile): representing the refernce
+        genome (pysam.FastaFile): reference genome
         chr (str): chr1-22, chrX, chrY
         pos (int): 1-based indel pos (Bambino coordinate)
         ref (str): Bambino style ref allele
@@ -21,8 +20,8 @@ class IndelVcfReport(object):
         chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
     """
 
-    def __init__(self, fa, chr, pos, ref, alt, chr_prefixed):
-        self.fa = fa
+    def __init__(self, genome, chr, pos, ref, alt, chr_prefixed):
+        self.genome = genome
         self.chr = chr
         self.pos = pos
         self.ref = ref
@@ -38,7 +37,7 @@ class IndelVcfReport(object):
         return idl
 
     def left_align(self):
-        idl = lt_aln(self.generate_indel(), self.fa, self.chr_prefixed)
+        idl = lt_aln(self.generate_indel(), self.genome, self.chr_prefixed)
         self.pos = idl.pos
         if self.ref == "-":
             self.alt = idl.idl_seq
@@ -100,10 +99,10 @@ class IndelVcfReport(object):
                 VCF: REF = 'GA', ALT = 'G' at 3
         """
         if self.ref == "-":
-            return peek_left_base(self.generate_indel(), self.fa, self.chr_prefixed)
+            return peek_left_base(self.generate_indel(), self.genome, self.chr_prefixed)
         else:
             return (
-                peek_left_base(self.generate_indel(), self.fa, self.chr_prefixed)
+                peek_left_base(self.generate_indel(), self.genome, self.chr_prefixed)
                 + self.ref
             )
 

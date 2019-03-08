@@ -10,12 +10,15 @@ import warnings
 import tempfile
 import pandas as pd
 from functools import partial
+
 # from .version import __version__
 
 # import rnaindel.bambino_lib as bl
 import bambino_lib as bl
+
 # import rnaindel.rnaindel_lib as rl
 import rnaindel_lib as rl
+
 # import rnaindel.training_lib as tl
 import training_lib as tl
 
@@ -40,7 +43,7 @@ commands are:
             "--version",
             action="version",
             version="%(prog)s {version}".format(version="1.0.0"),  # change later
-            #version="%(prog)s {version}".format(version=__version__),
+            # version="%(prog)s {version}".format(version=__version__),
         )
 
         args = parser.parse_args(sys.argv[1:2])
@@ -64,10 +67,6 @@ def main(command):
     args = get_args(command)
     data_dir = args.data_dir.rstrip("/")
     log_dir = args.log_dir.rstrip("/")
-    refgene = "{}/refgene/refCodingExon.bed.gz".format(data_dir)
-    protein = "{}/protein/proteinConservedDomains.txt".format(data_dir)
-    dbsnp = "{}/dbsnp/dbsnp.indel.vcf.gz".format(data_dir)
-    clinvar = "{}/clinvar/clinvar.indel.vcf.gz".format(data_dir)
     model_dir = "{}/models".format(data_dir)
 
     if command == "training":
@@ -138,8 +137,12 @@ def main(command):
 
         genome = pysam.FastaFile(args.fasta)
         alignments = pysam.AlignmentFile(args.bam)
+        refgene = "{}/refgene/refCodingExon.bed.gz".format(data_dir)
         exons = pysam.TabixFile(refgene)
-        
+        protein = "{}/protein/proteinConservedDomains.txt".format(data_dir)
+        dbsnp = pysam.TabixFile("{}/dbsnp/dbsnp.indel.vcf.gz".format(data_dir))
+        clinvar = pysam.TabixFile("{}/clinvar/clinvar.indel.vcf.gz".format(data_dir))
+
         # preprocessing
         # variant calling will be performed if no external VCF is supplied
         if not args.input_vcf:
@@ -149,23 +152,21 @@ def main(command):
 
             # preprocess indels from the built-in caller
             df, chr_prefixed = rl.indel_preprocessor(
-                bambino_output, genome, alignments, exons, 
+                bambino_output, genome, alignments, exons
             )
+
             df = rl.indel_rescuer(
-                df,
-                args.fasta,
-                args.bam,
-                chr_prefixed,
-                args.process_num,
+                df, args.fasta, args.bam, chr_prefixed, args.process_num
             )
-            
+
             # delete the temp file
             os.remove(bambino_output)
         else:
             # preprocess indels from external VCF
             df, chr_prefixed = rl.indel_vcf_preprocessor(
-                args.input_vcf, genome, alignments, exons,
+                args.input_vcf, genome, alignments, exons
             )
+
             df = rl.indel_rescuer(
                 df,
                 args.fasta,
@@ -176,28 +177,31 @@ def main(command):
             )
 
         # indel annotation
-        df = rl.indel_annotator(df, refgene, args.fasta, chr_prefixed)
-        
+        df = rl.indel_annotator(df, genome, exons, chr_prefixed)
+
         # feature calculation
         df, df_filtered_premerge = rl.indel_sequence_processor(
-            df, args.fasta, args.bam, args.uniq_mapq, chr_prefixed
+            df, genome, alignments, args.uniq_mapq, chr_prefixed
         )
+
         df = rl.indel_protein_processor(df, refgene, protein)
+
         # merging equivalent indels
         df, df_filtered_postmerge = rl.indel_equivalence_solver(
-            df, args.fasta, refgene, chr_prefixed
+            df, genome, refgene, chr_prefixed
         )
+
         # dbSNP annotation
-        df = rl.indel_snp_annotator(df, args.fasta, dbsnp, clinvar, chr_prefixed)
+        df = rl.indel_snp_annotator(df, genome, dbsnp, clinvar, chr_prefixed)
 
         # command "feature" exits here
         if command == "feature":
-            df = rl.report_features(df, args.fasta, args.output_tab, chr_prefixed)
+            df = rl.indel_feature_reporter(df, genome, args.output_tab, chr_prefixed)
             print("rnaindel feature completed successfully.", file=sys.stdout)
             sys.exit(0)
 
         # prediction
-        df = rl.indel_classifier(df, model_dir, num_of_processes=args.process_num)
+        df = rl.indel_classifier(df, model_dir, args.process_num)
 
         # concatenating invalid(filtered) entries
         df_filtered = pd.concat(
@@ -213,18 +217,20 @@ def main(command):
             if not args.non_somatic_panel
             else args.non_somatic_panel
         )
+        pons = pysam.TabixFile(pons)
 
-        df = rl.indel_reclassifier(df, args.fasta, chr_prefixed, pons)
+        df = rl.indel_reclassifier(df, genome, pons, chr_prefixed)
 
         # postProcessing & VCF formatting
         df, df_filtered = rl.indel_postprocessor(
-            df, df_filtered, refgene, args.fasta, chr_prefixed
+            df, df_filtered, genome, exons, chr_prefixed
         )
         rl.indel_vcf_writer(
             df,
             df_filtered,
-            args.bam,
             args.fasta,
+            genome,
+            alignments,
             chr_prefixed,
             args.output_vcf,
             model_dir,

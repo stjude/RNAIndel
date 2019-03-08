@@ -19,17 +19,15 @@ from multiprocessing import Pool
 logger = logging.getLogger(__name__)
 
 
-def indel_classifier(df, model_dir, **kwargs):
+def indel_classifier(df, model_dir, num_of_processes):
     """ Makes prediction
     Args:
         df (pandas.DataFrame)
         model_dir (str): path to dir where models are locaded
-        processes (int): a positive interger for the number of processes 
+        num_of_processes (int): the number of processes 
     Returns:
        df (pandas.DataFrame) : with prediction
     """
-    num_of_processes = kwargs.pop("num_of_processes", 1)
-
     df = calculate_proba(df, model_dir, num_of_processes)
     df["predicted_class"] = df.apply(predict_class, axis=1)
 

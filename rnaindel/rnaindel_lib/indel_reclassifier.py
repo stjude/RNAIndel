@@ -6,38 +6,33 @@ for indels predicted somatic.
 
 'indel_reclassifier' is the main routine in this module
 """
-
 import pysam
 from functools import partial
 from .indel_snp_annotator import vcf2bambino
 from .indel_curator import curate_indel_in_genome
 
 
-def indel_reclassifier(df, fasta, chr_prefixed, pons_vcf=None):
+def indel_reclassifier(df, genome, pons, chr_prefixed):
     """Main module to reclassify based on user-defined 
     panel of non somatic (PONS). 
     
     Args:
         df (pandas.DataFrame): df with prediction made
-        fasta (str): path to .fa
+        genome (pysam.FastaFile): reference genome 
+        pons (pysam.TabixFile): user-defined VCF non-somatic indels
         chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
-        pons_vcf (str): user-defined VCF storing non-somatic indels
-                        Default=None (not provided)
     Returns:
         df (pandas.DataFrame): df reclassified
     """
-    # OPTIONAL reclassification by non somatic list
-    if pons_vcf:
-        pons = pysam.TabixFile(pons_vcf)
-        reclf = partial(
-            wrap_reclassify_by_pons, fasta=fasta, chr_prefixed=chr_prefixed, pons=pons
-        )
-        df["predicted_class"], df["reclassified"] = zip(*df.apply(reclf, axis=1))
+    reclf = partial(
+        wrap_reclassify_by_pons, genome=genome, pons=pons, chr_prefixed=chr_prefixed
+    )
+    df["predicted_class"], df["reclassified"] = zip(*df.apply(reclf, axis=1))
 
     return df
 
 
-def wrap_reclassify_by_pons(row, fasta, chr_prefixed, pons):
+def wrap_reclassify_by_pons(row, genome, pons, chr_prefixed):
     """Wrap 'relassify_by_panel_of_non_somatic' so that this function is
     only applied to instances predicted 'somatic'
 
@@ -45,18 +40,18 @@ def wrap_reclassify_by_pons(row, fasta, chr_prefixed, pons):
     Returns: see 'relassify_by_panel_of_non_somatic'
     """
     if row["predicted_class"] == "somatic" and row["is_common"] != 1:
-        return relassify_by_panel_of_non_somatic(row, fasta, chr_prefixed, pons)
+        return relassify_by_panel_of_non_somatic(row, genome, pons, chr_prefixed)
     else:
         return row["predicted_class"], row["reclassified"]
 
 
-def relassify_by_panel_of_non_somatic(row, fasta, chr_prefixed, pons):
+def relassify_by_panel_of_non_somatic(row, genome, pons, chr_prefixed):
     """Reclassifies indels predicted somatic using user-defined
     panel of non somatic (PONS).
 
     Args:
         row (pandas.Series)
-        fasta (str): path to .fa
+        genome (pysam.FastaFile): reference genome
         pons (pysam.TabixFile obj): user-defined database for non-somatic indels
         chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
     Returns:
@@ -70,7 +65,7 @@ def relassify_by_panel_of_non_somatic(row, fasta, chr_prefixed, pons):
     idl_type = row["is_ins"]
     idl_seq = row["indel_seq"]
 
-    idl = curate_indel_in_genome(fasta, chr, pos, idl_type, idl_seq, chr_prefixed)
+    idl = curate_indel_in_genome(genome, chr, pos, idl_type, idl_seq, chr_prefixed)
 
     # check if contif names in vcf are prefixed with 'chr'
     sample_contig = pons.contigs[0]
@@ -88,7 +83,7 @@ def relassify_by_panel_of_non_somatic(row, fasta, chr_prefixed, pons):
         for bb in bambinos:
             if idl_type == bb.idl_type and len(idl_seq) == len(bb.idl_seq):
                 pons_idl = curate_indel_in_genome(
-                    fasta, chr, bb.pos, bb.idl_type, bb.idl_seq, chr_prefixed
+                    genome, chr, bb.pos, bb.idl_type, bb.idl_seq, chr_prefixed
                 )
 
                 if idl == pons_idl:

@@ -14,7 +14,7 @@ from functools import partial
 numeric = re.compile(r"[0-9]+")
 
 
-def indel_protein_processor(df, refgene, proteincdd=None):
+def indel_protein_processor(df, refgene, proteincdd):
     """Calculate protein features
      
     Features not used in the final model are commented out
