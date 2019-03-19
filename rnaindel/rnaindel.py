@@ -10,21 +10,13 @@ import warnings
 import tempfile
 import pandas as pd
 from functools import partial
+from .version import __version__
 
-# from .version import __version__
-
-# import rnaindel.bambino_lib as bl
-import bambino_lib as bl
-
-# import rnaindel.rnaindel_lib as rl
-import rnaindel_lib as rl
-
-# import rnaindel.training_lib as tl
-import training_lib as tl
-
+import rnaindel.bambino_lib as bl
+import rnaindel.rnaindel_lib as rl
+import rnaindel.training_lib as tl
 
 warnings.filterwarnings("ignore", category=UserWarning)
-
 
 class Commands(object):
     def __init__(self):
