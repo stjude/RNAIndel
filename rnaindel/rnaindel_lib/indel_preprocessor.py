@@ -38,7 +38,7 @@ def indel_preprocessor(bambinofile, genome, alignments, exons):
                                chrY 987  CCT  -
         chr_prefixed (bool): True if chromosome names are prefixed with "chr" in BAM
     """
-    if not os.path.exists(bambinofilename):
+    if not os.path.exists(bambinofile):
         logging.critical("Error: call sets from the built-in caller not found.")
         sys.exit(1)
 

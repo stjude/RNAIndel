@@ -2,6 +2,7 @@
 
 import os
 
+
 def reporter(
     indel_class,
     ds_beta,
@@ -18,6 +19,20 @@ def reporter(
     max_features,
     log_dir,
 ):
+    """Output training results
+
+    Args:
+        indel_class (str): s for single-nucleotide indels, m for multi-nucleotide indels
+        *_beta (int): specify F beta scores optimized in each step: downsampling (ds), feature selection (fs), and parameter tuning (pt)
+        *_f_beta (float): F beta scores optimized in each step
+        *_precision (float): associated precisions in each step
+        artifact_ratio (int): optimized downsampling ratio for artifact class
+        selected_features (str): semicolon-delimited list of selected fetures
+        max_features (int): optimized maximum num of features considered in sklearn random forest
+        log_dir (str): path to ouput dir
+    Returns:
+        None
+    """
     prefix = (
         "single_nucleotide_indel_" if indel_class == "s" else "multi_nucleotide_indel_"
     )
@@ -50,7 +65,7 @@ def reporter(
     fs_result = (
         "\t".join(
             [
-                str(selected_features),
+                selected_features,
                 str(fs_f_beta),
                 calculate_tpr(fs_beta, fs_f_beta, fs_precision),
                 str(fs_precision),
@@ -88,6 +103,15 @@ def format_f_beta(beta):
 
 
 def calculate_tpr(beta, f_beta, precision):
+    """Calculate TPR from F beta abd precision
+
+    Args:
+        beta (int): specify F beta score to be optimized
+        f_beta (float): F beta score
+        precision (float): associated presicion
+    Returns:
+        TPR (str): not float
+    """
     denom = beta * beta * precision * f_beta
     numtr = (1 + beta * beta) * precision - f_beta
 
