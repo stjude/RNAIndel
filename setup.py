@@ -27,5 +27,5 @@ setup(
             "bambino_lib/third_party.jar",
         ]
     },
-    entry_points={"console_scripts": ["rnaindel=rnaindel.rnaindel:Commands"]},
+    entry_points={"console_scripts": ["rnaindel=rnaindel.rnaindel:main"]},
 )

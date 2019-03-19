@@ -379,7 +379,7 @@ def features(indel_class):
         "is_uniq_mapped",
         "cds_length",
         "indel_location",
-        "equivalents_exist",
+        "equivalence_exists",
         "ipg",
         "is_on_dbsnp",
     ]
@@ -409,7 +409,7 @@ def features(indel_class):
         "cds_length",
         "indel_location",
         "is_in_cdd",
-        "equivalents_exist",
+        "equivalence_exists",
         "ipg",
         "is_on_dbsnp",
     ]

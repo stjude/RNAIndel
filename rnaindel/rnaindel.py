@@ -18,12 +18,16 @@ import rnaindel.training_lib as tl
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
+def main():
+    Commands()
+
+
 class Commands(object):
     def __init__(self):
         parser = argparse.ArgumentParser(
             prog="rnaindel",
             usage="""rnaindel <command> [<args>]
-            
+
 commands are:
     analysis    Predict somatic indels from tumor RNA-Seq data
     feature     Calculate and report features for training
@@ -34,8 +38,7 @@ commands are:
         parser.add_argument(
             "--version",
             action="version",
-            version="%(prog)s {version}".format(version="1.0.0"),  # change later
-            # version="%(prog)s {version}".format(version=__version__),
+            version="%(prog)s {version}".format(version=__version__),
         )
 
         args = parser.parse_args(sys.argv[1:2])
@@ -46,16 +49,16 @@ commands are:
         getattr(self, args.command)()
 
     def analysis(self):
-        main("analysis")
+        run("analysis")
 
     def feature(self):
-        main("feature")
+        run("feature")
 
     def training(self):
-        main("training")
+        run("training")
 
 
-def main(command):
+def run(command):
     args = get_args(command)
     data_dir = args.data_dir.rstrip("/")
     log_dir = args.log_dir.rstrip("/")
@@ -226,8 +229,7 @@ def main(command):
             chr_prefixed,
             args.output_vcf,
             model_dir,
-            "test_version"  # REMOVE this later!!
-            # __version__,
+            __version__,
         )
 
         print("rnaindel analysis completed successfully.", file=sys.stdout)
@@ -478,4 +480,4 @@ def check_file(file_path, file_name):
 
 
 if __name__ == "__main__":
-    Commands()
+    main()
