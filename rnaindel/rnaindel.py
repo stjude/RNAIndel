@@ -310,7 +310,7 @@ def get_args(command):
             "--indel-class",
             metavar="STR",
             required=True,
-            help="indel class to be trained: s for 1-nt or m for >1-nt indels",
+            help="indel class to be trained: s for single-nucleotide indel or m for multi-nucleotide indels",
             type=check_indel_class,
         )
 
