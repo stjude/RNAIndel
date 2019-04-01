@@ -88,7 +88,7 @@ Users concatenate the annotated files. Here, assuming the files are \"sample.i\"
 head -1 sample.1.tab >> training_set.tab           # keep the header line
 ```
 ```
-tail -n + 2 -q sample.*.tab >> training_set.tab    # concatenate files without header
+tail -n +2 -q sample.*.tab >> training_set.tab     # concatenate files without header
 ```
 The concatenated file is used to update the trained models.
 Specify the indel class to be trained by -c. 
