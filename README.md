@@ -78,12 +78,13 @@ To train using user`s callset, specify the input VCF by -v.
 ```
 rnaindel feature -b BAM -v INPUT_VCF -o OUTPUT_TAB -f FASTA -d DATA_DIR [other options]
 ```
-### Step 2 (annotation)
+#### Step 2 (annotation)
 The output tab-delimited file has a column \"truth\". Users annotate each indel
-by filling the column with either of \"somatic\", \"germline\", or \"artifact\". 
-### Step 3 (update models)
+by filling the column with either of <br> 
+\"somatic\", \"germline\", or \"artifact\". 
+#### Step 3 (update models)
 Repeat Step 1 and 2 for N samples.<br>
-Users concatenate the annotated files. Here, assuming the files are \"sample.i\" (i = 1,...,N), 
+Users concatenate the annotated files. Here, assuming the files are \"sample.i.tab\" (i = 1,...,N), 
 ```
 head -1 sample.1.tab >> training_set.tab           # keep the header line
 ```
