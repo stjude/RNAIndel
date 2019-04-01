@@ -87,7 +87,8 @@ def make_data_list(vcf_data):
 
 
 def parse_vcf_line(line):
-    """
+    """Parse VCF to Bambino format
+
     Args:
         line (str): a line in VCF file.
     Returns:

@@ -147,15 +147,14 @@ def extract_all_valid_reads(alignments, chr, pos, chr_prefixed):
            Read_4            CGTTC-G>>>>>>>>>>>>>>AAATCGA (non-primary)   
            Read_5     >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     """
-    if not chr_prefixed:
-        chr = chr.replace("chr", "")
+    chr = chr if chr_prefixed else chr.replace("chr", "")
 
     all_reads = alignments.fetch(chr, pos, pos + 1, until_eof=True)
 
     valid_reads = []
     for read in all_reads:
         # excludes duplicate or non-primary alignments
-        if read.is_duplicate == False and read.is_secondary == False:
+        if not read.is_duplicate and not read.is_secondary:
             blocks = read.get_blocks()
             for block in blocks:
                 # excludes skipping reads
@@ -208,8 +207,8 @@ def extract_indel_reads(reads, pos, ins_or_del):
                 # cigartoken example :'34M' (34 bases mapped)
                 # cigartoken value = 34
                 # cigartoken operation = 'M' (mapped)
-                val = int(cigartoken.replace(cigartoken[-1], ""))  # cigartoken value
-                ope = cigartoken[-1]  # cigartoken operation
+                ope = cigartoken[-1] # cigartoken operation
+                val = int(cigartoken.replace(ope, ""))  # cigartoken value
 
                 if ref_pos == pos and ope == ins_or_del:
                     parsed_indel_reads.append((read, idx, adjust))
@@ -263,8 +262,8 @@ def decompose_indel_read(parsed_indel_read):
     i = 0  # pos on read_seq
     j = 0 - adjust  # pos on ref_seq
     for cigartoken in cigarlst_up_to_the_indel:
-        val = int(cigartoken.replace(cigartoken[-1], ""))
         ope = cigartoken[-1]
+        val = int(cigartoken.replace(ope, ""))
 
         if ope == "N":  # if spliced, no move
             i = i

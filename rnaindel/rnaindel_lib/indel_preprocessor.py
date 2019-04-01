@@ -108,23 +108,17 @@ def is_canonical_chromosome(chr):
     Args:
         chr (str): chromosome name
     Returns:
-        is_canonical (bool): True if chr is 1-22, X or Y
+        bool: True if chr is 1-22, X or Y
     """
-    is_canonical = False
-
-    if chr.startswith("chr"):
-        chr = chr.replace("chr", "")
+    chr = chr.replace("chr", "")
 
     if chr == "X" or chr == "Y":
-        is_canonical = True
-    else:
-        try:
-            if 1 <= int(chr) <= 22:
-                is_canonical = True
-        except:
-            pass
-
-    return is_canonical
+        return True
+    
+    try:
+        return (1 <= int(chr) <= 22)
+    except:
+        return False
 
 
 def extract_indel_calls(df):
