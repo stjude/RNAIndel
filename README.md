@@ -14,36 +14,37 @@ Please make sure that the dependencies are satisfied before installing RNAIndel.
     * [pysam>=0.13.0](https://pysam.readthedocs.io/en/latest/index.html)
 * [java>=1.8.0](https://www.java.com/en/download/) 
 
-## Installation
+## Set up
 Install RNAIndel.
 ```
 pip install rnaindel
 ```
-
-## Data directory set up
-Download datafile: [data_dir_37.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_37.tar.gz) 
-for GRCh37 and [data_dir_38.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz) for GRCh38.
-Place the gzipped file under a directory of your choice and unpack it. 
+Test the installation.
 ```
-tar xzvf data_dir_37.tar.gz  # for GRCh37
+rnaindel -h
+```
+
+Download [datafile](http://ftp.stjude.org/pub/software/RNAIndel) and unpack it in a convenient directory on your system. 
+
+```
 tar xzvf data_dir_38.tar.gz  # for GRCh38
 ```
 
-## Usage ([demo](./sample_data)) 
-RNAIndel has 3 commands: analysis, feature, training.
-```
-rnaindel <command> [command-specific options]
+## Usage 
+RNAIndel has 3 commands:
+* ```analysis``` analyze RNA-Seq data for indel discovery
+* ```feature``` calculate features for training
+* ```training``` train and update the models
 
-commands:
-    analysis  Predict somatic indels from tumor RNA-Seq data
-    feature   Calculate and report features for training
-    training  Train models
+Commands are invoked:
+```
+rnaindel command [command-specific options]
 ```
 
-### Discover somatic indels
+### Discover somatic indels ([demo](./sample_data))
 
 #### Working with the built-in caller
-RNAIndel calls indels by the built-in [caller](https://academic.oup.com/bioinformatics/article/27/6/865/236751), which is optimized 
+RNAIndel calls indels by the [built-in caller](https://academic.oup.com/bioinformatics/article/27/6/865/236751), which is optimized 
 for RNA-Seq indel calling, and classifies the indels into somatic, germline, and artifact. 
 ```
 rnaindel analysis -b BAM -o OUTPUT_VCF -f FASTA -d DATA_DIR [other options]
@@ -65,7 +66,6 @@ rnaindel analysis -b BAM -v INPUT_VCF -o OUTPUT_VCF -f FASTA -d DATA_DIR [other 
 * ```-m``` maximum heap space (default: 6000m)
 * ```-l``` direcotry to store log files (default: current)
 * ```-n``` user-defined panel of non-somatic indels in VCF format (default: built-in validated false-positive set)
-* ```-h``` print usage message
 
 ### Train RNAIndel
 Advanced users can train RNAIndel with their own training sets. 
@@ -87,15 +87,15 @@ by filling the column with either of <br>
 Repeat Step 1 and 2 for N samples.<br>
 Users concatenate the annotated files. Here, assuming the files are \"sample.i.tab\" (i = 1,...,N), 
 ```
-head -1 sample.1.tab >> training_set.tab           # keep the header line
+head -1 sample.1.tab > training_set.tab           # keep the header line
 ```
 ```
-tail -n +2 -q sample.*.tab >> training_set.tab     # concatenate files without header
+tail -n +2 -q sample.*.tab > training_set.tab     # concatenate files without header
 ```
-The concatenated file is used to update the trained models.
+The concatenated file is used as a training set to update the models.
 Specify the indel class to be trained by -c. 
 ```
-rnaindel training -t TRAINING_FILE -d DATA_DIR -c INDEL_CLASS [other options]
+rnaindel training -t TRAINING_SET -d DATA_DIR -c INDEL_CLASS [other options]
 ```
 #### Options
 * ```-t``` training set with annotation (required)
@@ -107,7 +107,6 @@ rnaindel training -t TRAINING_FILE -d DATA_DIR -c INDEL_CLASS [other options]
 * ```-ds-beta``` F beta to be optimized in down sampling step. Optimized for TPR if beta > 100. (default: 10)
 * ```-fs-beta``` F beta to be optimized in feature selection step. Optimized for TPR if beta > 100. (default: 10)
 * ```-pt-beta``` F beta to be optimized in parameter tuning step. Optimized for TPR if beta > 100. (default: 10)
-* ```-h``` print usage message
 
 ## Reference
 1. Hagiwara, K., Ding, L., Edmonson, M.N., Rice, S.V., Newman, S., Meshinchi, S., Ries, R.E., Rusch, M., Zhang, J. 
