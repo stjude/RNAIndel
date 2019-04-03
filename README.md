@@ -6,15 +6,14 @@ Users can also use RNAIndel as a postprocessor to
 classify indels called by their own callers. 
 RNAIndel supports GRCh38 as well as GRCh37. 
 
-## Prerequisites
-Please make sure that the dependencies are satisfied before installing RNAIndel.
+## Dependencies
 * [python>=3.5.2](https://www.python.org/downloads/)
     * [pandas>=0.23.0](https://pandas.pydata.org/) 
     * [scikit-learn>=0.18.1](http://scikit-learn.org/stable/install.html#)
     * [pysam>=0.13.0](https://pysam.readthedocs.io/en/latest/index.html)
 * [java>=1.8.0](https://www.java.com/en/download/) 
 
-## Set up
+## Setup
 Install RNAIndel.
 ```
 pip install rnaindel
@@ -99,7 +98,7 @@ rnaindel training -t TRAINING_SET -d DATA_DIR -c INDEL_CLASS [other options]
 ```
 #### Options
 * ```-t``` training set with annotation (required)
-* ```-d``` data directory contains trained models and databases (required) [Data directory set up](#data-directory-set-up)
+* ```-d``` data directory contains trained models and databases (required) 
 * ```-c``` indel class to be trained. s for single-nucleotide indel and m for multi-nucleotide indel (required)
 * ```-k``` number of folds in k-fold cross-validation (default: 5)
 * ```-p``` number of processes (default: 1)
