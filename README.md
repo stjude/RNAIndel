@@ -40,7 +40,8 @@ commands:
     training  Train models
 ```
 
-### Analysis command
+### Discover somatic indels
+
 #### Working with the built-in caller
 RNAIndel calls indels by the built-in [caller](https://academic.oup.com/bioinformatics/article/27/6/865/236751), which is optimized 
 for RNA-Seq indel calling, and classifies the indels into somatic, germline, and artifact. 
@@ -66,15 +67,15 @@ rnaindel analysis -b BAM -v INPUT_VCF -o OUTPUT_VCF -f FASTA -d DATA_DIR [other 
 * ```-n``` user-defined panel of non-somatic indels in VCF format (default: built-in validated false-positive set)
 * ```-h``` print usage message
 
-### Feature & Training commands
+### Train RNAIndel
 Advanced users can train RNAIndel with their own training sets. 
 #### Step 1 (feature calculation)
-For a signle sample, features are calculated for each indel and reported in a tab-delimited file.<br>
-To train using a callset by the built-in caller, 
+Features are calculated for each indel and reported in a tab-delimited file.<br>
+Using a callset by the built-in caller, 
 ```
 rnaindel feature -b BAM -o OUTPUT_TAB -f FASTA -d DATA_DIR [other options]
 ```
-To train using user`s callset, specify the input VCF by -v.
+Using user`s callset, specify the input VCF by -v.
 ```
 rnaindel feature -b BAM -v INPUT_VCF -o OUTPUT_TAB -f FASTA -d DATA_DIR [other options]
 ```
@@ -107,13 +108,6 @@ rnaindel training -t TRAINING_FILE -d DATA_DIR -c INDEL_CLASS [other options]
 * ```-fs-beta``` F beta to be optimized in feature selection step. Optimized for TPR if beta > 100. (default: 10)
 * ```-pt-beta``` F beta to be optimized in parameter tuning step. Optimized for TPR if beta > 100. (default: 10)
 * ```-h``` print usage message
-
-<!--
-## Limitations
-//1. RNAIndel are only tested with STAR 2-pass mapped BAM files witout any preprocessings. 
-2. RNAIndel only predicts coding indels supperted by more than one unique read.
-3. RNAIndel may not report all coding indels reported by non built-in caller.    
--->
 
 ## Reference
 1. Hagiwara, K., Ding, L., Edmonson, M.N., Rice, S.V., Newman, S., Meshinchi, S., Ries, R.E., Rusch, M., Zhang, J. 
