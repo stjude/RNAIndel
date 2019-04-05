@@ -3,7 +3,7 @@
 RNAIndel calls coding indels and classifies them into 
 somatic, germline, and artifact from tumor RNA-Seq data.
 You can also use RNAIndel as a postprocessor to
-classify indels called by your own callers. 
+classify indels called by your own caller. 
 RNAIndel supports GRCh38 as well as GRCh37. 
 
 ## Dependencies
