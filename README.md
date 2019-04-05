@@ -2,8 +2,8 @@
 
 RNAIndel calls coding indels and classifies them into 
 somatic, germline, and artifact from tumor RNA-Seq data.
-Users can also use RNAIndel as a postprocessor to
-classify indels called by their own callers. 
+You can also use RNAIndel as a postprocessor to
+classify indels called by your own callers. 
 RNAIndel supports GRCh38 as well as GRCh37. 
 
 ## Dependencies
@@ -14,7 +14,7 @@ RNAIndel supports GRCh38 as well as GRCh37.
 * [java>=1.8.0](https://www.java.com/en/download/) 
 
 ## Setup
-Install RNAIndel.
+Install RNAIndel. Be sure that the [dependencies](#dependencies) are satisfied before pip installation.  
 ```
 pip install rnaindel
 ```
@@ -62,7 +62,7 @@ rnaindel analysis -b BAM -v INPUT_VCF -o OUTPUT_VCF -f FASTA -d DATA_DIR [other 
 * ```-v``` VCF file from other caller (required if working with user`s caller)
 * ```-o``` output VCF file (required)
 * ```-f``` reference genome (GRCh37 or 38) FASTA file (required)
-* ```-d``` data directory contains trained models and databases (required) [Data directory set up](#data-directory-set-up) 
+* ```-d``` [data directory](#setup) contains trained models and databases (required)
 * ```-q``` STAR mapping quality MAPQ for unique mappers (default: 255)
 * ```-p``` number of cores (default: 1)
 * ```-m``` maximum heap space (default: 6000m)
