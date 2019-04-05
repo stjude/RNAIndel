@@ -62,7 +62,7 @@ rnaindel analysis -b BAM -v INPUT_VCF -o OUTPUT_VCF -f FASTA -d DATA_DIR [other 
 * ```-v``` VCF file from other caller (required if working with user`s caller)
 * ```-o``` output VCF file (required)
 * ```-f``` reference genome (GRCh37 or 38) FASTA file (required)
-* ```-d``` [data directory](##setup) contains trained models and databases (required)
+* ```-d``` [data directory](#setup) contains trained models and databases (required)
 * ```-q``` STAR mapping quality MAPQ for unique mappers (default: 255)
 * ```-p``` number of cores (default: 1)
 * ```-m``` maximum heap space (default: 6000m)
