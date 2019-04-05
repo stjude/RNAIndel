@@ -23,7 +23,9 @@ Test the installation.
 rnaindel -h
 ```
 
-Download [datafile](http://ftp.stjude.org/pub/software/RNAIndel) and unpack it in a convenient directory on your system. 
+Download [datafile](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz) 
+(for [GRCh37](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_37.tar.gz)) and 
+unpack it in a convenient directory on your system. 
 
 ```
 tar xzvf data_dir_38.tar.gz  # for GRCh38
@@ -101,7 +103,7 @@ rnaindel training -t TRAINING_SET -d DATA_DIR -c INDEL_CLASS [other options]
 ```
 #### Options
 * ```-t``` training set with annotation (required)
-* ```-d``` data directory contains trained models and databases (required) 
+* ```-d``` [data directory](#setup) contains trained models and databases (required) 
 * ```-c``` indel class to be trained. s for single-nucleotide indel and m for multi-nucleotide indel (required)
 * ```-k``` number of folds in k-fold cross-validation (default: 5)
 * ```-p``` number of processes (default: 1)
