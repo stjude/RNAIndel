@@ -23,8 +23,7 @@ Test the installation.
 rnaindel -h
 ```
 
-Download [datafile](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz) 
-(for [GRCh37](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_37.tar.gz)) and 
+Download data package ([GRCh38](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz), [GRCh37](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_37.tar.gz)) and 
 unpack it in a convenient directory on your system. 
 
 ```
