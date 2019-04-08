@@ -58,7 +58,7 @@ Specify the input VCF file by -v. <br>
 ```
 rnaindel analysis -b BAM -v INPUT_VCF -o OUTPUT_VCF -f FASTA -d DATA_DIR [other options]
 ```
-#### Options: analysis
+#### Options analysis
 * ```-b``` input [STAR](https://academic.oup.com/bioinformatics/article/29/1/15/272537)-mapped BAM file (required)
 * ```-v``` VCF file from other caller (required if working with user`s caller)
 * ```-o``` output VCF file (required)
@@ -82,7 +82,7 @@ Using user`s callset, specify the input VCF by -v.
 ```
 rnaindel feature -b BAM -v INPUT_VCF -o OUTPUT_TAB -f FASTA -d DATA_DIR [other options]
 ```
-See [analysis](#options:-analysis) for feature commands. 
+See [analysis](#options-analysis) for feature commands. 
 #### Step 2 (annotation)
 The output tab-delimited file has a column \"truth\". Users annotate each indel
 by filling the column with either of <br> 
