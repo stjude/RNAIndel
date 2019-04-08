@@ -82,7 +82,7 @@ Using user`s callset, specify the input VCF by -v.
 ```
 rnaindel feature -b BAM -v INPUT_VCF -o OUTPUT_TAB -f FASTA -d DATA_DIR [other options]
 ```
-See [analysis](#options-(analysis)) for feature commands. 
+See [analysis](#options-\(analysis\)) for feature commands. 
 #### Step 2 (annotation)
 The output tab-delimited file has a column \"truth\". Users annotate each indel
 by filling the column with either of <br> 
