@@ -58,7 +58,7 @@ Specify the input VCF file by -v. <br>
 ```
 rnaindel analysis -b BAM -v INPUT_VCF -o OUTPUT_VCF -f FASTA -d DATA_DIR [other options]
 ```
-#### Options (analysis)
+#### Options analysis
 * ```-b``` input [STAR](https://academic.oup.com/bioinformatics/article/29/1/15/272537)-mapped BAM file (required)
 * ```-v``` VCF file from other caller (required if working with user`s caller)
 * ```-o``` output VCF file (required)
@@ -83,10 +83,12 @@ Using user`s callset, specify the input VCF by -v.
 rnaindel feature -b BAM -v INPUT_VCF -o OUTPUT_TAB -f FASTA -d DATA_DIR [other options]
 ```
 See [above](#discover-somatic-indels) for options. 
+
 #### Step 2 (annotation)
 The output tab-delimited file has a column \"truth\". Users annotate each indel
 by filling the column with either of <br> 
 \"somatic\", \"germline\", or \"artifact\". 
+
 #### Step 3 (update models)
 Repeat Step 1 and 2 for N samples.<br>
 Users concatenate the annotated files. Here, assuming the files are \"sample.i.tab\" (i = 1,...,N), 
