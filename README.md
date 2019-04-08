@@ -58,7 +58,7 @@ Specify the input VCF file by -v. <br>
 ```
 rnaindel analysis -b BAM -v INPUT_VCF -o OUTPUT_VCF -f FASTA -d DATA_DIR [other options]
 ```
-#### Options analysis
+#### Options
 * ```-b``` input [STAR](https://academic.oup.com/bioinformatics/article/29/1/15/272537)-mapped BAM file (required)
 * ```-v``` VCF file from other caller (required if working with user`s caller)
 * ```-o``` output VCF file (required)
@@ -82,7 +82,7 @@ Using user`s callset, specify the input VCF by -v.
 ```
 rnaindel feature -b BAM -v INPUT_VCF -o OUTPUT_TAB -f FASTA -d DATA_DIR [other options]
 ```
-See [above](#discover-somatic-indels) for options. 
+See [above](#options) for options. 
 
 #### Step 2 (annotation)
 The output tab-delimited file has a column \"truth\". Users annotate each indel
@@ -103,7 +103,7 @@ Specify the indel class to be trained by -c.
 ```
 rnaindel training -t TRAINING_SET -d DATA_DIR -c INDEL_CLASS [other options]
 ```
-#### Options (training)
+#### Options
 * ```-t``` training set with annotation (required)
 * ```-d``` [data directory](#setup) contains trained models and databases (required) 
 * ```-c``` indel class to be trained. s for single-nucleotide indel and m for multi-nucleotide indel (required)
