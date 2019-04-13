@@ -4,7 +4,7 @@ This cell line harbors two known indels in the *PTEN* tumor suppressor gene: a 2
 We apply RNAIndel to a sample BAM file ([sample.bam](./inputs/sample.bam)), which contains the GRCh38 region chr10:80,000,000-90,000,000 (the *PTEN* locus is chr10:87,863,113-87,971,930). 
 
 ## Setup
-We assume RNAIndel is [installed](../README.md#installation).<br>
+We assume RNAIndel is [installed](../README.md#setup).<br>
 **Step 1:** Download the sample dataset.
 ```
 git clone https://github.com/stjude/RNAIndel.git 
@@ -46,7 +46,7 @@ is detected as a 7-nt insertion at codon 246, not as a 39-nt insertion, due to t
 ### Working with GATK-HaplotypeCaller 
 The sample BAM file was preprocessed following GATK RNA-Seq Variant Calling [BestPractice](https://software.broadinstitute.org/gatk/documentation/article.php?id=3891). 
 GATK-HC (ver 4.0.2.1) called variants in the preprocessed BAM file ([sample.gatk.bam](./inputs/sample.gatk.bam)) and 
-generated a [VCF](./inputs/sample_gatk.vcf) file.Now, the indels in the GATK VCF file are classified. **Please input the original BAM file (sample.bam), not the preprocessed one (sample.gatk.bam)**.
+generated a [sample_gatk.vcf](./inputs/sample_gatk.vcf) file. Now, the indels in the GATK VCF file are classified. **Please input the original BAM file (sample.bam), not the preprocessed one (sample.gatk.bam)**.
 ```
 $ rnaindel analysis -b ./sample_data/inputs/sample.bam \
                     -v ./sample_data/inputs/sample_gatk.vcf \
@@ -56,11 +56,11 @@ $ rnaindel analysis -b ./sample_data/inputs/sample.bam \
 
 rnaindel analysis completed successfully. # all steps done (indel calling by the built-in caller is not performed)
 ```
-Four coding indels are reported in the output [VCF](./outputs/sample_gatk_classified.vcf) file: 2 somatic, 1 germline, and 1 artifact. 
+Four coding indels are reported in the output [sample_gatk_classified.vcf](./outputs/sample_gatk_classified.vcf) file: 2 somatic, 1 germline, and 1 artifact. 
 Both *PTEN* indels are predicated as somatic. The 39-nt insertion at codon 246 is also detected as a 7-nt insertion by GATK-HC. 
 However, the indel at codon 234 is detected as a combination of two insertions: 
 the GGCCC insertion at chr10:87957916 and the TG insertion at chr10:87957917. In the output [VCF](./outputs/sample_gatk_classified.vcf), 
-these two are annotated as "RQB=chr10:87957916:G:GGGCCCAT". This means that RNAIndel could not find these two indels in the BAM 
+these two are annotated as "RQB=chr10:87957916:G:GGGCCCAT". This means that RNAIndel could not find these two insertions in the BAM 
 file as specified by the input [VCF](./inputs/sample_gatk.vcf) file and, instead, found the GGCCCAT insertion at chr10:87957916 in the BAM file and 
 used this for prediction. 
 
