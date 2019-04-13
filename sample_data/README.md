@@ -58,11 +58,11 @@ rnaindel analysis completed successfully. # all steps done (indel calling by the
 ```
 Four coding indels are reported in the output [sample_gatk_classified.vcf](./outputs/sample_gatk_classified.vcf) file: 2 somatic, 1 germline, and 1 artifact. 
 Both *PTEN* indels are predicated as somatic. The 39-nt insertion at codon 246 is also detected as a 7-nt insertion by GATK-HC. 
-However, the indel at codon 234 is detected as a combination of two insertions: 
+However, GATK-HC detected the indel at codon 234 as a combination of two insertions: 
 the GGCCC insertion at chr10:87957916 and the TG insertion at chr10:87957917. In the output [VCF](./outputs/sample_gatk_classified.vcf), 
 these two are annotated as "RQB=chr10:87957916:G:GGGCCCAT". This means that RNAIndel could not find these two insertions in the BAM 
-file as specified by the input [VCF](./inputs/sample_gatk.vcf) file and, instead, found the GGCCCAT insertion at chr10:87957916 in the BAM file and 
-used this for prediction. 
+file as reported by GATK-HC and, instead, found the GGCCCAT insertion at chr10:87957916 and used this for prediction; they are rescued by (RQB)
+the chr10:87957916:G:GGGCCCAT insertion.  
 
 ## Reference
 Shan, X, Czar, J.C., Bunnell, S.C., Liu, P., Liu, Y., Schwartzberg, P.L., Wange, R.L. (2000) Deficiency of PTEN in Jurkat T Cells Causes Constitutive Localization of Itk to the Plasma Membrane and Hyperresponsiveness to CD3 Stimulation. Mol Cell Biol., 20: 6945–6957. PMID [10958690](https://www.ncbi.nlm.nih.gov/pubmed/10958690)      
