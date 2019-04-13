@@ -57,7 +57,7 @@ $ rnaindel analysis -b ./sample_data/inputs/sample.bam \
 rnaindel analysis completed successfully. # all steps done (indel calling by the built-in caller is not performed)
 ```
 Four coding indels are reported in the output [VCF](./outputs/sample_gatk_classified.vcf) file: 2 somatic, 1 germline, and 1 artifact. 
-Both *PTEN* indels are predicated as somatic. The 39-nt insertion at codon 246 is also detected as a 7-nt insertion by GATK-HC. 
+Both *PTEN* indels are predicated as somatic. The 39-nt insertion at codon 246 is also detected as a 7-nt insertion by GATK-HC.<br> 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;However, GATK-HC detected the indel at codon 234 as a combination of two insertions: 
 the GGCCC insertion at chr10:87957916 and the TG insertion at chr10:87957917. In the output [VCF](./outputs/sample_gatk_classified.vcf), 
 these two are annotated as "RQB=chr10:87957916:G:GGGCCCAT". This means that RNAIndel could not find these two insertions in the BAM 
