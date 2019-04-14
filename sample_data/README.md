@@ -1,4 +1,4 @@
-# Run Example
+# Introduction
 Here, we demonstrate an analysis example using sample data prepared from the Jurkat T-cell leukemia cell line.<br>
 This cell line harbors two known indels in the *PTEN* tumor suppressor gene: a 2-nt deletion followed by a 9-nt insertion at codon 234 and a 39-nt insertion at codon 246 (Figure 2 in [Reference](#reference)). 
 We apply RNAIndel to a sample BAM file ([sample.bam](./inputs/sample.bam)), which contains the GRCh38 region chr10:80,000,000-90,000,000 (the *PTEN* locus is chr10:87,863,113-87,971,930). 
