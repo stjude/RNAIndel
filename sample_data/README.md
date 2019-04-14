@@ -45,7 +45,7 @@ are involved. This indel is detected as a 7-nt insertion at codon 233. The secon
 ### Working with GATK-HaplotypeCaller 
 The sample BAM file was preprocessed following GATK RNA-Seq Variant Calling [BestPractice](https://software.broadinstitute.org/gatk/documentation/article.php?id=3891). 
 GATK-HC (ver 4.0.2.1) called variants in the preprocessed BAM file ([sample.gatk.bam](./inputs/sample.gatk.bam)) and 
-generated a [VCF](./inputs/sample_gatk.vcf) file (sample_gatk.vcf). Now, the indels in the GATK VCF file are classified. **Please input the original BAM file (sample.bam), not the preprocessed one (sample.gatk.bam)**.
+generated a VCF file ([sample_gatk.vcf](./inputs/sample_gatk.vcf)). Now, the indels in the GATK VCF file are classified. **Please input the original BAM file (sample.bam), not the preprocessed one (sample.gatk.bam)**.
 ```
 $ rnaindel analysis -b ./sample_data/inputs/sample.bam \
                     -v ./sample_data/inputs/sample_gatk.vcf \
