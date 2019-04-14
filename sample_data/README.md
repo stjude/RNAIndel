@@ -15,7 +15,7 @@ RNAIndel
      |_ sample_data <------ sample dataset (GRCh38) 
      ...
 ```
-**Step 2:**  Download and unpack [data_dir_38.tar.gz](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz).  
+**Step 2:**  Download and unpack data package for [GRCh38](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz).  
 ```
 RNAIndel
     |_ rnaindel
@@ -54,14 +54,15 @@ $ rnaindel analysis -b ./sample_data/inputs/sample.bam \
                     -f path/to/your_GRCh38.fa \
                     -d ./data_dir_38
 
-rnaindel analysis completed successfully. # all steps done (indel calling by the built-in caller is not performed)
+rnaindel analysis completed successfully. # all steps done (no calling by the built-in caller) 
 ```
 Four coding indels are reported in the output [VCF](./outputs/sample_gatk_classified.vcf) file: 2 somatic, 1 germline, and 1 artifact. 
 Both *PTEN* indels are predicated as somatic. The 39-nt insertion at codon 246 is also detected as a 7-nt insertion by GATK-HC.<br> 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;However, GATK-HC detected the indel at codon 234 as a combination of two insertions: 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+However, GATK-HC detected the indel at codon 234 as a combination of two insertions: 
 the GGCCC insertion at chr10:87957916 and the TG insertion at chr10:87957917. In the output [VCF](./outputs/sample_gatk_classified.vcf), 
 these two are annotated as "RQB=chr10:87957916:G:GGGCCCAT". This means that RNAIndel could not find these two insertions in the BAM 
-file as reported by GATK-HC and, instead, found the GGCCCAT insertion at chr10:87957916 and used this for prediction; they are rescued by (RQB)
+file as reported by GATK-HC and, instead, found a GGCCCAT insertion at chr10:87957916 and used this for prediction; they were rescued by (RQB)
 the GGGCCCAT insertion.  
 
 ## Reference
