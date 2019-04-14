@@ -1,6 +1,6 @@
 ## Introduction
 Here, we demonstrate an analysis example using sample data prepared from the Jurkat T-cell leukemia cell line.<br>
-This cell line harbors two known indels in the *PTEN* tumor suppressor gene: a 2-nt deletion followed by a 9-nt insertion at codon 234 and a 39-nt insertion at codon 246 (Figure 2 in [Reference](#reference)). 
+This cell line harbors two known indels in the *PTEN* tumor suppressor gene: a 2-nt deletion followed by a 9-nt insertion at codon 234 and a 39-nt insertion at codon 246 (Figure 2 in [Shan et al., 2000](https://www.ncbi.nlm.nih.gov/pubmed/10958690). 
 We apply RNAIndel to a sample BAM file ([sample.bam](./inputs/sample.bam)), which contains the GRCh38 region chr10:80,000,000-90,000,000 (the *PTEN* locus is chr10:87,863,113-87,971,930). 
 
 ## Setup
@@ -64,6 +64,3 @@ the GGCCC insertion at chr10:87957916 and the TG insertion at chr10:87957917. In
 these two are annotated as "RQB=chr10:87957916:G:GGGCCCAT". This means that RNAIndel could not find these two insertions in the BAM 
 file as reported by GATK-HC and, instead, found a GGCCCAT insertion at chr10:87957916 and used this for prediction; they were rescued by (RQB)
 the GGGCCCAT insertion.  
-
-## Reference
-Shan, X, Czar, J.C., Bunnell, S.C., Liu, P., Liu, Y., Schwartzberg, P.L., Wange, R.L. (2000) Deficiency of PTEN in Jurkat T Cells Causes Constitutive Localization of Itk to the Plasma Membrane and Hyperresponsiveness to CD3 Stimulation. Mol Cell Biol., 20: 6945–6957. PMID [10958690](https://www.ncbi.nlm.nih.gov/pubmed/10958690)      
