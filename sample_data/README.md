@@ -40,8 +40,7 @@ rnaindel analysis completed successfully.      # all steps done.
 ```
 Fifteen coding indels are reported in the ouput [VCF](./outputs/sample.vcf) file: 2 somatic, 1 germline, and 12 artifact indels (see INFO field).
 The two *PTEN* indels are predicted as somatic. The first indel is a complex indel in which a 2-nt deletion and a 9-nt insertion 
-are involved. This indel is detected as a 7-nt insertion at codon 233 with indel complexity = 2 (See INFO field in [VCF](./outputs/sample.vcf)). The second indel
-is detected as a 7-nt insertion at codon 246, not as a 39-nt insertion, due to the soft-clipped alignment. 
+are involved. This indel is detected as a 7-nt insertion at codon 233. The second indel is also detected as a 7-nt insertion at codon 246, not as a 39-nt insertion, due to the soft-clipped alignment. 
 
 ### Working with GATK-HaplotypeCaller 
 The sample BAM file was preprocessed following GATK RNA-Seq Variant Calling [BestPractice](https://software.broadinstitute.org/gatk/documentation/article.php?id=3891). 
