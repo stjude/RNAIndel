@@ -157,7 +157,7 @@ def extract_all_valid_reads(alignments, chr, pos, chr_prefixed):
         if (
             not read.is_duplicate
             and not read.is_secondary
-            and read.cigargstring
+            and read.cigarstring
             and read.has_tag("MD")
         ):
             blocks = read.get_blocks()
