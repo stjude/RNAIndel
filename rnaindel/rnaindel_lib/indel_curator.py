@@ -154,7 +154,12 @@ def extract_all_valid_reads(alignments, chr, pos, chr_prefixed):
     valid_reads = []
     for read in all_reads:
         # excludes duplicate or non-primary alignments
-        if not read.is_duplicate and not read.is_secondary:
+        if (
+            not read.is_duplicate
+            and not read.is_secondary
+            and read.cigargstring
+            and read.has_tag("MD")
+        ):
             blocks = read.get_blocks()
             for block in blocks:
                 # excludes skipping reads
@@ -207,7 +212,7 @@ def extract_indel_reads(reads, pos, ins_or_del):
                 # cigartoken example :'34M' (34 bases mapped)
                 # cigartoken value = 34
                 # cigartoken operation = 'M' (mapped)
-                ope = cigartoken[-1] # cigartoken operation
+                ope = cigartoken[-1]  # cigartoken operation
                 val = int(cigartoken.replace(ope, ""))  # cigartoken value
 
                 if ref_pos == pos and ope == ins_or_del:
