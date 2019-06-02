@@ -13,7 +13,9 @@ from .indel_curator import curate_indel_in_genome
 from .indel_curator import curate_indel_in_pileup
 
 
-def indel_sequence_processor(df, genome, alignments, mapq, chr_prefixed):
+def indel_sequence_processor(
+    df, genome, alignments, mapq, chr_prefixed, softclip_analysis=True
+):
     """Calculate features from Bambino output, annotation, and .bam
     
     Features not used for final model are commented out '#'
@@ -24,6 +26,7 @@ def indel_sequence_processor(df, genome, alignments, mapq, chr_prefixed):
         alignments (pysam.AlignmentFile): bam data
         mapq (int): MAPQ score for uniquely mapped reads
         chr_prefixed (bool): True if chromosome names are "chr"-prefixed
+        softclip_analysis (bool): True if analyze softclipped indels
     Returns:
         df (pandas.DataFrame): dataframe with valid entries
         df_filtered_premerge (pandas.DataFrame): dataframe with invalid entries
@@ -49,6 +52,7 @@ def indel_sequence_processor(df, genome, alignments, mapq, chr_prefixed):
         alignments=alignments,
         mapq=mapq,
         chr_prefixed=chr_prefixed,
+        softclip_analysis=softclip_analysis,
         axis=1,
     )
     df["gc"] = df.apply(lambda x: x["s"].gc, axis=1)
@@ -229,7 +233,7 @@ def anno_features(row):
     )
 
 
-def sam_features(row, genome, alignments, mapq, chr_prefixed):
+def sam_features(row, genome, alignments, mapq, chr_prefixed, softclip_analysis):
     """Encodes features derived from sequence alignment/map(SAM)
     
     Args:
@@ -239,6 +243,7 @@ def sam_features(row, genome, alignments, mapq, chr_prefixed):
         alignments (pysam.AlignmentFile): bam data
         mapq (int): MAPQ score for unique mappers
         chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
+        softclip_analysis (bool): True if analyze softclipped indels
     Returns:
         SamFeatures (class): class to store sequence and alignment features            
     """
@@ -256,7 +261,7 @@ def sam_features(row, genome, alignments, mapq, chr_prefixed):
     )
     # PileupWithIndel obj in bam
     idl_bam = curate_indel_in_pileup(
-        alignments, chr, pos, idl_type, idl_seq, mapq, chr_prefixed
+        alignments, chr, pos, idl_type, idl_seq, mapq, chr_prefixed, softclip_analysis
     )
 
     # global sequence properties

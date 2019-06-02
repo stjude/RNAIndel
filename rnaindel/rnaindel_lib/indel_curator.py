@@ -152,7 +152,7 @@ def extract_all_valid_reads(alignments, chr, pos, chr_prefixed, window=1):
     """
     chr = chr if chr_prefixed else chr.replace("chr", "")
 
-    all_reads = alignments.fetch(chr, pos - 1 + window, pos + window, until_eof=True)
+    all_reads = alignments.fetch(chr, pos - (window - 1), pos + window, until_eof=True)
 
     valid_reads = []
     for read in all_reads:
@@ -163,11 +163,10 @@ def extract_all_valid_reads(alignments, chr, pos, chr_prefixed, window=1):
             and read.cigarstring
             and read.has_tag("MD")
         ):
-            blocks = read.get_blocks()
-            for block in blocks:
-                # excludes skipping reads
-                if block[0] <= pos <= block[1]:
-                    valid_reads.append(read)
+
+            is_covering = [block[0] <= pos <= block[1] for block in read.get_blocks()]
+            if sum(is_covering) > 0:
+                valid_reads.append(read)
 
     return valid_reads
 
@@ -178,7 +177,7 @@ def extract_indel_reads(reads, pos, ins_or_del):
     Args:
         reads (list): [pysam.AlignedSegment]
         pos (int): 0-based coordinate
-        ins_or_del (str): 'I' for insertion or 'D' insertion
+sdu        ins_or_del (str): 'I' for insertion or 'D' insertion
     Returns:
         parsed_indel_reads (list): a list of (pysam.AligedSegment obj, idx, adjust)
                             idx: the index of cigar token specifying the indel
@@ -509,7 +508,9 @@ def infer_del_seq_from_data(decomposed_non_idl_reads, idl_flanks, del_seq):
     return inferred_seq
 
 
-def curate_indel_in_pileup(alignments, chr, pos, idl_type, idl_seq, mapq, chr_prefixed):
+def curate_indel_in_pileup(
+    alignments, chr, pos, idl_type, idl_seq, mapq, chr_prefixed, softclip_analysis
+):
     """Abstract indels in the alignment pileup
     
     Args:    
@@ -520,6 +521,7 @@ def curate_indel_in_pileup(alignments, chr, pos, idl_type, idl_seq, mapq, chr_pr
         idl_seq (str): inserted or deleted sequence
         mapq (int): MAPQ for uniquely mapped reads
         chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
+        softclip_analysis (bool): True if analyze softclipped indels
     Returns:
         PileupWithIndel object: if indels found as specified with 
                                 chr, pos, idl_type and idl_seq 
@@ -595,14 +597,31 @@ def curate_indel_in_pileup(alignments, chr, pos, idl_type, idl_seq, mapq, chr_pr
 
     # check bidirectionality
     bidirectional = [idl_read[0].is_reverse for idl_read in idl_reads]
-    
+
     #################################
     # Analysis of softclipped reads #
     #################################
-    reads4sftclip_analysis = extract_all_valid_reads(alignments, chr, pos, chr_prefixed, window=10)
-    realigned_indel_reads = realn_softclips(reads4sftclip_analysis, pos, ins_or_del, idl_flanks)
-    realigned_indel_read_names = [read.query_name for read in realigned_indel_reads]
-    
+    if softclip_analysis:
+        try:
+            reads4sftclip_analysis = extract_all_valid_reads(
+                alignments, chr, pos, chr_prefixed, window=10
+            )
+            realigned_indel_reads = realn_softclips(
+                reads4sftclip_analysis,
+                pos,
+                ins_or_del,
+                idl_seq,
+                idl_flanks,
+                decompose_non_indel_read,
+            )
+            realigned_indel_read_names = [
+                read.query_name for read in realigned_indel_reads
+            ]
+        except:
+            realigned_indel_read_names = []
+    else:
+        realigned_indel_read_names = []
+
     ###############################
     # Analysis of non-indel reads #
     ###############################
@@ -615,8 +634,10 @@ def curate_indel_in_pileup(alignments, chr, pos, idl_type, idl_seq, mapq, chr_pr
     idl_read_names = [decomp[0].query_name for decomp in filtered_decomposed_idl_reads]
     idl_read_names = idl_read_names + realigned_indel_read_names
 
-    non_idl_read_names = list(set(all_read_names) - set(idl_read_names))
-    non_idl_read_names.sort()
+    non_idl_read_names = set(all_read_names) - set(idl_read_names)
+
+    # fragment count by unifiying the read name
+    ref_count, alt_count = len(non_idl_read_names), len(set(idl_read_names))
 
     # sample 10 non-indel reads if too many
     if len(non_idl_read_names) > 10:
@@ -644,10 +665,6 @@ def curate_indel_in_pileup(alignments, chr, pos, idl_type, idl_seq, mapq, chr_pr
     ########################
     # Summarize the result #
     ########################
-
-    # fragment count by unifiying the read name
-    total_count, alt_count = len(set(all_read_names)), len(set(idl_read_names))
-    ref_count = total_count - alt_count
 
     # decide if the indel is close to exon boundary
     is_near_boundary = most_common(exon_boundary)

@@ -3,24 +3,27 @@
 import re
 import pysam
 from .most_common import most_common
-from .indel_curator import decompose_non_indel_read
 
 cigar_ptn = re.compile(r"[0-9]+[MIDNSHPX=]")
 
 
-def realn_softclips(reads, pos, ins_or_del, idl_seq, idl_flanks):
+def realn_softclips(
+    reads, pos, ins_or_del, idl_seq, idl_flanks, decompose_non_indel_read
+):
 
     candidate_reads = [
         classify_softclip_read(read, pos)
         for read in reads
-        if classify_softclipped_read(read, pos)
+        if classify_softclip_read(read, pos)
     ]
 
     if not candidate_reads:
         return []
 
     decomposed_candidates = [
-        decompose_softclip(read, softclip_ptrn, pos, ins_or_del, idl_seq)
+        decompose_softclip(
+            read, softclip_ptrn, pos, ins_or_del, idl_seq, decompose_non_indel_read
+        )
         for read, softclip_ptrn in candidate_reads
     ]
 
@@ -34,7 +37,9 @@ def realn_softclips(reads, pos, ins_or_del, idl_seq, idl_flanks):
     return compatible_softclip_reads
 
 
-def decompose_softclip(read, softclip_ptrn, pos, ins_or_del, idl_seq):
+def decompose_softclip(
+    read, softclip_ptrn, pos, ins_or_del, idl_seq, decompose_non_indel_read
+):
 
     decom = decompose_non_indel_read(read, pos, ins_or_del, idl_seq)
     lt_flank, mid_seq, rt_flank = decom[2][0], decom[1], decom[2][1]
@@ -161,18 +166,18 @@ def is_compatible(read_tuple, template_tuple, ins_or_del):
         return False
 
     if read_indel and ins_or_del == "I":
-        subject_len = len(template_indel)
-        query_len = len(read_indel)
-        if subject_len < query_len:
+        template_indel_len = len(template_indel)
+        read_indel_len = len(read_indel)
+        if template_indel_len < read_indel_len:
             return False
-        elif query_indel == subject_indel:
+        elif read_indel == template_indel:
             return True
-        elif 4 <= subject_len <= 5:
-            return identical_for_end_n_bases(query_indel, subject_indel, 2)
-        elif 6 <= subject_len <= 7:
-            return identical_for_end_n_bases(query_indel, subject_indel, 3)
+        elif 4 <= template_indel_len <= 5:
+            return identical_for_end_n_bases(read_indel, template_indel, 2)
+        elif 6 <= template_indel_len <= 7:
+            return identical_for_end_n_bases(read_indel, template_indel, 3)
         else:
-            return identical_for_end_n_bases(query_indel, subject_indel, 4)
+            return identical_for_end_n_bases(read_indel, template_indel, 4)
     elif ins_or_del == "D":
         return True
     else:
