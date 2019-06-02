@@ -7,6 +7,7 @@ from .most_common import most_common
 from .indel_sequence import SequenceWithIndel
 from .indel_sequence import PileupWithIndel
 from .indel_sequence import PileupWithIndelNotFound
+from .indel_softclip_realigner import realn_softclips
 
 random.seed(123)
 cigar_ptn = re.compile(r"[0-9]+[MIDNSHPX=]")
@@ -114,17 +115,19 @@ def is_close_to_exon_boundary(cigarstring, idx):
     return is_close
 
 
-def extract_all_valid_reads(alignments, chr, pos, chr_prefixed):
+def extract_all_valid_reads(alignments, chr, pos, chr_prefixed, window=1):
     """Extracts reads that are
         1. non-duplicate
         2. primary alignment
         3. covering the locus specified by chr and pos (non-skipping)
+        4. has CIGAR string and MD tag
     
     Args:
         alignments (pysam.AlignmentFile): bam data
         chr (str): chr1-22, chrX or chrY. Note "chr"-prefixed
         pos (int): 0-based coordinate
         chr_prefixed (bool): True if chromosome names are "chr"-prefixed
+        window (int): default to 1
     Returns:
         valid_reads (list): a list of pysam.AlignedSegment
     
@@ -149,7 +152,7 @@ def extract_all_valid_reads(alignments, chr, pos, chr_prefixed):
     """
     chr = chr if chr_prefixed else chr.replace("chr", "")
 
-    all_reads = alignments.fetch(chr, pos, pos + 1, until_eof=True)
+    all_reads = alignments.fetch(chr, pos - 1 + window, pos + window, until_eof=True)
 
     valid_reads = []
     for read in all_reads:
@@ -592,7 +595,14 @@ def curate_indel_in_pileup(alignments, chr, pos, idl_type, idl_seq, mapq, chr_pr
 
     # check bidirectionality
     bidirectional = [idl_read[0].is_reverse for idl_read in idl_reads]
-
+    
+    #################################
+    # Analysis of softclipped reads #
+    #################################
+    reads4sftclip_analysis = extract_all_valid_reads(alignments, chr, pos, chr_prefixed, window=10)
+    realigned_indel_reads = realn_softclips(reads4sftclip_analysis, pos, ins_or_del, idl_flanks)
+    realigned_indel_read_names = [read.query_name for read in realigned_indel_reads]
+    
     ###############################
     # Analysis of non-indel reads #
     ###############################
@@ -603,6 +613,7 @@ def curate_indel_in_pileup(alignments, chr, pos, idl_type, idl_seq, mapq, chr_pr
     # collect non-indel read by name
     all_read_names = [read.query_name for read in all_reads]
     idl_read_names = [decomp[0].query_name for decomp in filtered_decomposed_idl_reads]
+    idl_read_names = idl_read_names + realigned_indel_read_names
 
     non_idl_read_names = list(set(all_read_names) - set(idl_read_names))
     non_idl_read_names.sort()

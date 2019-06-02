@@ -153,7 +153,7 @@ def run(command):
             df = rl.indel_rescuer(
                 df, args.fasta, args.bam, chr_prefixed, args.process_num
             )
-
+            
             # delete the temp file
             os.remove(bambino_output)
         else:
@@ -173,7 +173,7 @@ def run(command):
 
         # indel annotation
         df = rl.indel_annotator(df, genome, exons, chr_prefixed)
-
+        
         # feature calculation
         df, df_filtered_premerge = rl.indel_sequence_processor(
             df, genome, alignments, args.uniq_mapq, chr_prefixed
