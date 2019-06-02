@@ -38,6 +38,7 @@ class SamFeatures(object):
         indel_complexity,
         ref_count,
         alt_count,
+        realigned_indel_read_names,
         is_multiallelic,
         is_near_boundary,
         is_bidirectional,
@@ -55,6 +56,7 @@ class SamFeatures(object):
         self.indel_complexity = indel_complexity
         self.ref_count = ref_count
         self.alt_count = alt_count
+        self.realigned_indel_read_names = realigned_indel_read_names
         self.is_multiallelic = is_multiallelic
         self.is_near_boundary = is_near_boundary
         self.is_bidirectional = is_bidirectional

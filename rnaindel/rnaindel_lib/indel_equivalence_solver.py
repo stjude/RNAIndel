@@ -247,23 +247,29 @@ def merge_equivalents(df):
     """
     pd.options.mode.chained_assignment = None
 
-    # if no equivalent indels, return the input
+    # no equivalent indel exists
     if len(df) == 1:
         df.loc[:, "equivalence_exists"] = 0
-
+        merged_softclips = df.realigned_sftclips.sum()
+        df.loc[:, "ref_count"] = df["ref_count"] - len(set(merged_softclips))
+        df.loc[:, "alt_count"] = df["alt_count"] + len(set(merged_softclips))
         return df
 
     # merge all equivalent indel counts
     merged_indel_count = df.loc[:, "alt_count"].sum()
 
+    # merge recovered softclips
+    merged_softclips = df.realigned_sftclips.sum()
+
     # adjust ref counts
     diff = merged_indel_count - df["alt_count"]
-    df.loc[:, "ref_count"] = df["ref_count"] - diff
+    df.loc[:, "ref_count"] = df["ref_count"] - diff - len(set(merged_softclips))
+
     # to ascertain the non-negativity
     df.loc[df["ref_count"] < 0, "ref_count"] = 0
 
     # assign the merged indel count
-    df.loc[:, "alt_count"] = merged_indel_count
+    df.loc[:, "alt_count"] = merged_indel_count + len(set(merged_softclips))
 
     # homoginizes 'is_multiallelic' for equivalents
     if df["is_multiallelic"].sum() > 0:

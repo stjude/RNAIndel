@@ -164,9 +164,24 @@ def extract_all_valid_reads(alignments, chr, pos, chr_prefixed, window=1):
             and read.has_tag("MD")
         ):
 
-            is_covering = [block[0] <= pos <= block[1] for block in read.get_blocks()]
-            if sum(is_covering) > 0:
-                valid_reads.append(read)
+            cigarstring = read.cigarstring
+            if "N" in cigarstring:
+                is_covering = [
+                    block[0] <= pos <= block[1] for block in read.get_blocks()
+                ]
+                if sum(is_covering) > 0:
+                    valid_reads.append(read)
+            else:
+                start, end = read.reference_start, read.reference_end
+                cigarlst = cigar_ptn.findall(cigarstring)
+                start_adjust = (
+                    int(cigarlst[0].replace("S", "")) if "S" in cigarlst[0] else 0
+                )
+                end_adjust = (
+                    int(cigarlst[-1].replace("S", "")) if "S" in cigarlst[-1] else 0
+                )
+                if start - start_adjust <= pos <= end + end_adjust:
+                    valid_reads.append(read)
 
     return valid_reads
 
@@ -632,7 +647,6 @@ def curate_indel_in_pileup(
     # collect non-indel read by name
     all_read_names = [read.query_name for read in all_reads]
     idl_read_names = [decomp[0].query_name for decomp in filtered_decomposed_idl_reads]
-    idl_read_names = idl_read_names + realigned_indel_read_names
 
     non_idl_read_names = set(all_read_names) - set(idl_read_names)
 
@@ -696,4 +710,5 @@ def curate_indel_in_pileup(
         is_bidirectional,
         is_uniq_mapped,
         non_idl_flanks,
+        realigned_indel_read_names,
     )

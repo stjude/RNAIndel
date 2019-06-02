@@ -66,13 +66,14 @@ def indel_sequence_processor(
     df["indel_complexity"] = df.apply(lambda x: x["s"].indel_complexity, axis=1)
     df["ref_count"] = df.apply(lambda x: x["s"].ref_count, axis=1)
     df["alt_count"] = df.apply(lambda x: x["s"].alt_count, axis=1)
+    df["realigned_sftclips"] = df.apply(lambda x: x["s"].realigned_indel_read_names, axis=1)
     df["is_multiallelic"] = df.apply(lambda x: x["s"].is_multiallelic, axis=1)
     df["is_near_boundary"] = df.apply(lambda x: x["s"].is_near_boundary, axis=1)
     df["is_bidirectional"] = df.apply(lambda x: x["s"].is_bidirectional, axis=1)
     df["is_uniq_mapped"] = df.apply(lambda x: x["s"].is_uniq_mapped, axis=1)
 
     df.drop(["a", "s"], axis=1, inplace=True)
-
+    
     df["filtered"] = df.apply(flag_invalid_entry, axis=1)
 
     df, df_filtered_premerge = df[df["filtered"] == "-"], df[df["filtered"] != "-"]
@@ -316,6 +317,11 @@ def sam_features(row, genome, alignments, mapq, chr_prefixed, softclip_analysis)
         alt_count = None
 
     try:
+        realigned_indel_read_names = idl_bam.realigned_indel_read_names
+    except:
+        realigned_indel_read_names = []
+    
+    try:
         is_multiallelic = idl_bam.is_multiallelic
     except:
         is_multiallelic = 0
@@ -347,6 +353,7 @@ def sam_features(row, genome, alignments, mapq, chr_prefixed, softclip_analysis)
         indel_complexity,
         ref_count,
         alt_count,
+        realigned_indel_read_names,
         is_multiallelic,
         is_near_boundary,
         is_bidirectional,
