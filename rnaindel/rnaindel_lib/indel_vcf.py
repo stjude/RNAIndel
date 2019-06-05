@@ -201,8 +201,8 @@ class IndelVcfReport(object):
             prob = ""
         else:
             prob = "PROB=" + ",".join([str(p) for p in self.PROB])
-
-        anno_lst = [anno.split("|")[:-1] for anno in self.ANNO.split(";")]
+        
+        anno_lst = ["|".join(anno.split("|")[:-1]) for anno in self.ANNO.split(",")]
         anno = "ANNO=" + ",".join(anno_lst)
 
         if not self.MAXMAF or self.MAXMAF == -1:
