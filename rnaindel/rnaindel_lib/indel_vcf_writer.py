@@ -585,7 +585,7 @@ def define_info_dict():
             "COLUMN": ["filtered", "rescued"],
             "Number": "1",
             "Type": "String",
-            "Description": "Rescued by indel nearest to this entry",
+            "Description": "Indel used to rescue this entry",
         },
     }
 
