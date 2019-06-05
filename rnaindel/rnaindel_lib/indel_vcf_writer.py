@@ -477,7 +477,7 @@ def define_info_dict():
             "COLUMN": ["indel_location"],
             "Number": "1",
             "Type": "Float",
-            "Description": "relatice indel location within the transcript coding region",
+            "Description": "relative indel location within the transcript coding region",
         },
         "NMD": {
             "COLUMN": ["is_nmd_insensitive"],
