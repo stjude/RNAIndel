@@ -15,6 +15,8 @@ from .version import __version__
 import rnaindel.bambino_lib as bl
 import rnaindel.rnaindel_lib as rl
 import rnaindel.training_lib as tl
+import rnaindel.nonsomatic_lib as nl
+
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -32,7 +34,8 @@ class Commands(object):
 commands are:
     analysis    Predict somatic indels from tumor RNA-Seq data
     feature     Calculate and report features for training
-    training    Train models""",
+    training    Train models
+    nonsomatic  Create panel of non-somatic indels""",
         )
 
         parser.add_argument("command", help="analysis, feature, or training")
@@ -58,14 +61,30 @@ commands are:
     def training(self):
         run("training")
 
+    def nonsomatic(self):
+        run("nonsomatic")
+
 
 def run(command):
     args = get_args(command)
     data_dir = args.data_dir.rstrip("/")
-    log_dir = args.log_dir.rstrip("/")
     model_dir = "{}/models".format(data_dir)
+    genome = pysam.FastaFile(args.fasta)
+
+    if command == "nonsomatic":
+        cosmic = pysam.TabixFile(
+            "{}/cosmic/CosmicCodingMuts.indel.vcf.gz".format(data_dir)
+        )
+        nl.make_non_somatic_panel(
+            args.vcf_list, args.output_vcf, genome, cosmic, args.count
+        )
+        print("rnaindel nonsomaic completed successfully.", file=sys.stdout)
+        sys.exit(0)
+
+    log_dir = args.log_dir.rstrip("/")
 
     if command == "training":
+
         df = tl.input_validator(args.training_data)
 
         # downsampling
@@ -127,11 +146,9 @@ def run(command):
         print(
             "rnaindel training for " + msg + " completed successfully.", file=sys.stdout
         )
-
     else:
         create_logger(log_dir)
 
-        genome = pysam.FastaFile(args.fasta)
         alignments = pysam.AlignmentFile(args.bam)
         refgene = "{}/refgene/refCodingExon.bed.gz".format(data_dir)
         exons = pysam.TabixFile(refgene)
@@ -250,7 +267,7 @@ def get_args(command):
     prog = "rnaindel " + command
     parser = argparse.ArgumentParser(prog=prog)
 
-    if command != "training":
+    if command == "analysis" or command == "feature":
         parser.add_argument(
             "-b",
             "--bam",
@@ -300,7 +317,7 @@ def get_args(command):
             type=check_folder_existence,
         )
 
-    if command == "analysis":
+    if command == "analysis" or command == "nonsomatic":
         parser.add_argument(
             "-o", "--output-vcf", metavar="FILE", required=True, help="output VCF file"
         )
@@ -326,7 +343,7 @@ def get_args(command):
         )
 
     # input VCF from other callers (optional)
-    if command != "training":
+    if command == "analysis" or command == "feature":
         parser.add_argument(
             "-v",
             "--input-vcf",
@@ -335,7 +352,7 @@ def get_args(command):
             help="input VCF file from other callers",
         )
 
-    if command != "training":
+    if command == "analysis" or command == "feature":
         parser.add_argument(
             "-q",
             "--uniq-mapq",
@@ -355,14 +372,15 @@ def get_args(command):
             help="number of folds in k-fold cross-validation (default: 5)",
         )
 
-    parser.add_argument(
-        "-p",
-        "--process-num",
-        metavar="INT",
-        default=1,
-        type=check_pos_int,
-        help="number of processes (default: 1)",
-    )
+    if command != "nonsomatic":
+        parser.add_argument(
+            "-p",
+            "--process-num",
+            metavar="INT",
+            default=1,
+            type=check_pos_int,
+            help="number of processes (default: 1)",
+        )
 
     if command == "analysis":
         parser.add_argument(
@@ -370,10 +388,10 @@ def get_args(command):
             "--non-somatic-panel",
             metavar="FILE",
             type=partial(check_file, file_name="Panel of non-somatic (.vcf)"),
-            help="user-defined panel of non-somatic indels in VCF format",
+            help="user-defined panel of non-somatic indels in VCF format (tabixed)",
         )
 
-    if command != "training":
+    if command == "analysis" or command == "feature":
         parser.add_argument(
             "-m",
             "--heap-memory",
@@ -382,14 +400,15 @@ def get_args(command):
             help="maximum heap space (default: 6000m)",
         )
 
-    parser.add_argument(
-        "-l",
-        "--log-dir",
-        metavar="DIR",
-        default=os.getcwd(),
-        type=check_folder_existence,
-        help="directory to ouput log files (default: current)",
-    )
+    if command != "nonsomatic":
+        parser.add_argument(
+            "-l",
+            "--log-dir",
+            metavar="DIR",
+            default=os.getcwd(),
+            type=check_folder_existence,
+            help="directory to ouput log files (default: current)",
+        )
 
     if command == "training":
         parser.add_argument(
@@ -414,6 +433,23 @@ def get_args(command):
             default="10",
             type=check_beta,
             help="F_beta to be optimized in parameter_tuning step. optimized for TPR when beta >100 given. (default: 10)",
+        )
+
+    if command == "nonsomatic":
+        parser.add_argument(
+            "--vcf-list",
+            metavar="FILE",
+            required=True,
+            type=check_file,
+            help="File containing paths to VCF file generated from normal samples",
+        )
+
+        parser.add_argument(
+            "--count",
+            metavar="INT",
+            required=True,
+            type=check_pos_int,
+            help="Indels observed >= count in the normal samples used for non-somatic panel creation",
         )
 
     args = parser.parse_args(sys.argv[2:])
@@ -484,9 +520,12 @@ def check_folder_existence(folder):
     return folder
 
 
-def check_file(file_path, file_name):
+def check_file(file_path, file_name=None):
     if not os.path.isfile(file_path):
-        sys.exit("Error: {} Not Found.".format(file_name))
+        if file_name:
+            sys.exit("Error: {} Not Found.".format(file_name))
+        else:
+            sys.exit("Error: {} Not Found.".format(file_path))
     return file_path
 
 
