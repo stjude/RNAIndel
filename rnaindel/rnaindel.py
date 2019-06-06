@@ -72,6 +72,14 @@ def run(command):
     model_dir = "{}/models".format(data_dir)
     genome = pysam.FastaFile(args.fasta)
 
+    # database check
+    path2cosmic = pathlib.Path("{}/cosmic".format(data_dir))
+    if not path2cosmic.exists():
+        print(
+            "Please download the latest database: http://ftp.stjude.org/pub/software/RNAIndel/"
+        )
+        sys.exit(0)
+
     if command == "nonsomatic":
         cosmic = pysam.TabixFile(
             "{}/cosmic/CosmicCodingMuts.indel.vcf.gz".format(data_dir)
