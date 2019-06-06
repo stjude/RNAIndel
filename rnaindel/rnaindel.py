@@ -3,6 +3,7 @@
 import os
 import sys
 import pysam
+import uuid
 import logging
 import pathlib
 import argparse
@@ -461,7 +462,8 @@ def create_logger(log_dir):
     logger.setLevel(logging.INFO)
 
     if log_dir:
-        fh = logging.FileHandler(os.path.join(log_dir, "rna_indel.log"), delay=True)
+        logfilename = "rnaindel_" + str(uuid.uuid4()) + ".log"
+        fh = logging.FileHandler(os.path.join(log_dir, logfilename), delay=True)
         fh.setLevel(logging.INFO)
         fh_formatter = logging.Formatter(
             "%(asctime)s %(module)-12s %(levelname)-8s %(message)s"
