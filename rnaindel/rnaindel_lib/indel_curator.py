@@ -2,6 +2,7 @@
 
 import re
 import random
+import logging
 import numpy as np
 from .most_common import most_common
 from .indel_sequence import SequenceWithIndel
@@ -11,6 +12,7 @@ from .indel_softclip_realigner import realn_softclips
 
 random.seed(123)
 cigar_ptn = re.compile(r"[0-9]+[MIDNSHPX=]")
+logger = logging.getLogger(__name__)
 
 
 def curate_indel_in_genome(genome, chr, pos, idl_type, idl_seq, chr_prefixed):
@@ -165,23 +167,22 @@ def extract_all_valid_reads(alignments, chr, pos, chr_prefixed, window=1):
         ):
 
             cigarstring = read.cigarstring
-            if "N" in cigarstring:
-                is_covering = [
-                    block[0] <= pos <= block[1] for block in read.get_blocks()
-                ]
-                if sum(is_covering) > 0:
+            cigarlst = cigar_ptn.findall(cigarstring)
+
+            start, end = read.reference_start, read.reference_end
+            start -= int(cigarlst[0].replace("S", "")) if "S" in cigarlst[0] else 0
+            end += int(cigarlst[-1].replace("S", "")) if "S" in cigarlst[-1] else 0
+
+            blocks = read.get_blocks()
+            for i, block in enumerate(blocks):
+                if i == 0 and start - window <= pos <= block[1] + window:
                     valid_reads.append(read)
-            else:
-                start, end = read.reference_start, read.reference_end
-                cigarlst = cigar_ptn.findall(cigarstring)
-                start_adjust = (
-                    int(cigarlst[0].replace("S", "")) if "S" in cigarlst[0] else 0
-                )
-                end_adjust = (
-                    int(cigarlst[-1].replace("S", "")) if "S" in cigarlst[-1] else 0
-                )
-                if start - start_adjust <= pos <= end + end_adjust:
+                elif i == len(blocks) - 1 and block[0] - window <= pos <= end + window:
                     valid_reads.append(read)
+                elif block[0] <= pos <= block[1]:
+                    valid_reads.append(read)
+                else:
+                    pass
 
     return valid_reads
 
@@ -619,7 +620,7 @@ def curate_indel_in_pileup(
     if softclip_analysis:
         try:
             reads4sftclip_analysis = extract_all_valid_reads(
-                alignments, chr, pos, chr_prefixed, window=10
+                alignments, chr, pos, chr_prefixed, window=25
             )
             realigned_indel_reads = realn_softclips(
                 reads4sftclip_analysis,
@@ -629,13 +630,19 @@ def curate_indel_in_pileup(
                 idl_flanks,
                 decompose_non_indel_read,
             )
+
             realigned_indel_read_names = [
                 read.query_name for read in realigned_indel_reads
             ]
+            realigned_bidirectional = [
+                read.is_reverse for read in realigned_indel_reads
+            ]
         except:
-            realigned_indel_read_names = []
+            msg = chr + ":" + str(pos) + "-" + str(pos) + ": softclip realignment not performed"
+            logging.warning(msg)
+            realigned_indel_read_names, realigned_bidirectional = [], []
     else:
-        realigned_indel_read_names = []
+        realigned_indel_read_names, realigned_bidirectional = [], []
 
     ###############################
     # Analysis of non-indel reads #
@@ -652,6 +659,17 @@ def curate_indel_in_pileup(
 
     # fragment count by unifiying the read name
     ref_count, alt_count = len(non_idl_read_names), len(set(idl_read_names))
+
+    # get lower bound of ref count
+    lower_bound_ref_count = len(
+        set(
+            [
+                read.query_name
+                for read in all_reads
+                if read.query_sequence == read.get_reference_sequence()
+            ]
+        )
+    )
 
     # sample 10 non-indel reads if too many
     if len(non_idl_read_names) > 10:
@@ -690,11 +708,18 @@ def curate_indel_in_pileup(
 
     # decide if bidirectionally supported
     is_bidirectional = 0
-    if len(set(bidirectional)) == 2:
+    if len(set(bidirectional + realigned_bidirectional)) == 2:
         is_bidirectional = 1
 
     # back to 1-based coordinate
     pos = pos + 1
+
+    # remove read name duplicates
+    realigned_indel_read_names = [
+        read_name
+        for read_name in realigned_indel_read_names
+        if not read_name in idl_read_names
+    ]
 
     return PileupWithIndel(
         chr,
@@ -711,4 +736,5 @@ def curate_indel_in_pileup(
         is_uniq_mapped,
         non_idl_flanks,
         realigned_indel_read_names,
+        lower_bound_ref_count,
     )

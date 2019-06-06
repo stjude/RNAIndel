@@ -248,25 +248,25 @@ def merge_equivalents(df):
     pd.options.mode.chained_assignment = None
 
     # no equivalent indel exists
-    if len(df) == 1:
-        df.loc[:, "equivalence_exists"] = 0
-        merged_softclips = df.realigned_sftclips.sum()
-        df.loc[:, "ref_count"] = df["ref_count"] - len(set(merged_softclips))
-        df.loc[:, "alt_count"] = df["alt_count"] + len(set(merged_softclips))
-        return df
+    #if len(df) == 1:
+    #    df.loc[:, "equivalence_exists"] = 0
+    #    merged_softclips = df.realigned_sftclips.sum()
+    #    df.loc[:, "ref_count"] = df["ref_count"] - len(set(merged_softclips))
+    #    df.loc[:, "alt_count"] = df["alt_count"] + len(set(merged_softclips))
+    #    return df
 
     # merge all equivalent indel counts
     merged_indel_count = df.loc[:, "alt_count"].sum()
 
     # merge recovered softclips
-    merged_softclips = df.realigned_sftclips.sum()
+    merged_softclips = df.loc[:, "realigned_sftclips"].sum()
 
     # adjust ref counts
     diff = merged_indel_count - df["alt_count"]
     df.loc[:, "ref_count"] = df["ref_count"] - diff - len(set(merged_softclips))
 
     # to ascertain the non-negativity
-    df.loc[df["ref_count"] < 0, "ref_count"] = 0
+    df.loc[df["ref_count"] < 0, "ref_count"] = df["lower_bound_ref_count"].min()
 
     # assign the merged indel count
     df.loc[:, "alt_count"] = merged_indel_count + len(set(merged_softclips))
@@ -288,7 +288,7 @@ def merge_equivalents(df):
         df.loc[:, "is_uniq_mapped"] = 1
 
     # flags the presence of equivalents
-    df.loc[:, "equivalence_exists"] = 1
+    df.loc[:, "equivalence_exists"] = 1 if len(df) > 1 else 0
 
     return df
 

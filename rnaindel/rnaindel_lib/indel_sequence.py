@@ -296,7 +296,8 @@ class PileupWithIndel(Indel):
         is_bidirectional (bool): 1 if true 0 otherwise
         is_uniq_mapped (bool): 1 if true 0 otherwise
         non_idl_flanks (list): list of [5' non_indel_read flank, 3' non_indel_read_flank]
-        realigned_indel_read_names (list): list of indel read names recovered by softclip realignment
+        realigned_indel_read_names (list): list of indel read names recovered by softclip realignmenta
+        lower_bound_ref_count (int): count of reads with reference sequence
     """
 
     def __init__(
@@ -315,6 +316,7 @@ class PileupWithIndel(Indel):
         is_uniq_mapped,
         non_idl_flanks,
         realigned_indel_read_names,
+        lower_bound_ref_count,
     ):
 
         Indel.__init__(self, chr, pos, idl_type, idl_seq)
@@ -328,6 +330,7 @@ class PileupWithIndel(Indel):
         self.is_uniq_mapped = is_uniq_mapped
         self.non_idl_flanks = non_idl_flanks
         self.realigned_indel_read_names = realigned_indel_read_names
+        self.lower_bound_ref_count = lower_bound_ref_count
 
     def generate_ref_reads(self):
         """Generates reference read
