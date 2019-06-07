@@ -11,7 +11,6 @@ cigar_ptn = re.compile(r"[0-9]+[MIDNSHPX=]")
 def realn_softclips(
     reads, pos, ins_or_del, idl_seq, idl_flanks, decompose_non_indel_read
 ):
-
     template = make_indel_template(idl_seq, idl_flanks)
 
     candidate_reads = [
@@ -19,7 +18,6 @@ def realn_softclips(
         for read in reads
         if classify_softclip_read(read, pos)
     ]
-   
     if not candidate_reads:
         return []
 
@@ -29,12 +27,10 @@ def realn_softclips(
         )
         for read, softclip_ptrn in candidate_reads
     ]
-
     rv_decomposed = [
         reverse_decomposition(read, pos, ins_or_del, idl_seq)
         for read, softclip_ptrn in candidate_reads
     ]
-
     decomposed_candidates = fw_decomposed + rv_decomposed
 
     compatible_softclip_reads = [
@@ -49,8 +45,8 @@ def realn_softclips(
 def make_indel_template(idl_seq, idl_flanks):
     """Make consensus contig
     """
-    lt_flanks = [flank[0][::-1] for flank in idl_flanks]
-    rt_flanks = [flank[1] for flank in idl_flanks]
+    lt_flanks = [flank[0][::-1] for flank in idl_flanks if flank[0][-1] != "N"]
+    rt_flanks = [flank[1] for flank in idl_flanks if flank[1][0] != "N"]
     lt_template = find_consensus_seq(lt_flanks)[::-1]
     rt_template = find_consensus_seq(rt_flanks)
 
@@ -66,6 +62,9 @@ def get_ith_char(seq, i):
 
 def find_consensus_seq(seq_lst):
     consensus = ""
+    if not seq_lst:
+        return consensus
+
     for i in range(len(max(seq_lst, key=len))):
         ith_chars = [get_ith_char(seq, i) for seq in seq_lst if get_ith_char(seq, i)]
         if most_common(ith_chars) == "N":
@@ -90,20 +89,20 @@ def classify_softclip_read(read, pos):
     read_start = read.reference_start - start_adjust
     end_adjust = int(cigarlst[-1][:-1]) if cigarlst[-1].endswith("S") else 0
     read_end = read.reference_end + end_adjust
-    
+
     if "N" in cigarstring:
         idx_at_splicesite = [
-            i
-            for i, cigartoken in enumerate(cigarlst)
-            if cigartoken.endswith("N")
+            i for i, cigartoken in enumerate(cigarlst) if cigartoken.endswith("N")
         ]
         exonic_cigarlst = split_lst_by_index(cigarlst, idx_at_splicesite)
-        
+
         # merge blocks separated by insertion/deletions
-        deletion_lengths = [int(token[:-1]) for token in cigarlst if token.endswith("D")]
+        deletion_lengths = [
+            int(token[:-1]) for token in cigarlst if token.endswith("D")
+        ]
         d = max(deletion_lengths) if deletion_lengths else 0
         blocks = merge_blocks(read.get_blocks(), d)
-        
+
         idx_at_this_exon = []
         for i, block in enumerate(blocks):
             if i == 0 and read_start <= pos <= block[1]:
@@ -254,11 +253,14 @@ def is_compatible(read_tuple, template_tuple, ins_or_del):
     lt_len = min(len(read_lt_flank), len(template_lt_flank))
     rt_len = min(len(read_rt_flank), len(template_rt_flank))
 
-    # repeat check
+    # count repeat in template
     idl_type = 1 if ins_or_del == "I" else 0
-    template_repeat = repeat(
-        idl_type, template_lt_flank, template_indel, template_rt_flank
-    )
+    if template_lt_flank and template_rt_flank:
+        template_repeat = repeat(
+            idl_type, template_lt_flank, template_indel, template_rt_flank
+        )
+    else:
+        return None
 
     if template_repeat > 0:
         if lt_len == 0 or rt_len == 0:
