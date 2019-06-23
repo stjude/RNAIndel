@@ -39,11 +39,13 @@ class SamFeatures(object):
         ref_count,
         alt_count,
         lower_bound_ref_count,
+        sampling_factor,
         realigned_indel_read_names,
         is_multiallelic,
         is_near_boundary,
         is_bidirectional,
         is_uniq_mapped,
+        mappability,
     ):
 
         self.gc = gc
@@ -58,11 +60,13 @@ class SamFeatures(object):
         self.ref_count = ref_count
         self.alt_count = alt_count
         self.lower_bound_ref_count = lower_bound_ref_count
+        self.sampling_factor = sampling_factor
         self.realigned_indel_read_names = realigned_indel_read_names
         self.is_multiallelic = is_multiallelic
         self.is_near_boundary = is_near_boundary
         self.is_bidirectional = is_bidirectional
         self.is_uniq_mapped = is_uniq_mapped
+        self.mappability = mappability
 
 
 class IndelSnpFeatures(Indel):
@@ -86,6 +90,7 @@ class IndelSnpFeatures(Indel):
         self.clnvr_freq = []
         self.clnvr_info = []
         self.clnvr_origin = []
+        self.germline_id = []
 
     def add_dbsnp_id(self, rs):
         """Add dbSNP ID
@@ -104,12 +109,12 @@ class IndelSnpFeatures(Indel):
             None
         Returns:
             dbSNP ID (str): '-' if the indel is not on dbSNP
-                            delimited with ',' if multiple IDs found
+                            delimited with ';' if multiple IDs found
         """
         if self.dbsnp_id == []:
             return "-"
         else:
-            return ",".join(self.dbsnp_id)
+            return ";".join(self.dbsnp_id)
 
     def add_clnvr_id(self, id):
         """Add ClinVar ID
@@ -127,13 +132,38 @@ class IndelSnpFeatures(Indel):
         Args:
             None
         Returns:
-            ClinVar (str): '-' if the indel is not on ClinVar
-                           delimited with ',' if multiple IDs found
+            ClinVar ID (str): '-' if the indel is not on ClinVar
+                           delimited with ';' if multiple IDs found
         """
         if self.clnvr_id == []:
             return "-"
         else:
-            return ",".join(self.clnvr_id)
+            return ";".join(self.clnvr_id)
+
+    def add_germline_id(self, id):
+        """Add user's germline db ID
+
+        Args:
+            id (str): ID
+        Returns:
+            None
+        """
+        self.germline_id.append(id)
+
+    def report_germline_id(self):
+        """Report user's germline db ID
+
+        Args:
+            None
+        Returns:
+            ID (str): '-' if the indel is not on user's db
+                      delimited with ';' if multiple IDs found
+        """
+        id_lst = list(set(self.germline_id))
+        if id_lst == [] or id_lst == ["."]:
+            return "-"
+        else:
+            return ";".join(id_lst)
 
     def add_dbsnp_freq(self, freq):
         """Add MAF on dbSNP
@@ -143,7 +173,14 @@ class IndelSnpFeatures(Indel):
         Returns:
             None
         """
-        self.dbsnp_freq.append(freq)
+        self.dbsnp_freq.extend(freq)
+
+    def is_common_in_non_cancer_population(self):
+        threshold = 0.0001
+        if len(self.dbsnp_freq) == 3: 
+            return self.dbsnp_freq[2] > threshold
+        else:
+            return False
 
     def add_clnvr_freq(self, freq):
         """Add MAF on ClinVar

@@ -11,7 +11,14 @@ from .model_selection import report_result
 
 
 def selector(
-    df, k, indel_class, artifact_ratio, beta, num_of_processes, max_features="auto"
+    df,
+    k,
+    indel_class,
+    artifact_ratio,
+    beta,
+    num_of_processes,
+    feature_names,
+    max_features="auto",
 ):
     """Select s subset of features optimizing F beta
     
@@ -22,6 +29,7 @@ def selector(
         artifact_ratio (int): downsampling ratio for artifact class
         beta (int): specify F beta score to be optimized
         num_of_processes (int): num of processes in parallelism
+        feature_names (str): filename specifying a subset of features to be selected
         max_features (str or int): maximum num of features considered in sklearn random forest. default to 'auto'
     Returns:
         report_result (tuple): (selected_features (str), fs_f_beta (float), fs_precision (float))
@@ -29,12 +37,15 @@ def selector(
                               fs_f_beta: F beta score optimized in feature selection (fs) step
                               fs_precision: associated precision at the F beta optimum
     """
-
-    remaining_features = features(indel_class)
-
     folds = make_k_folds(df, k, indel_class)
 
-    selected_features = []
+    if feature_names:
+        feature_list = [line.rstrip() for line in open(feature_names)]
+        selected_features = feature_list[:-1]
+        remaining_features = [feature_list[-1]]
+    else:
+        selected_features = []
+        remaining_features = features(indel_class)
 
     result_dict_lst = []
     while remaining_features:
@@ -88,6 +99,7 @@ def greedy_search(
                               precision (float): associated precision
     """
     scores = []
+
     for feature in remaining_features:
 
         selected_features.append(feature)

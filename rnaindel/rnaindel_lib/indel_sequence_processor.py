@@ -6,15 +6,25 @@ Calculates features at sequence and alignment level
 'indel_sequence_processor' is the main routine of this module
 """
 
+import sys
+import logging
 from .most_common import most_common
 from .indel_features import SamFeatures
 from .indel_features import AnnotationFeatures
 from .indel_curator import curate_indel_in_genome
 from .indel_curator import curate_indel_in_pileup
 
+logger = logging.getLogger(__name__)
+
 
 def indel_sequence_processor(
-    df, genome, alignments, mapq, chr_prefixed, softclip_analysis=True
+    df,
+    genome,
+    alignments,
+    mapq,
+    chr_prefixed,
+    downsample_thresholds=None,
+    softclip_analysis=True,
 ):
     """Calculate features from Bambino output, annotation, and .bam
     
@@ -52,6 +62,7 @@ def indel_sequence_processor(
         alignments=alignments,
         mapq=mapq,
         chr_prefixed=chr_prefixed,
+        downsample_thresholds=downsample_thresholds,
         softclip_analysis=softclip_analysis,
         axis=1,
     )
@@ -66,21 +77,31 @@ def indel_sequence_processor(
     df["indel_complexity"] = df.apply(lambda x: x["s"].indel_complexity, axis=1)
     df["ref_count"] = df.apply(lambda x: x["s"].ref_count, axis=1)
     df["alt_count"] = df.apply(lambda x: x["s"].alt_count, axis=1)
-    df["lower_bound_ref_count"] = df.apply(lambda x: x["s"].lower_bound_ref_count, axis=1)
-    df["realigned_sftclips"] = df.apply(lambda x: x["s"].realigned_indel_read_names, axis=1)
+    df["lower_bound_ref_count"] = df.apply(
+        lambda x: x["s"].lower_bound_ref_count, axis=1
+    )
+    df["sampling_factor"] = df.apply(lambda x: x["s"].sampling_factor, axis=1)
+    df["realigned_sftclips"] = df.apply(
+        lambda x: x["s"].realigned_indel_read_names, axis=1
+    )
     df["is_multiallelic"] = df.apply(lambda x: x["s"].is_multiallelic, axis=1)
     df["is_near_boundary"] = df.apply(lambda x: x["s"].is_near_boundary, axis=1)
     df["is_bidirectional"] = df.apply(lambda x: x["s"].is_bidirectional, axis=1)
     df["is_uniq_mapped"] = df.apply(lambda x: x["s"].is_uniq_mapped, axis=1)
-
+    df["mappability"] = df.apply(lambda x: x["s"].mappability, axis=1)
+     
     df.drop(["a", "s"], axis=1, inplace=True)
-    
+
     df["filtered"] = df.apply(flag_invalid_entry, axis=1)
 
     df, df_filtered_premerge = df[df["filtered"] == "-"], df[df["filtered"] != "-"]
 
     # drop original calls rescued by equivalence
     df.dropna(inplace=True)
+
+    if df.empty:
+        logging.warning("No indels passed QC. Analysis done.")
+        sys.exit(0)
 
     return df, df_filtered_premerge
 
@@ -235,7 +256,15 @@ def anno_features(row):
     )
 
 
-def sam_features(row, genome, alignments, mapq, chr_prefixed, softclip_analysis):
+def sam_features(
+    row,
+    genome,
+    alignments,
+    mapq,
+    chr_prefixed,
+    downsample_thresholds,
+    softclip_analysis,
+):
     """Encodes features derived from sequence alignment/map(SAM)
     
     Args:
@@ -263,7 +292,15 @@ def sam_features(row, genome, alignments, mapq, chr_prefixed, softclip_analysis)
     )
     # PileupWithIndel obj in bam
     idl_bam = curate_indel_in_pileup(
-        alignments, chr, pos, idl_type, idl_seq, mapq, chr_prefixed, softclip_analysis
+        alignments,
+        chr,
+        pos,
+        idl_type,
+        idl_seq,
+        mapq,
+        chr_prefixed,
+        downsample_thresholds,
+        softclip_analysis,
     )
 
     # global sequence properties
@@ -276,6 +313,7 @@ def sam_features(row, genome, alignments, mapq, chr_prefixed, softclip_analysis)
     # these consider individual variations such SNPs
     # replace with info from fasta if failed to retrieve
     # info from bam (this may happen if the reads are too short)
+    
     try:
         local_gc = idl_bam.gc(rna_window)
     except:
@@ -323,11 +361,17 @@ def sam_features(row, genome, alignments, mapq, chr_prefixed, softclip_analysis)
         lower_bound_ref_count = 0
 
     try:
+        sampling_factor = idl_bam.sampling_factor
+    except:
+        sampling_factor = 1
+    
+    try:
         realigned_indel_read_names = idl_bam.realigned_indel_read_names
     except:
         realigned_indel_read_names = []
-    
+
     try:
+        r
         is_multiallelic = idl_bam.is_multiallelic
     except:
         is_multiallelic = 0
@@ -347,6 +391,11 @@ def sam_features(row, genome, alignments, mapq, chr_prefixed, softclip_analysis)
     except:
         is_uniq_mapped = 0
 
+    try:
+        mappability = idl_bam.mappability
+    except:
+        mappability = 1
+    
     return SamFeatures(
         gc,
         lc,
@@ -360,11 +409,13 @@ def sam_features(row, genome, alignments, mapq, chr_prefixed, softclip_analysis)
         ref_count,
         alt_count,
         lower_bound_ref_count,
+        sampling_factor,
         realigned_indel_read_names,
         is_multiallelic,
         is_near_boundary,
         is_bidirectional,
         is_uniq_mapped,
+        mappability, 
     )
 
 

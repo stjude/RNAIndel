@@ -58,3 +58,35 @@ def update_featurefile(indel_class, features, model_dir):
         else:
             fw.write(line + "\n")
     fw.close()
+
+
+def update_coverage_info(df, indel_class, model_dir):
+    """Report 90%-quantile coverage in the training set
+
+    Args:
+        df (pandas.DataFrame)
+        indel_class (str): s for single-nucleotide indels, m for multi-nucleotide indel
+        model_dir (str): path to dir where "coverage.txt" is located
+    Returns:
+        None
+    """
+    coveragefile = os.path.join(model_dir, "coverage.txt")
+    fr = open(coveragefile, "r")
+    data = [line.rstrip() for line in fr.readlines()]
+    fr.close()
+    
+    fw = open(coveragefile, "w")
+    for line in data:
+        if line.startswith(indel_class):
+            if indel_class == "s":
+                df = df[df["indel_size"] == 1]
+            else:
+                df = df[df["indel_size"] > 1]
+            df["cov"] =  df.apply(lambda x: (x["ref_count"] + x["alt_count"]), axis=1)
+            coverage_quantile = int(df["cov"].quantile(.9))
+            class_to_be_updated = line.split("\t")[0]
+            newline = class_to_be_updated + "\t" + str(coverage_quantile)
+            fw.write(newline + "\n")
+        else:
+            fw.write(line + "\n")
+    fw.close()        

@@ -14,7 +14,7 @@ from .indel_vcf_preprocessor import parse_vcf_line
 from .indel_vcf_preprocessor import count_padding_bases
 
 
-def indel_snp_annotator(df, genome, dbsnp, clinvar, chr_prefixed):
+def indel_snp_annotator(df, genome, dbsnp, clinvar, germline_db, chr_prefixed):
     """Annotates indels with dbSNP and ClinVar info
 
     Args:
@@ -22,33 +22,45 @@ def indel_snp_annotator(df, genome, dbsnp, clinvar, chr_prefixed):
         genome (pysam.FastaFile): reference genome
         dbsnp (pysam.TabixFile): dbSNP database
         clinvar (pysam.TabixFile): ClinVar database
+        germline_db (pysam.TabixFile): user's germline database. May not be provided. 
         chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
     Returns:
         df (pandas.DataFrame): with SNP info
     """
+    germline_db_chr_prefixed = germline_db.contigs[0].startswith("chr") if germline_db else False
+  
     df["db"] = df.apply(
-        annotate_indel_on_db,
+        database_annotation,
         genome=genome,
         dbsnp=dbsnp,
         clinvar=clinvar,
+        germline_db=germline_db,
         chr_prefixed=chr_prefixed,
+        germline_db_chr_prefixed=germline_db_chr_prefixed,
         axis=1,
     )
     df["dbsnp"] = df.apply(lambda x: x["db"].report_dbsnp_id(), axis=1)
-    df["is_on_dbsnp"] = df.apply(is_on_dbsnp, axis=1)
     df["max_maf"] = df.apply(lambda x: x["db"].report_freq(), axis=1)
     df["is_common"] = df.apply(lambda x: x["db"].is_common(), axis=1)
+    df["is_on_db"] = df.apply(is_on_db, axis=1)
     # df['is_not_pathogenic'] = df.apply(lambda x: x['db'].is_not_pathogenic(), axis=1)
     # df['with_germline_reports'] = df.apply(lambda x: x['db'].with_germline_reports(), axis=1)
     df["clin_info"] = df.apply(lambda x: x["db"].report_clnvr_info(), axis=1)
-    df["is_on_dbsnp"] = df.apply(negate_on_dbsnp_if_pathogenic, axis=1)
+    df["is_on_db"] = df.apply(negate_dbsnp_annotation_if_pathogenic, axis=1)
+
+    # override dbSNP-membership annotation if user's germline db is provided
+    if germline_db:
+        df["germline_db"] = df.apply(lambda x: x["db"].report_germline_id(), axis=1)
+        df["is_on_db"] = df.apply(is_on_db, preset="germline_db", axis=1)
+    else:
+        df["germline_db"] = "-"
 
     df.drop("db", axis=1, inplace=True)
 
     return df
 
 
-def annotate_indel_on_db(row, genome, dbsnp, clinvar, chr_prefixed):
+def database_annotation(row, genome, dbsnp, clinvar, germline_db, chr_prefixed, germline_db_chr_prefixed):
     """Check dbSNP and ClinVar membership by equivalence and annotate.
 
     Args:
@@ -56,6 +68,7 @@ def annotate_indel_on_db(row, genome, dbsnp, clinvar, chr_prefixed):
         genome (pysam.FastaFile): reference genome
         dbsnp (pysam.TabixFile): dbSNP database
         clinvar (pysam.TabixFile): ClinVar database
+        germline_db (pysam.TabixFile): user's germline database
         chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
     Returns:
         report (IndelSnpFeatures): idl object reporting SNP info
@@ -70,12 +83,46 @@ def annotate_indel_on_db(row, genome, dbsnp, clinvar, chr_prefixed):
     # obj representing report of the indel
     report = IndelSnpFeatures(chr, pos, idl_type, idl_seq)
 
+    report = annotate_indel_on_db(
+        idl, report, dbsnp, genome, chr_prefixed, vcf_chr_prefixed=False, preset="dbsnp"
+    )
+    report = annotate_indel_on_db(
+        idl,
+        report,
+        clinvar,
+        genome,
+        chr_prefixed,
+        vcf_chr_prefixed=False,
+        preset="clinvar",
+    )
+    if germline_db:
+        report = annotate_indel_on_db(
+            idl,
+            report,
+            germline_db,
+            genome,
+            chr_prefixed,
+            vcf_chr_prefixed=germline_db_chr_prefixed,
+            preset="germline_db",
+        )
+
+    return report
+
+
+def annotate_indel_on_db(
+    idl, idl_report, db, genome, chr_prefixed, vcf_chr_prefixed, preset
+):
+    
+    chr, pos, idl_type, idl_seq = idl.chr, idl.pos, idl.idl_type, idl.idl_seq
+    
     # search for equivalent indels over pos +/- search_window nt
     search_window = 50
     start, end = pos - search_window, pos + search_window
-    chr_vcf = row["chr"].replace("chr", "")
 
-    for record in dbsnp.fetch(chr_vcf, start, end, parser=pysam.asTuple()):
+    chr_vcf = chr.replace("chr", "")
+    chr_vcf = "chr" + chr_vcf if vcf_chr_prefixed else chr_vcf
+
+    for record in db.fetch(chr_vcf, start, end, parser=pysam.asTuple()):
         bambinos = vcf2bambino(record)
         for bb in bambinos:
             if idl_type == bb.idl_type and len(idl_seq) == len(bb.idl_seq):
@@ -84,43 +131,39 @@ def annotate_indel_on_db(row, genome, dbsnp, clinvar, chr_prefixed):
                     genome, chr, bb.pos, bb.idl_type, bb.idl_seq, chr_prefixed
                 )
                 if idl == db_idl:
-                    rs = record[2]
-                    report.add_dbsnp_id(rs)
-                    report.add_dbsnp_freq(dbsnp_freq(record))
-                    # report.add_dbsnp_origin(dbsnp_origin(record))
-                    report.add_dbsnp_common(dbsnp_common(record))
+                    if preset == "dbsnp":
+                        idl_report.add_dbsnp_id(record[2])
+                        idl_report.add_dbsnp_freq(dbsnp_freq(record))
+                        # idl_report.add_dbsnp_origin(dbsnp_origin(record))
+                        idl_report.add_dbsnp_common(dbsnp_common(record))
+                    elif preset == "clinvar":
+                        idl_report.add_clnvr_id(id)
+                        idl_report.add_clnvr_freq(clnvr_freq(record))
+                        # idl_report.add_clnvr_origin(clnvr_origin(record))
+                        idl_report.add_clnvr_info(cln_info(record))
+                    else:
+                        idl_report.add_germline_id(record[2])
 
-    for record in clinvar.fetch(chr_vcf, start, end, parser=pysam.asTuple()):
-        bambinos = vcf2bambino(record)
-        for bb in bambinos:
-            if idl_type == bb.idl_type and len(idl_seq) == len(bb.idl_seq):
-                db_idl = curate_indel_in_genome(
-                    genome, chr, bb.pos, bb.idl_type, bb.idl_seq, chr_prefixed
-                )
-                if idl == db_idl:
-                    id = record[2]
-                    report.add_clnvr_id(id)
-                    report.add_clnvr_freq(clnvr_freq(record))
-                    # report.add_clnvr_origin(clnvr_origin(record))
-                    report.add_clnvr_info(cln_info(record))
-
-    return report
+    return idl_report
 
 
-def is_on_dbsnp(row):
-    """Encodes if the indel is found on dbSNP 
+def is_on_db(row, preset="dbsnp"):
+    """Encodes if the indel is found on DB
     
     Args:
-        row (pandas.Series): with 'dbsnp' label
+        row (pandas.Series): with preset label
     Returns:
-        is_on_dbsnp (int): 1 if yes 0 othewise
+        is_on_db (int): 1 if True 0 othewise
     """
-    is_on_dbsnp = 0 if row["dbsnp"] == "-" else 1
+    if row["is_common"]:
+        return 1
+    else:
+        is_on_db = 1 if row[preset].startswith("rs") and row["db"].is_common_in_non_cancer_population() else 0
+    
+    return is_on_db
 
-    return is_on_dbsnp
 
-
-def negate_on_dbsnp_if_pathogenic(row):
+def negate_dbsnp_annotation_if_pathogenic(row):
     """Returns 0 if the indel is on dbSNP but rated
     'Pathogenic' or 'Likely pathogenic'. This is to
     prevent pathogenic (possibly tumorigenic) indels
@@ -129,15 +172,15 @@ def negate_on_dbsnp_if_pathogenic(row):
     Args:
         row (pandas.Series): with 'clin_info' and 'is_on_dbsnp' labels 
     Returns:
-        is_on_dbsnp (int): 0 if indel is pathogenic, 
+        is_on_db (int): 0 if indel is pathogenic, 
                            otherwise as annotated in row['is_on_dbsnp']
     """
-    is_on_dbsnp = row["is_on_dbsnp"]
+    is_on_db = row["is_on_db"]
 
     if "Pathogenic" in row["clin_info"] or "Likely_pathogenic" in row["clin_info"]:
-        is_on_dbsnp = 0
+        is_on_db = 0
 
-    return is_on_dbsnp
+    return is_on_db
 
 
 def vcf2bambino(record):
@@ -171,30 +214,29 @@ def dbsnp_freq(record):
     Args:
        record (tuple): vcf line with fields separated in tuple
     Returns:
-       allele_freq (float): the larger value of 1000G and TOPMED
-                            -1 if freq info not avail
-       is_common (int): 1 if annotated as COMMON
-                        0 if not annotated as COMMON
-                       -1 if annoation not avail
-       origin (int): 0 for unspecified origin
-                     1 for germline
-                     2 for somatic
-                     3 for both
-                    -1 for annotation not avail
+       list of freqs 
    """
-    try:
-        kg = re.search(r"(CAF=)([0-9,.e-]+)", record[7]).group(2)
-        kg_af = float(kg.split(",")[1])
-    except:
-        kg_af = -1
+    # 1000G 
+    kg_af = get_freq(record, r"(CAF=)([0-9,.e-]+)")
+    #TOPMED
+    topmed = get_freq(record, r"(TOPMED=)([0-9,.e-]+)")
+    #gnomad non cancer AF
+    noncan = get_freq(record, r"(non_cancer_AF=)([0-9,.e-]+)", non_cancer=True)
+    
+    return [kg_af, topmed, noncan]
 
-    try:
-        topmed = re.search(r"(TOPMED=)([0-9,.e-]+)", record[7]).group(2)
-        topmed_af = float(topmed.split(",")[1])
-    except:
-        topmed_af = -1
 
-    return max(kg_af, topmed_af)
+def get_freq(record, pattern, non_cancer=False):
+    try:
+        freq_str = re.search(pattern, record[7]).group(2)
+        if non_cancer:
+            freq = max([float(af) for af in freq_str.split(",")])
+        else:
+            freq = float(freq_str.split(",")[1])
+    except:
+        freq = -1
+    
+    return freq 
 
 
 def clnvr_freq(record):

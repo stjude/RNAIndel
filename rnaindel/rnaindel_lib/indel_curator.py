@@ -128,11 +128,11 @@ def extract_all_valid_reads(alignments, chr, pos, chr_prefixed, window=1):
         alignments (pysam.AlignmentFile): bam data
         chr (str): chr1-22, chrX or chrY. Note "chr"-prefixed
         pos (int): 0-based coordinate
+        mapq (int): STAR's MAPQ for unique mapper
         chr_prefixed (bool): True if chromosome names are "chr"-prefixed
         window (int): default to 1
     Returns:
         valid_reads (list): a list of pysam.AlignedSegment
-    
     Example:
            locus of interest: chr1:13-13
            
@@ -158,7 +158,6 @@ def extract_all_valid_reads(alignments, chr, pos, chr_prefixed, window=1):
 
     valid_reads = []
     for read in all_reads:
-        # excludes duplicate or non-primary alignments
         if (
             not read.is_duplicate
             and not read.is_secondary
@@ -400,7 +399,7 @@ def decompose_non_indel_read(read, pos, ins_or_del, idl_seq):
         rt = read_seq[i + diff + size :]
         # recover deleted sequnece from the data
         idl_seq = read_seq[i + diff : i + diff + size]
-
+    
     non_idl_flanks = [lt, rt]
 
     return read, idl_seq, non_idl_flanks
@@ -482,14 +481,14 @@ def infer_del_seq_from_data(decomposed_non_idl_reads, idl_flanks, del_seq):
     reads = [decomp[0] for decomp in decomposed_non_idl_reads]
     recovered_del_seq = [decomp[1] for decomp in decomposed_non_idl_reads]
     non_idl_flanks = [decomp[2] for decomp in decomposed_non_idl_reads]
-
+    
     # comparison with reference (del_seq)
     lt_comparison_with_ref = [del_seq == flank[0][-size:] for flank in idl_flanks]
     rt_comparison_with_ref = [del_seq == flank[1][:size] for flank in idl_flanks]
 
     if True in lt_comparison_with_ref or True in rt_comparison_with_ref:
         return inferred_seq
-
+    
     inferred_ptn = []
     for recovered, flank, read in zip(recovered_del_seq, non_idl_flanks, reads):
 
@@ -498,7 +497,7 @@ def infer_del_seq_from_data(decomposed_non_idl_reads, idl_flanks, del_seq):
         ]
         lt_flank_len = len(flank[0])
 
-        rt_comparison_with_data = [recovered == flank[0][:size] for flank in idl_flanks]
+        rt_comparison_with_data = [recovered == flank[1][:size] for flank in idl_flanks]
         rt_flank_len = len(flank[1])
 
         if (
@@ -520,12 +519,20 @@ def infer_del_seq_from_data(decomposed_non_idl_reads, idl_flanks, del_seq):
 
     if inferred_ptn:
         inferred_seq = most_common(inferred_ptn)
-
+    
     return inferred_seq
 
 
 def curate_indel_in_pileup(
-    alignments, chr, pos, idl_type, idl_seq, mapq, chr_prefixed, softclip_analysis
+    alignments,
+    chr,
+    pos,
+    idl_type,
+    idl_seq,
+    mapq,
+    chr_prefixed,
+    downsample_thresholds,
+    softclip_analysis,
 ):
     """Abstract indels in the alignment pileup
     
@@ -537,6 +544,7 @@ def curate_indel_in_pileup(
         idl_seq (str): inserted or deleted sequence
         mapq (int): MAPQ for uniquely mapped reads
         chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
+        downsample_thresholds (dict): Can be None  
         softclip_analysis (bool): True if analyze softclipped indels
     Returns:
         PileupWithIndel object: if indels found as specified with 
@@ -556,8 +564,36 @@ def curate_indel_in_pileup(
         del_or_ins = "I"
 
     # extract all good reads covering the locus of interest
-    all_reads = extract_all_valid_reads(alignments, chr, pos, chr_prefixed)
+    all_reads = extract_all_valid_reads(
+        alignments, chr, pos, chr_prefixed
+    )
+    
+    # mappability 
+    try:
+        uniqueness = [read.mapping_quality == mapq for read in all_reads]
+        mappability = sum(uniqueness)/len(uniqueness)
+    except:
+        mappability = 1
+    
+    # downsampling for coverage > limit learned from training set
+    if downsample_thresholds:
+        sni_cov_lim, mni_cov_lim = (
+            downsample_thresholds["single_nuleotide_indels"],
+            downsample_thresholds["multi_nuleotide_indels"],
+        )
+        estimated_raw_cov = len(all_reads)
 
+        if len(idl_seq) == 1 and estimated_raw_cov > sni_cov_lim:
+            all_reads = random.sample(all_reads, sni_cov_lim)
+            sampling_factor = estimated_raw_cov / sni_cov_lim
+        elif len(idl_seq) > 1 and estimated_raw_cov > mni_cov_lim:
+            all_reads = random.sample(all_reads, mni_cov_lim)
+            sampling_factor = estimated_raw_cov / mni_cov_lim
+        else:
+            sampling_factor = 1
+    else:
+        sampling_factor = 1
+    
     ###########################
     # Analysis of indel reads #
     ###########################
@@ -638,7 +674,14 @@ def curate_indel_in_pileup(
                 read.is_reverse for read in realigned_indel_reads
             ]
         except:
-            msg = chr + ":" + str(pos) + "-" + str(pos) + ": softclip realignment not performed"
+            msg = (
+                chr
+                + ":"
+                + str(pos)
+                + "-"
+                + str(pos)
+                + ": softclip realignment not performed"
+            )
             logging.warning(msg)
             realigned_indel_read_names, realigned_bidirectional = [], []
     else:
@@ -655,10 +698,11 @@ def curate_indel_in_pileup(
     all_read_names = [read.query_name for read in all_reads]
     idl_read_names = [decomp[0].query_name for decomp in filtered_decomposed_idl_reads]
 
-    non_idl_read_names = set(all_read_names) - set(idl_read_names)
+    #non_idl_read_names = list(set(all_read_names) - set(idl_read_names))
+    non_idl_read_names = [name for name in all_read_names if not name in idl_read_names]
 
     # fragment count by unifiying the read name
-    ref_count, alt_count = len(non_idl_read_names), len(set(idl_read_names))
+    ref_count, alt_count = len(set(non_idl_read_names)), len(set(idl_read_names))
 
     # get lower bound of ref count
     lower_bound_ref_count = len(
@@ -674,7 +718,7 @@ def curate_indel_in_pileup(
     # sample 10 non-indel reads if too many
     if len(non_idl_read_names) > 10:
         non_idl_read_names = random.sample(non_idl_read_names, 10)
-
+    
     # decompose non-indel reads
     decomposed_non_idl_reads = [
         decompose_non_indel_read(reads_by_name[name], pos, ins_or_del, idl_seq)
@@ -737,4 +781,6 @@ def curate_indel_in_pileup(
         non_idl_flanks,
         realigned_indel_read_names,
         lower_bound_ref_count,
+        sampling_factor,
+        mappability,
     )

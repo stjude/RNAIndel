@@ -70,7 +70,6 @@ def run(command):
     args = get_args(command)
     data_dir = args.data_dir.rstrip("/")
     model_dir = "{}/models".format(data_dir)
-    genome = pysam.FastaFile(args.fasta)
 
     # database check
     path2cosmic = pathlib.Path("{}/cosmic".format(data_dir))
@@ -85,7 +84,11 @@ def run(command):
             "{}/cosmic/CosmicCodingMuts.indel.vcf.gz".format(data_dir)
         )
         nl.make_non_somatic_panel(
-            args.vcf_list, args.output_vcf, genome, cosmic, args.count
+            args.vcf_list,
+            args.output_vcf,
+            pysam.FastaFile(args.fasta),
+            cosmic,
+            args.count,
         )
         print("rnaindel nonsomaic completed successfully.", file=sys.stdout)
         sys.exit(0)
@@ -93,12 +96,16 @@ def run(command):
     log_dir = args.log_dir.rstrip("/")
 
     if command == "training":
-
-        df = tl.input_validator(args.training_data)
+        df = tl.input_validator(args.training_data, args.indel_class)
 
         # downsampling
         artifact_ratio, ds_f_beta, ds_precision = tl.downsampler(
-            df, args.k_fold, args.indel_class, args.ds_beta, args.process_num
+            df,
+            args.k_fold,
+            args.indel_class,
+            args.ds_beta,
+            args.process_num,
+            args.downsample_ratio,
         )
 
         # feature_selection
@@ -109,6 +116,7 @@ def run(command):
             artifact_ratio,
             args.fs_beta,
             args.process_num,
+            args.feature_names,
         )
 
         # parameter tuning
@@ -121,6 +129,7 @@ def run(command):
             feature_lst,
             args.pt_beta,
             args.process_num,
+            args.auto_param,
         )
 
         # update models
@@ -159,11 +168,17 @@ def run(command):
         create_logger(log_dir)
 
         alignments = pysam.AlignmentFile(args.bam)
+        genome = pysam.FastaFile(args.fasta)
         refgene = "{}/refgene/refCodingExon.bed.gz".format(data_dir)
         exons = pysam.TabixFile(refgene)
         protein = "{}/protein/proteinConservedDomains.txt".format(data_dir)
         dbsnp = pysam.TabixFile("{}/dbsnp/dbsnp.indel.vcf.gz".format(data_dir))
         clinvar = pysam.TabixFile("{}/clinvar/clinvar.indel.vcf.gz".format(data_dir))
+        cosmic = pysam.TabixFile(
+            "{}/cosmic/CosmicCodingMuts.indel.vcf.gz".format(data_dir)
+        )
+
+        germline_db = pysam.TabixFile(args.germline_db) if args.germline_db else None
 
         # preprocessing
         # variant calling will be performed if no external VCF is supplied
@@ -212,8 +227,26 @@ def run(command):
                 softclip_analysis=False,
             )
         else:
+            coverage_in_trainingset = "{}/models/coverage.txt".format(data_dir)
+            downsample_thresholds = {}
+            with open(coverage_in_trainingset) as f:
+                for line in f:
+                    if line.startswith("s"):
+                        downsample_thresholds["single_nuleotide_indels"] = int(
+                            line.rstrip().split("\t")[1]
+                        )
+                    else:
+                        downsample_thresholds["multi_nuleotide_indels"] = int(
+                            line.rstrip().split("\t")[1]
+                        )
+
             df, df_filtered_premerge = rl.indel_sequence_processor(
-                df, genome, alignments, args.uniq_mapq, chr_prefixed
+                df,
+                genome,
+                alignments,
+                args.uniq_mapq,
+                chr_prefixed,
+                downsample_thresholds=downsample_thresholds,
             )
 
         df = rl.indel_protein_processor(df, refgene, protein)
@@ -223,8 +256,10 @@ def run(command):
             df, genome, refgene, chr_prefixed
         )
 
-        # dbSNP annotation
-        df = rl.indel_snp_annotator(df, genome, dbsnp, clinvar, chr_prefixed)
+        # SNP annotation
+        df = rl.indel_snp_annotator(
+            df, genome, dbsnp, clinvar, germline_db, chr_prefixed
+        )
 
         # command "feature" exits here
         if command == "feature":
@@ -251,7 +286,7 @@ def run(command):
         )
         pons = pysam.TabixFile(pons)
 
-        df = rl.indel_reclassifier(df, genome, pons, chr_prefixed)
+        df = rl.indel_reclassifier(df, genome, pons, cosmic, chr_prefixed)
 
         # postProcessing & VCF formatting
         df, df_filtered = rl.indel_postprocessor(
@@ -367,7 +402,7 @@ def get_args(command):
             "--uniq-mapq",
             metavar="INT",
             default=255,
-            type=check_mapq,
+            type=partial(check_int, prest="mapq"),
             help="STAR mapping quality MAPQ for unique mappers (default: 255)",
         )
 
@@ -377,7 +412,7 @@ def get_args(command):
             "--k-fold",
             metavar="INT",
             default=5,
-            type=check_k_fold,
+            type=partial(check_int, preset="k_fold"),
             help="number of folds in k-fold cross-validation (default: 5)",
         )
 
@@ -387,7 +422,7 @@ def get_args(command):
             "--process-num",
             metavar="INT",
             default=1,
-            type=check_pos_int,
+            type=check_int,
             help="number of processes (default: 1)",
         )
 
@@ -396,7 +431,7 @@ def get_args(command):
             "-n",
             "--non-somatic-panel",
             metavar="FILE",
-            type=partial(check_file, file_name="Panel of non-somatic (.vcf)"),
+            type=partial(check_file, file_name="Panel of non-somatic (.vcf.gz)"),
             help="user-defined panel of non-somatic indels in VCF format (tabixed)",
         )
 
@@ -407,6 +442,15 @@ def get_args(command):
             metavar="STR",
             default="6000m",
             help="maximum heap space (default: 6000m)",
+        )
+
+    if command == "analysis" or command == "feature":
+        parser.add_argument(
+            "-g",
+            "--germline-db",
+            metavar="FILE",
+            type=check_file,
+            help="user-provided germline database in VCF format (tabixed)",
         )
 
     if command != "nonsomatic":
@@ -421,10 +465,33 @@ def get_args(command):
 
     if command == "training":
         parser.add_argument(
+            "--downsample-ratio",
+            metavar="INT",
+            default=None,
+            type=partial(check_int, preset="downsample"),
+            help="Train with specified downsample ratio in [1, 20]. (default: None)",
+        )
+
+        parser.add_argument(
+            "--feature-names",
+            metavar="FILE",
+            default=None,
+            type=check_file,
+            help="Train with specified subset of features. Supply as file containing a feature name per line (default: None)",
+        )
+
+        parser.add_argument(
+            "--auto-param",
+            metavar="BOOL",
+            default=False,
+            help='Train with sklearn.RandomForestClassifer\'s max_features="auto" (default: False)',
+        )
+
+        parser.add_argument(
             "--ds-beta",
             metavar="INT",
             default="10",
-            type=check_beta,
+            type=check_int,
             help="F_beta to be optimized in down_sampling step. optimized for TPR when beta >100 given. (default: 10)",
         )
 
@@ -432,7 +499,7 @@ def get_args(command):
             "--fs-beta",
             metavar="INT",
             default="10",
-            type=check_beta,
+            type=check_int,
             help="F_beta to be optimized in feature selection step. optimized for TPR when beta >100 given. (default: 10)",
         )
 
@@ -440,7 +507,7 @@ def get_args(command):
             "--pt-beta",
             metavar="INT",
             default="10",
-            type=check_beta,
+            type=check_int,
             help="F_beta to be optimized in parameter_tuning step. optimized for TPR when beta >100 given. (default: 10)",
         )
 
@@ -457,7 +524,7 @@ def get_args(command):
             "--count",
             metavar="INT",
             required=True,
-            type=check_pos_int,
+            type=check_int,
             help="Indels observed >= count in the normal samples used for non-somatic panel creation",
         )
 
@@ -485,27 +552,20 @@ def create_logger(log_dir):
     return logger
 
 
-def check_pos_int(val):
+def check_int(val, preset=None):
     val = int(val)
-    if val <= 0:
-        sys.exit("Error: the number of processes must be a positive integer.")
-    return val
-
-
-def check_k_fold(val):
-    val = int(val)
-    if val <= 1:
+    if val <= 0 and not preset:
+        sys.exit("Error: the input must be a positive integer.")
+    elif val <= 1 and preset == "k_fold":
         sys.exit(
             "Error: the number of folds must be a positive integer greater than 1."
         )
-    return val
-
-
-def check_mapq(val):
-    val = int(val)
-    if not 0 <= val <= 255:
-        sys.exit("Error: the MAPQ value must be between 0 and 255.")
-    return val
+    elif not 0 <= val <= 255 and prest == "mapq":
+        sys.exit("Error: the MAPQ value must be an integer between 0 and 255.")
+    elif not 1 <= val <= 20 and preset == "downsample":
+        sys.exit("Error: downsample ratio must be an integer between 1 and 20")
+    else:
+        return val
 
 
 def check_indel_class(val):
@@ -513,13 +573,6 @@ def check_indel_class(val):
         sys.exit(
             "Error: indel class must be s for single-nucleotide indels (1-nt) or m for multi-nucleotide indels (>1-nt) indels"
         )
-    return val
-
-
-def check_beta(val):
-    val = int(val)
-    if val < 1:
-        sys.exit("Error: beta must be an interger larger than 0.")
     return val
 
 

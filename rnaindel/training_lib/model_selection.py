@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import sys
 import numpy as np
 import pandas as pd
 from functools import partial
@@ -7,26 +8,36 @@ from multiprocessing import Pool
 from sklearn.ensemble import RandomForestClassifier
 
 
-def input_validator(filename):
+def input_validator(filename, indel_class):
     """Validate and shuffle data
     Args:
         filename (str): path to input training data
+        indel_class (str): "s" for 1-nt, "m" for >1-nt indels
     Returns
         df (pandas.DataFrame)
     """
     df = pd.read_csv(filename, sep="\t")
-    
+
     if not "truth" in df.columns:
-        sys.exit("Error: column label \"truth\" not found.")
+        sys.exit('Error: column label "truth" not found.')
+
+    if indel_class == "s":
+        df = df[df["indel_size"] == 1]
+    else:
+        df = df[df["indel_size"] > 1]
     
     truth_set = set(df["truth"].values.tolist())
-    
     if truth_set != {"somatic", "germline", "artifact"}:
-        sys.exit("Error: invalid values in column \"truth\"")
-    
+        which_class = (
+            "single-nucleotide indels."
+            if indel_class == "s"
+            else "multi-nucleotide indels."
+        )
+        sys.exit('Error: invalid values in column "truth" for ' + which_class)
+
     # shuffle
     df = df.sample(frac=1, random_state=111).reset_index(drop=True)
-    
+
     return df
 
 
@@ -263,15 +274,11 @@ def make_score_dict(param_to_be_optimized, stat_arr, beta):
     """
     f_beta = calculate_performance_score(stat_arr, beta)
     f_label = "tpr" if beta > 100 else "f" + str(beta)
-        
+
     # precision (beta = 0)
     precision = calculate_performance_score(stat_arr, 0)
 
-    d = {
-        "param": param_to_be_optimized,
-        f_label: f_beta,
-        "precision": precision,
-    }
+    d = {"param": param_to_be_optimized, f_label: f_beta, "precision": precision}
 
     return d
 
@@ -310,8 +317,8 @@ def report_result(df, beta):
     Returns:
         best (tuple): (optimized param name, primary score, secondary score)
     """
-    f_label = "tpr" if beta > 100 else "f" + str(beta)  
-    
+    f_label = "tpr" if beta > 100 else "f" + str(beta)
+
     # check if entry with highest f_beta is uniq
     df = df[df[f_label] == df[f_label].max()]
 
@@ -381,7 +388,7 @@ def features(indel_class):
         "indel_location",
         "equivalence_exists",
         "ipg",
-        "is_on_dbsnp",
+        "is_on_db",
     ]
 
     features_m = [
@@ -411,7 +418,7 @@ def features(indel_class):
         "is_in_cdd",
         "equivalence_exists",
         "ipg",
-        "is_on_dbsnp",
+        "is_on_db",
     ]
 
     if indel_class == "s":

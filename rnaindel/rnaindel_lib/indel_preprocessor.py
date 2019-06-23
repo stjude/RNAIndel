@@ -44,14 +44,14 @@ def indel_preprocessor(bambinofile, genome, alignments, exons):
 
     df = pd.read_csv(bambinofile, sep="\t", dtype={"dbSNP": str})
 
-    if len(df) == 0:
+    if df.empty:
         logging.critical("Error: no variants called by the built-in caller.")
         sys.exit(1)
 
     df = extract_necessary_info(df)
     df = extract_indel_calls(df)
 
-    if len(df) == 0:
+    if df.empty:
         logging.warning("No indels detected in variant calling. Analysis done.")
         sys.exit(0)
 

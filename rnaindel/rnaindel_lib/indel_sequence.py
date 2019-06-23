@@ -258,7 +258,6 @@ class PileupWithIndelNotFound(Indel):
         self.is_multiallelic = None
         self.is_near_boundary = None
         self.is_bidirectional = None
-        self.is_uniq_mapped = None
 
     def repeat(self):
         return None
@@ -298,6 +297,8 @@ class PileupWithIndel(Indel):
         non_idl_flanks (list): list of [5' non_indel_read flank, 3' non_indel_read_flank]
         realigned_indel_read_names (list): list of indel read names recovered by softclip realignmenta
         lower_bound_ref_count (int): count of reads with reference sequence
+        sampling_factor (float): raw coverage/down-sampled coverage
+        mappability (float): fraction of unique mappers in the pileup
     """
 
     def __init__(
@@ -317,6 +318,8 @@ class PileupWithIndel(Indel):
         non_idl_flanks,
         realigned_indel_read_names,
         lower_bound_ref_count,
+        sampling_factor,
+        mappability,
     ):
 
         Indel.__init__(self, chr, pos, idl_type, idl_seq)
@@ -331,6 +334,9 @@ class PileupWithIndel(Indel):
         self.non_idl_flanks = non_idl_flanks
         self.realigned_indel_read_names = realigned_indel_read_names
         self.lower_bound_ref_count = lower_bound_ref_count
+        self.sampling_factor = sampling_factor
+        self.mappability = mappability
+
 
     def generate_ref_reads(self):
         """Generates reference read

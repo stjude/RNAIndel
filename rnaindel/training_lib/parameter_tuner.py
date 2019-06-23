@@ -9,7 +9,16 @@ from .model_selection import report_result
 from sklearn.model_selection import ParameterGrid
 
 
-def tuner(df, k, indel_class, artifact_ratio, features, beta, num_of_processes):
+def tuner(
+    df,
+    k,
+    indel_class,
+    artifact_ratio,
+    features,
+    beta,
+    num_of_processes,
+    auto_param,
+):
     """Optimize the maximum number of features considered in sklearn random forest model
 
     Args: 
@@ -20,6 +29,7 @@ def tuner(df, k, indel_class, artifact_ratio, features, beta, num_of_processes):
         features (list): a list of feature names
         beta (int): specify F beta score to be optimized
         num_of_processes (int): num of processes in parallelism
+        auto_param (bool): Train with sklearn's default params if True 
     Returns:
         report_result (tuple): (max_features (int), pt_f_beta (float), pt_precision)
                                 max_features: maximum num of features 
@@ -32,7 +42,13 @@ def tuner(df, k, indel_class, artifact_ratio, features, beta, num_of_processes):
 
     # somatic:germline:artifact = 1:1:x for 1 <= x <= 20
     result_dict_lst = []
-    for param in prepare_grid(indel_class, n_features):
+
+    search_space = (
+        [{"max_features": "auto"}]
+        if auto_param
+        else prepare_grid(indel_class, n_features)
+    )
+    for param in search_space:
         # k-fold CrossValidation
         max_features = param["max_features"]
         stats = perform_k_fold_cv(

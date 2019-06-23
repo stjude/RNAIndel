@@ -8,6 +8,7 @@ Find equivalent indels and merge them.
 
 import os
 import re
+import math
 import pathlib
 import numpy as np
 import pandas as pd
@@ -43,7 +44,16 @@ def indel_equivalence_solver(df, genome, refgene, chr_prefixed):
     dfg = df.groupby("gene_symbol")
     df = dfg.apply(indels_per_gene, d=acc_len)
 
-    df.drop(["gene_symbol", "equivalence_id"], axis=1, inplace=True)
+    df.drop(
+        [
+            "gene_symbol",
+            "equivalence_id",
+            "realigned_sftclips",
+            "lower_bound_ref_count",
+        ],
+        axis=1,
+        inplace=True,
+    )
 
     df["filtered"] = df.apply(flag_entry_with_one_read, axis=1)
 
@@ -248,7 +258,7 @@ def merge_equivalents(df):
     pd.options.mode.chained_assignment = None
 
     # no equivalent indel exists
-    #if len(df) == 1:
+    # if len(df) == 1:
     #    df.loc[:, "equivalence_exists"] = 0
     #    merged_softclips = df.realigned_sftclips.sum()
     #    df.loc[:, "ref_count"] = df["ref_count"] - len(set(merged_softclips))
@@ -260,16 +270,18 @@ def merge_equivalents(df):
 
     # merge recovered softclips
     merged_softclips = df.loc[:, "realigned_sftclips"].sum()
+    samping_factor = df.loc[:, "sampling_factor"].max()
+    rescued_softclip_num = math.floor(len(set(merged_softclips))/samping_factor)
 
     # adjust ref counts
     diff = merged_indel_count - df["alt_count"]
-    df.loc[:, "ref_count"] = df["ref_count"] - diff - len(set(merged_softclips))
+    df.loc[:, "ref_count"] = df["ref_count"] - diff - rescued_softclip_num
 
     # to ascertain the non-negativity
     df.loc[df["ref_count"] < 0, "ref_count"] = df["lower_bound_ref_count"].min()
 
     # assign the merged indel count
-    df.loc[:, "alt_count"] = merged_indel_count + len(set(merged_softclips))
+    df.loc[:, "alt_count"] = max(merged_indel_count + rescued_softclip_num, 2)
 
     # homoginizes 'is_multiallelic' for equivalents
     if df["is_multiallelic"].sum() > 0:

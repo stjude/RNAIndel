@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 
-import re
 from .indel_sequence import Indel
 from .left_aligner import peek_left_base
 from .left_aligner import lt_aln
-
-snp_ptn = re.compile(r"rs[0-9]+")
 
 
 class IndelVcfReport(object):
@@ -61,7 +58,7 @@ class IndelVcfReport(object):
         Returns:
             self.__ID (str) or . (str)
         """
-        if self.__ID and self.__ID.startswith("rs"):
+        if self.__ID:
             return self.__ID
         else:
             return "."
@@ -74,9 +71,6 @@ class IndelVcfReport(object):
             ID (str): dbSNP IDs with any delimiter
         """
         self.__ID = ID
-        if self.__ID:
-            rs_lst = snp_ptn.findall(ID)
-            self.__ID = ";".join(rs_lst)
 
     @property
     def REF(self):
@@ -222,7 +216,7 @@ class IndelVcfReport(object):
         if not self.REP:
             rep = ""
         else:
-            rep = "REP=" + str(self.REP)
+            rep = "REP=" + str(int(self.REP))
         
         if not self.LC:
             lc = ""
@@ -292,12 +286,12 @@ class IndelVcfReport(object):
         if not self.REFC:
             refc = ""
         else:
-            refc = "REFC=" + str(self.REFC)
+            refc = "REFC=" + str(int(self.REFC))
 
         if not self.ALTC:
             altc = ""
         else:
-            altc = "ALTC=" + str(self.ALTC)
+            altc = "ALTC=" + str(int(self.ALTC))
         
         bid = "BID"
         if not self.BID or self.BID == 0:
@@ -354,7 +348,7 @@ class IndelVcfReport(object):
         else:
             len = "LEN=" + str(self.LEN)
 
-        dbsnp = "DBSNP"
+        dbsnp = "SNP"
         if not self.DBSNP or self.DBSNP == 0:
             dbsnp = ""
 
@@ -449,7 +443,7 @@ class IndelVcfReport(object):
         self.NMD = INFO["NMD"]
         self.IPG = INFO["IPG"]
         self.LEN = INFO["LEN"]
-        self.DBSNP= INFO["DBSNP"]
+        self.DBSNP= INFO["SNP"]
         self.RCF = INFO["RCF"]
         self.RQB = INFO["RQB"]
 

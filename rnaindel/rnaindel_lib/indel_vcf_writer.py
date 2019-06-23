@@ -53,7 +53,7 @@ def indel_vcf_writer(
 
     info = define_info_dict()
     fmt = define_format_dict()
-    
+
     df["vcf"] = df.apply(
         generate_indel_vcf,
         info_dict=info,
@@ -88,9 +88,22 @@ def generate_indel_vcf(row, info_dict, format_dict, genome, chr_prefixed):
 
     # dbSNP ID
     if row["dbsnp"] == row["dbsnp"]:
-        idl_vcf.ID = row["dbsnp"]
+        idl_vcf.ID = None if row["dbsnp"] == "-" else row["dbsnp"]
     else:
         idl_vcf.ID = None
+
+    # user-provided database ID
+    if row["germline_db"] == row["germline_db"]:
+        if idl_vcf.ID:
+            if row["germline_db"] != "-":
+                idl_vcf.ID = idl_vcf.ID + ";" + row["germline_db"]
+            else:
+                pass
+        else:
+            if row["germline_db"] != "-":
+                idl_vcf.ID = row["germline_db"]
+            else:
+                pass
 
     # FILTER
     idl_vcf.FILTER = row["filtered"]
@@ -177,9 +190,9 @@ def vcf_template(alignments, fasta, info_dict, format_dict, model_dir, version):
         "##filedate=" + get_today(),
         "##source=RNAIndelv" + version,
         "##reference=" + fasta,
-        '##FILTER=<ID=NtF,Description="Not found as specified in the input VCF">',
+        '##FILTER=<ID=NtF,Description="Not found in the BAM file as specified in the input VCF">',
         '##FILTER=<ID=Lt2,Description="Less than 2 ALT allele count">',
-        '##FILTER=<ID=RqN,Description="Rescued with nearest indel">',
+        '##FILTER=<ID=RqN,Description="Rescued by nearest indel">',
     ]
 
     info_order = [
@@ -219,7 +232,7 @@ def vcf_template(alignments, fasta, info_dict, format_dict, model_dir, version):
         "NMD",
         "IPG",
         "LEN",
-        "DBSNP",
+        "SNP",
         "RCF",
         "RQB",
     ]
@@ -290,7 +303,7 @@ def format_used_features(model_dir):
         "indel_location": "LOC",
         "is_nmd_insensitive": "NMD",
         "ipg": "IPG",
-        "coding_sequence_length": "LEN",
+        "cds_length": "LEN",
         "lc": "LC",
         "local_lc": "LLC",
         "gc": "GC",
@@ -304,7 +317,7 @@ def format_used_features(model_dir):
         "is_gc_del": "GCD",
         "ref_count": "REFC",
         "alt_count": "ALTC",
-        "is_on_dbsnp": "DBSNP",
+        "is_on_db": "SNP",
     }
 
     feature_dict = make_feature_dict(model_dir)
@@ -362,18 +375,18 @@ def define_info_dict():
             "Description": "Prediction probability of "
             "being somatic, germline, artifact in this order",
         },
-        "DBSNP": {
-            "COLUMN": ["is_on_dbsnp"],
+        "SNP": {
+            "COLUMN": ["is_on_db"],
             "Number": "0",
             "Type": "Flag",
-            "Description": "Flagged if on dbSNP",
+            "Description": "Present on SNP database (modified dbSNP/gnomAD (default) or user-provided database)",
         },
         "ANNO": {
             "COLUMN": ["annotation"],
             "Number": ".",
             "Type": "String",
-            "Description": "Indel annotation in "
-            "GeneSymbol|RefSeqAccession|CodonPos|IndelEffect. "
+            "Description": "Indel annotation formatted as "
+            "GeneSymbol|RefSeqAccession|CodonPos|IndelEffect"
             "Delimited by comma for multiple isoforms",
         },
         "MAXMAF": {
@@ -381,31 +394,31 @@ def define_info_dict():
             "Number": "1",
             "Type": "Float",
             "Description": "Maximum minor allele frequency (MAF) "
-            "reported in dbSNP or ClinVar",
+            "reported in dbSNP, ClinVar and gnomAD non-cancer population",
         },
         "COMMON": {
             "COLUMN": ["is_common"],
             "Number": "0",
             "Type": "Flag",
-            "Description": "Flagged if curated Common on dbSNP or MAXMAF > 0.01",
+            "Description": "Common in dbSNP or MAXMAF > 0.01",
         },
         "CLIN": {
             "COLUMN": ["clin_info"],
             "Number": "1",
             "Type": "String",
-            "Description": "Clinical Significance|Condition curated in ClinVar",
+            "Description": "ClinVar annotation formatted as ClinicalSignificance|Condition",
         },
         "ICP": {
             "COLUMN": ["indel_complexity"],
             "Number": "1",
             "Type": "Integer",
-            "Description": "Indel complexity",
+            "Description": "Indel complexity: mismatches around the indel measured by edit distance",
         },
         "DSM": {
             "COLUMN": ["dissimilarity"],
             "Number": "1",
             "Type": "Float",
-            "Description": "Dissimilarity",
+            "Description": "Dissimilarity: edit distance between indel and flanking sequences",
         },
         "ISZ": {
             "COLUMN": ["indel_size"],
@@ -417,73 +430,73 @@ def define_info_dict():
             "COLUMN": ["repeat"],
             "Number": "1",
             "Type": "Integer",
-            "Description": "Repeat",
+            "Description": "Repeat: count of the indel-sequence repeats in flanking region",
         },
         "UQM": {
             "COLUMN": ["is_uniq_mapped"],
             "Number": "0",
             "Type": "Flag",
-            "Description": "Flagged if supported by uniquely mapped reads",
+            "Description": "Supported by uniquely mapped reads",
         },
         "NEB": {
             "COLUMN": ["is_near_boundary"],
             "Number": "0",
             "Type": "Flag",
-            "Description": "Flagged if near exon boundary",
+            "Description": "Near exon boundary",
         },
         "EQX": {
             "COLUMN": ["equivalence_exists"],
             "Number": "0",
             "Type": "Flag",
-            "Description": "Flagged if equivalent alignments exist for the indel",
+            "Description": "Equivalent alignments exist for the indel",
         },
         "BID": {
             "COLUMN": ["is_bidirectional"],
             "Number": "0",
             "Type": "Flag",
-            "Description": "Flagged if supported by forward and reverse reads",
+            "Description": "Supported by forward and reverse reads",
         },
         "MTA": {
             "COLUMN": ["is_multiallelic"],
             "Number": "0",
             "Type": "Flag",
-            "Description": "Flagged if multialleleic",
+            "Description": "Multialleleic",
         },
         "FRM": {
             "COLUMN": ["is_inframe"],
             "Number": "0",
             "Type": "Flag",
-            "Description": "Flagged if inframe indel",
+            "Description": "In-frame indel",
         },
         "SPL": {
             "COLUMN": ["is_splice"],
             "Number": "0",
             "Type": "Flag",
-            "Description": "Flagged if occurred in splice region",
+            "Description": "Located in splice region",
         },
         "TRN": {
             "COLUMN": ["is_truncating"],
             "Number": "0",
             "Type": "Flag",
-            "Description": "Flagged if truncating indel",
+            "Description": "Truncating indel",
         },
         "CDD": {
             "COLUMN": ["is_in_cdd"],
             "Number": "0",
             "Type": "Flag",
-            "Description": "Flagged if ocurred in conserved domain",
+            "Description": "Located in conserved domain",
         },
         "LOC": {
             "COLUMN": ["indel_location"],
             "Number": "1",
             "Type": "Float",
-            "Description": "relative indel location within the transcript coding region",
+            "Description": "Relative indel location within the transcript coding region",
         },
         "NMD": {
             "COLUMN": ["is_nmd_insensitive"],
             "Number": "0",
             "Type": "Flag",
-            "Description": "Flagged if insensitive to nonsense mediated decay",
+            "Description": "Insensitive to nonsense mediated decay",
         },
         "IPG": {
             "COLUMN": ["ipg"],
@@ -501,91 +514,91 @@ def define_info_dict():
             "COLUMN": ["lc"],
             "Number": "1",
             "Type": "Float",
-            "Description": "Linguistic complexity of nucleotide sequence",
+            "Description": "Linguistic complexity: diversity of k-mers in flanking 50-bp region",
         },
         "LLC": {
             "COLUMN": ["local_lc"],
             "Number": "1",
             "Type": "Float",
-            "Description": "Local linguistic complexity of nucleotide sequence",
+            "Description": "Local linguistic complexity: diversity of k-mers in flanking 6-bp region",
         },
         "GC": {
             "COLUMN": ["gc"],
             "Number": "1",
             "Type": "Float",
-            "Description": "GC-content of nucleotide sequence",
+            "Description": "GC-content in flanking 50-bp region",
         },
         "LGC": {
             "COLUMN": ["local_gc"],
             "Number": "1",
             "Type": "Float",
-            "Description": "Local GC-content of nucleotide sequence",
+            "Description": "Local GC-content in flanking 6-bp region",
         },
         "SG": {
             "COLUMN": ["strength"],
             "Number": "1",
             "Type": "Float",
-            "Description": "Strength of nucleotide sequence",
+            "Description": "DNA bond strength of 2-mers in flanking 50-bp region",
         },
         "LSG": {
             "COLUMN": ["local_strength"],
             "Number": "1",
             "Type": "Float",
-            "Description": "Local strength of nucleotide sequence",
+            "Description": "Local DNA bond strength of 2-mers in flanking 6-bp region",
         },
         "INS": {
             "COLUMN": ["is_ins"],
             "Number": "0",
             "Type": "Flag",
-            "Description": "Flagged if insertion",
+            "Description": "Insertion",
         },
         "ATI": {
             "COLUMN": ["is_at_ins"],
             "Number": "0",
             "Type": "Flag",
-            "Description": "Flagged if a signle insertion of A or T",
+            "Description": "Single insertion of A or T",
         },
         "ATD": {
             "COLUMN": ["is_at_del"],
             "Number": "0",
             "Type": "Flag",
-            "Description": "Flagged if a single deletion of A or T",
+            "Description": "Single deletion of A or T",
         },
         "GCI": {
             "COLUMN": ["is_gc_ins"],
             "Number": "0",
             "Type": "Flag",
-            "Description": "Flagged if a single insertion of G or C",
+            "Description": "Single insertion of G or C",
         },
         "GCD": {
             "COLUMN": ["is_gc_del"],
             "Number": "0",
             "Type": "Flag",
-            "Description": "Flagged if a single deletion of G or C",
+            "Description": "Single deletion of G or C",
         },
         "ALTC": {
             "COLUMN": ["alt_count"],
             "Number": "1",
             "Type": "Integer",
-            "Description": "The number of unique reads supporting ALT allele",
+            "Description": "Alt count: count of unique reads supporting ALT allele",
         },
         "REFC": {
             "COLUMN": ["ref_count"],
             "Number": "1",
             "Type": "Integer",
-            "Description": "The number of unique reads supporting REF allele",
+            "Description": "Ref count: count of unique reads supporting REF allele",
         },
         "RCF": {
             "COLUMN": ["reclassified"],
             "Number": "0",
             "Type": "Flag",
-            "Description": "Flagged if reclassified",
+            "Description": "Reclassification applied",
         },
         "RQB": {
             "COLUMN": ["filtered", "rescued"],
             "Number": "1",
             "Type": "String",
-            "Description": "Indel used to rescue this entry",
+            "Description": "Indel used to rescue this entry formatted as CHROM:POS:REF:ALT",
         },
     }
 
@@ -604,8 +617,8 @@ def define_format_dict():
             "COLUMN": ["ref_count", "alt_count"],
             "Number": "R",
             "Type": "Integer",
-            "Description": "Allelic depths by fragment (not read) "
-            "for the ref and alt alleles in the order listed",
+            "Description": "Allelic depths (by unique read count) "
+            "for the REF and ALT alleles in the order listed",
         }
     }
 

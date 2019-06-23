@@ -53,9 +53,16 @@ def indel_postprocessor(df, df_filtered, genome, exons, chr_prefixed):
         sys.exit(0)
 
     df = unify_equivalent_indels(df)
+    
+    df["ref_count"], df["alt_count"] = zip(*df.apply(estimate_unsampled_allele_count, axis=1))
 
     return df, df_filtered
 
+
+def estimate_unsampled_allele_count(row):
+    row["ref_count"] = round(row["ref_count"] * row["sampling_factor"])
+    row["alt_count"] = round(row["alt_count"] * row["sampling_factor"])
+    return row["ref_count"], row["alt_count"]
 
 def unify_equivalent_indels(df):
     """Unify equivalent indels with highest somatic probability
