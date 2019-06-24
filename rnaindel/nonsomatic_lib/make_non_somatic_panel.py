@@ -4,8 +4,10 @@ import os
 import sys
 import datetime
 import pandas as pd
-from .variant import Variant
 from collections import Counter
+
+from .variant import Variant
+from .variant import make_indel_from_vcf_line
 
 
 def make_non_somatic_panel(file_lst, panelname, genome, cosmic_db, cnt):
@@ -82,13 +84,12 @@ def populate_data(row):
 
 
 def filter_indels(file_lst, genome, cosmic_db, cnt):
-
     vcf_lst = validate_file_lst(file_lst)
     processed_vcfs = [process_vcf_file(vcf, genome) for vcf in vcf_lst]
     indel_lst = to_flat_lst(processed_vcfs)
     frequent_indels = [(k, v) for k, v in Counter(indel_lst).items() if v >= cnt]
     non_cosmic_frequent_indels = [
-        (k, v) for k, v in frequent_indels if is_not_in_cosmic(k, genome, cosmic_db)
+        (k, v) for k, v in frequent_indels if is_absent_in_cosmic(k, genome, cosmic_db)
     ]
 
     return non_cosmic_frequent_indels
@@ -118,55 +119,22 @@ def validate_file_lst(filename):
 def process_vcf_file(vcf, genome):
     f = open(vcf)
     parsed_lines = [
-        parse_vcf_line(line, genome) for line in f if parse_vcf_line(line, genome)
+        make_indel_from_vcf_line(line, genome)
+        for line in f
+        if make_indel_from_vcf_line(line, genome)
     ]
+    f.close()
     return to_flat_lst(parsed_lines)
 
 
-def parse_vcf_line(line, genome):
-    if line.startswith("#"):
-        return None
-
-    lst = line.rstrip().split("\t")
-    chrom, pos = lst[0], int(lst[1])
-    ref, alts = lst[3], lst[4].split(",")
-
-    # monoallelic SNVs
-    if all(len(ref) == len(alt) == 1 for alt in alts):
-        return None
-
-    indels = [
-        Variant(chrom, pos, ref, alt, genome)
-        for alt in alts
-        if Variant(chrom, pos, ref, alt, genome).is_indel
-    ]
-
-    if indels:
-        return indels
-    else:
-        return None
-
-
-def is_not_in_cosmic(var, genome, cosmic_db):
+def is_absent_in_cosmic(var, genome, cosmic_db):
     window = 100
     search_space = cosmic_db.fetch(
         var.chrom.replace("chr", ""), var.pos - window / 2, var.pos + window / 2
     )
 
     for line in search_space:
-        for db_indel in parse_vcf_line(line, genome):
+        for db_indel in make_indel_from_vcf_line(line, genome):
             if var == db_indel:
                 return False
     return True
-
-
-if __name__ == "__main__":
-    import pysam
-
-    fasta = "/rgs01/resgen/prod/tartan/index/reference/Homo_sapiens/GRCh38_no_alt/FASTA/GRCh38_no_alt.fa"
-    genome = pysam.FastaFile(fasta)
-    cosmic = pysam.TabixFile(
-        "/research/rgs01/project_space/zhanggrp/MethodDevelopment/common/RNAIndel/resource/CosmicCodingMuts.ExonicIndel.vcf.gz"
-    )
-    vcfs = "nomal_vcf.path"
-    main(vcfs, genome, cosmic, cnt=3)

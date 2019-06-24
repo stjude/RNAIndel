@@ -162,4 +162,35 @@ class Variant(object):
         return hash(hashable)
 
 
+def make_indel_from_vcf_line(line, genome):
+    """Make a list of indel obj from a vcf line
+
+    Args: 
+        line (str): a VCF line
+        genome (pysam.FastaFile)
+    Returns:
+        indels (list):[indel_obj_1, indel_obj_2]
+                None: if no indel created (e.g., a VCF line for SNV)
+    """
+    if line.startswith("#"):
+        return None
+
+    lst = line.rstrip().split("\t")
+    chrom, pos = lst[0], int(lst[1])
+    ref, alts = lst[3], lst[4].split(",")
+
+    # SNVs
+    if all(len(ref) == len(alt) == 1 for alt in alts):
+        return None
+
+    indels = [
+        Variant(chrom, pos, ref, alt, genome)
+        for alt in alts
+        if Variant(chrom, pos, ref, alt, genome).is_indel
+    ]
+
+    if indels:
+        return indels
+    else:
+        return None
 

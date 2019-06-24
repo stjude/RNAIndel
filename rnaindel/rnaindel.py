@@ -33,13 +33,17 @@ class Commands(object):
             usage="""rnaindel <command> [<args>]
 
 commands are:
-    analysis    Predict somatic indels from tumor RNA-Seq data
-    feature     Calculate and report features for training
-    training    Train models
-    nonsomatic  Create panel of non-somatic indels""",
+    analysis              Predict somatic indels from tumor RNA-Seq data
+    feature               Calculate and report features for training
+    training              Train models
+    nonsomatic            Create panel of non-somatic indels
+    reclassification      Reclassify possible false positives by non-somatic panel
+    recurrence            Annotate possible false positives by recurrence""",
         )
 
-        parser.add_argument("command", help="analysis, feature, or training")
+        parser.add_argument(
+            "command", help="analysis, feature, training, nonsomatic, reclassification"
+        )
         parser.add_argument(
             "--version",
             action="version",
@@ -65,33 +69,55 @@ commands are:
     def nonsomatic(self):
         run("nonsomatic")
 
+    def reclassification(self):
+        run("reclassification")
+
+    def recurrence(self):
+        run("recurrence")
+
 
 def run(command):
     args = get_args(command)
+
+    if command == "reclassification":
+        nl.filterate_by_panel(
+            args.input_vcf,
+            args.output_vcf,
+            pysam.FastaFile(args.fasta),
+            args.non_somatic_panel,
+        )
+        print("rnaindel reclassification completed successfully.", file=sys.stdout)
+        sys.exit(0)
+
     data_dir = args.data_dir.rstrip("/")
     model_dir = "{}/models".format(data_dir)
-
     # database check
     path2cosmic = pathlib.Path("{}/cosmic".format(data_dir))
+
     if not path2cosmic.exists():
         print(
             "Please download the latest database: http://ftp.stjude.org/pub/software/RNAIndel/"
         )
-        sys.exit(0)
+        sys.exit(1)
 
-    if command == "nonsomatic":
+    if command == "nonsomatic" or command == "recurrence":
         cosmic = pysam.TabixFile(
             "{}/cosmic/CosmicCodingMuts.indel.vcf.gz".format(data_dir)
         )
-        nl.make_non_somatic_panel(
-            args.vcf_list,
-            args.output_vcf,
-            pysam.FastaFile(args.fasta),
-            cosmic,
-            args.count,
-        )
-        print("rnaindel nonsomaic completed successfully.", file=sys.stdout)
-        sys.exit(0)
+        if command == "nonsomatic":
+            nl.make_non_somatic_panel(
+                args.vcf_list,
+                args.output_vcf,
+                pysam.FastaFile(args.fasta),
+                cosmic,
+                args.count,
+            )
+            print("rnaindel nonsomaic completed successfully.", file=sys.stdout)
+            sys.exit(0)
+        else:
+            nl.annotate_recurrence(args.vcf_lst, pysam.FastaFile(args.fasta), cosmic)
+            print("rnaindel recurrence completed successfully.", file=sys.stdout)
+            sys.exit(0)
 
     log_dir = args.log_dir.rstrip("/")
 
@@ -341,7 +367,12 @@ def get_args(command):
             help="reference genome FASTA file.",
         )
 
-    if command != "training":
+    if (
+        command == "analysis"
+        or command == "feature"
+        or command == "nonsomatic"
+        or command == "recurrence"
+    ):
         parser.add_argument(
             "-d",
             "--data-dir",
@@ -361,7 +392,11 @@ def get_args(command):
             type=check_folder_existence,
         )
 
-    if command == "analysis" or command == "nonsomatic":
+    if (
+        command == "analysis"
+        or command == "nonsomatic"
+        or command == "reclassification"
+    ):
         parser.add_argument(
             "-o", "--output-vcf", metavar="FILE", required=True, help="output VCF file"
         )
@@ -384,6 +419,17 @@ def get_args(command):
             required=True,
             help="indel class to be trained: s for single-nucleotide indel or m for multi-nucleotide indels",
             type=check_indel_class,
+        )
+
+    # input VCF (RNAIndel output)  for reclassification
+    if command == "reclassification":
+        parser.add_argument(
+            "-i",
+            "--input-vcf",
+            metavar="FILE",
+            required=True,
+            type=partial(check_file, file_name="VCF (.vcf) file"),
+            help="RNAIndel ouput for reclassification",
         )
 
     # input VCF from other callers (optional)
@@ -416,7 +462,7 @@ def get_args(command):
             help="number of folds in k-fold cross-validation (default: 5)",
         )
 
-    if command != "nonsomatic":
+    if command == "analysis" or command == "feature" or command == "training":
         parser.add_argument(
             "-p",
             "--process-num",
@@ -431,6 +477,16 @@ def get_args(command):
             "-n",
             "--non-somatic-panel",
             metavar="FILE",
+            type=partial(check_file, file_name="Panel of non-somatic (.vcf.gz)"),
+            help="user-defined panel of non-somatic indels in VCF format (tabixed)",
+        )
+
+    if command == "reclassification":
+        parser.add_argument(
+            "-n",
+            "--non-somatic-panel",
+            metavar="FILE",
+            required=True,
             type=partial(check_file, file_name="Panel of non-somatic (.vcf.gz)"),
             help="user-defined panel of non-somatic indels in VCF format (tabixed)",
         )
@@ -453,7 +509,7 @@ def get_args(command):
             help="user-provided germline database in VCF format (tabixed)",
         )
 
-    if command != "nonsomatic":
+    if command == "analysis" or command == "feature" or command == "training":
         parser.add_argument(
             "-l",
             "--log-dir",
@@ -526,6 +582,15 @@ def get_args(command):
             required=True,
             type=check_int,
             help="Indels observed >= count in the normal samples used for non-somatic panel creation",
+        )
+
+    if command == "recurrence":
+        parser.add_argument(
+            "--vcf-list",
+            metavar="FILE",
+            required=True,
+            type=check_file,
+            help="File containing paths to RNAIndel output VCF file to be annotated",
         )
 
     args = parser.parse_args(sys.argv[2:])
