@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 from functools import partial
 from collections import Counter
 from .variant import make_indel_from_vcf_line
@@ -9,19 +10,13 @@ from .make_non_somatic_panel import validate_file_lst
 from .make_non_somatic_panel import is_absent_in_cosmic
 
 
-def annotate_recurrence(file_lst, genome, cosmic_db):
+def annotate_recurrence(file_lst, genome, cosmic_db, out_dir):
     validated_vcfs = validate_vcfs(file_lst)
     occurrence_dict = count_somatic_preditions(validated_vcfs, genome)
-    map(
-        partial(
-            annotate_vcf_with_recurrence,
-            genome=genome,
-            cosmic_db=cosmic_db,
-            occurrence_dict=occurrence_dict,
-        ),
-        validated_vcfs,
-    )
-
+    
+    for vcf in validated_vcfs:
+        annotate_vcf_with_recurrence(vcf, genome, cosmic_db, occurrence_dict, out_dir)
+    
 
 def count_somatic_preditions(validated_vcfs, genome):
     processed_vcfs = [
@@ -46,20 +41,18 @@ def is_rnaindel_output_vcf(vcf):
 
 
 def collect_somatic_predictions_from_vcf(vcf, genome):
-    f = open(vcf)
-    somatic_lines = [line for line in f if "PRED=somatic" in line]
+    somatic_lines = [line for line in open(vcf) if "PRED=somatic" in line]
     parsed_somatic_lines = [
         make_indel_from_vcf_line(line, genome)
-        for line in f
+        for line in somatic_lines
         if make_indel_from_vcf_line(line, genome)
     ]
-    f.close()
     return to_flat_lst(parsed_somatic_lines)
 
 
-def annotate_vcf_with_recurrence(vcf, genome, cosmic_db, occurrence_dict):
+def annotate_vcf_with_recurrence(vcf, genome, cosmic_db, occurrence_dict, outdir):
     new_vcf = edit_header(vcf)
-
+    
     fi = open(vcf)
     for line in fi:
         if line.startswith("#"):
@@ -67,17 +60,19 @@ def annotate_vcf_with_recurrence(vcf, genome, cosmic_db, occurrence_dict):
         elif is_somatic_prediction(line):
             putative_somatic = make_indel_from_vcf_line(line, genome)[0]
             occurrence = occurrence_dict[putative_somatic]
-            if is_absent_in_cosmic(putative_somatic, genome, cosmic_db):
-                new_vcf.append(line)
-            elif occurrence > 1:
-                new_vcf.append(append_recurrence(line, occurrence))
+            if is_absent_in_cosmic(putative_somatic, genome, cosmic_db, fuzzy_match=True) and occurrence > 1:
+                new_vcf.append(append_recurrence(line, occurrence) + "\n")
             else:
                 new_vcf.append(line)
         else:
             new_vcf.append(line)
     fi.close()
-
-    fo = open(vcf, "w")
+    
+    if outdir:
+        filename = os.path.basename(vcf)
+        fo = open(os.path.join(outdir, filename), "w")
+    else:
+        fo = open(vcf, "w")
     fo.write("".join(new_vcf))
     fo.close()
 

@@ -25,7 +25,7 @@ def input_validator(filename, indel_class):
         df = df[df["indel_size"] == 1]
     else:
         df = df[df["indel_size"] > 1]
-    
+
     truth_set = set(df["truth"].values.tolist())
     if truth_set != {"somatic", "germline", "artifact"}:
         which_class = (

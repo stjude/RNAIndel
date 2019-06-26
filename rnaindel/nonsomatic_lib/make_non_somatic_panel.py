@@ -127,7 +127,7 @@ def process_vcf_file(vcf, genome):
     return to_flat_lst(parsed_lines)
 
 
-def is_absent_in_cosmic(var, genome, cosmic_db):
+def is_absent_in_cosmic(var, genome, cosmic_db, fuzzy_match=False):
     window = 100
     search_space = cosmic_db.fetch(
         var.chrom.replace("chr", ""), var.pos - window / 2, var.pos + window / 2
@@ -135,6 +135,13 @@ def is_absent_in_cosmic(var, genome, cosmic_db):
 
     for line in search_space:
         for db_indel in make_indel_from_vcf_line(line, genome):
-            if var == db_indel:
-                return False
+            # fuzzy allows positional match
+            if fuzzy_match:
+                var_norm = var.normalize()
+                db_indel_norm = db_indel.normalize()
+                if var_norm.pos == db_indel_norm.pos:
+                    return False
+            else:
+                if var == db_indel:
+                    return False
     return True

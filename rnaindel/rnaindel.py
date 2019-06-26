@@ -115,7 +115,7 @@ def run(command):
             print("rnaindel nonsomaic completed successfully.", file=sys.stdout)
             sys.exit(0)
         else:
-            nl.annotate_recurrence(args.vcf_lst, pysam.FastaFile(args.fasta), cosmic)
+            nl.annotate_recurrence(args.vcf_list, pysam.FastaFile(args.fasta), cosmic, args.out_dir)
             print("rnaindel recurrence completed successfully.", file=sys.stdout)
             sys.exit(0)
 
@@ -592,6 +592,15 @@ def get_args(command):
             type=check_file,
             help="File containing paths to RNAIndel output VCF file to be annotated",
         )
+       
+        parser.add_argument(
+            "--out-dir",
+            metavar="DIR",
+            default=None,
+            type=check_folder_existence,
+            help="directory to ouput (default: input file directory)",
+        )
+
 
     args = parser.parse_args(sys.argv[2:])
     return args
