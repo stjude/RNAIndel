@@ -70,4 +70,5 @@ rnaindel training -t TRAINING_SET -d DATA_DIR -c INDEL_CLASS [other options]
     * ```--downsample-ratio``` train with a user-specified downsample ratio: integer between 1 and 20. (default: None)
     * ```--feature-names``` train with a user-specified subset of features: [input example](../../sample_data/inputs/feature_names.txt) (default: None)
     * ```--auto-param``` train with sklearn.RandomForestClassifer's max_features="auto" (default: False)
+
 *</details>
