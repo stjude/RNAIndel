@@ -85,7 +85,7 @@ rnaindel analysis -i BAM -v INPUT_VCF -o OUTPUT_VCF -r REFERENCE -d DATA_DIR [ot
 Users can [train](./rnaindel/training_lib) RNAIndel with their own training set. 
 
 ### Filter false positives
-RNAIndel supports [custom filtering]() to refine the predicted result.
+RNAIndel supports [custom filtering](./rnaindel/nonsomatic_lib) to refine the predicted result.
 
 ## Reference
 1. Hagiwara, K., Ding, L., Edmonson, M.N., Rice, S.V., Newman, S., Meshinchi, S., Ries, R.E., Rusch, M., Zhang, J. 
