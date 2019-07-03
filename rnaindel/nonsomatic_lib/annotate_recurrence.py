@@ -86,6 +86,6 @@ def edit_header(vcf):
 
 def append_recurrence(line, occurrence):
     lst = line.rstrip().split("\t")
-    info = lst[7] + ";REC=" + str(occurrence)
+    info = lst[7] if "REC=" in lst[7] else lst[7] + ";REC=" + str(occurrence) 
     new_lst = lst[0:7] + [info] + lst[8:]
     return "\t".join(new_lst)

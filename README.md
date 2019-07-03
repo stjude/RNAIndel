@@ -32,7 +32,7 @@ tar xzvf data_dir_38.tar.gz  # for GRCh38
 ```
 
 ## Usage 
-RNAIndel has 6 commands:
+RNAIndel has 6 subcommands:
 * ```analysis``` analyze RNA-Seq data for indel discovery
 * ```feature``` calculate features for training
 * ```nonsomatic``` make a non-somatic indel panel
@@ -40,9 +40,9 @@ RNAIndel has 6 commands:
 * ```recurrence``` reclassify false positives by recurrence
 * ```training``` train and update the models
 
-Commands are invoked:
+Sub commands are invoked:
 ```
-rnaindel command [command-specific options]
+rnaindel subcommand [subcommand-specific options]
 ```
 
 ### Discover somatic indels ([demo](./sample_data))
@@ -64,7 +64,7 @@ rnaindel analysis -i BAM -v INPUT_VCF -o OUTPUT_VCF -r REFERENCE -d DATA_DIR [ot
 #### Options
 * ```-i``` input [STAR](https://academic.oup.com/bioinformatics/article/29/1/15/272537)-mapped BAM file (required)
 * ```-o``` output VCF file (required)
-* ```-r``` reference genome (GRCh37 or 38) FASTA file (required)
+* ```-r``` reference genome FASTA file (required)
 * ```-d``` [data directory](#setup) contains trained models and databases (required)
 * ```-v``` VCF file from other caller (required if working with user`s caller)
 *<details>

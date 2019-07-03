@@ -30,19 +30,20 @@ class Commands(object):
     def __init__(self):
         parser = argparse.ArgumentParser(
             prog="rnaindel",
-            usage="""rnaindel <command> [<args>]
+            usage="""rnaindel <subcommand> [<args>]
 
-commands are:
+subcommands are:
     analysis              Predict somatic indels from tumor RNA-Seq data
     feature               Calculate and report features for training
-    training              Train models
     nonsomatic            Create panel of non-somatic indels
     reclassification      Reclassify possible false positives by non-somatic panel
-    recurrence            Annotate possible false positives by recurrence""",
+    recurrence            Annotate possible false positives by recurrence
+    training              Train models""",
         )
 
         parser.add_argument(
-            "command", help="analysis, feature, training, nonsomatic, reclassification"
+            "subcommand",
+            help="analysis, feature, nonsomatic, reclassification, recurrence, training",
         )
         parser.add_argument(
             "--version",
@@ -52,10 +53,10 @@ commands are:
 
         args = parser.parse_args(sys.argv[1:2])
 
-        if not hasattr(self, args.command):
-            sys.exit("Error: invalid command")
+        if not hasattr(self, args.subcommand):
+            sys.exit("Error: invalid subcommand")
 
-        getattr(self, args.command)()
+        getattr(self, args.subcommand)()
 
     def analysis(self):
         run("analysis")
@@ -76,10 +77,10 @@ commands are:
         run("recurrence")
 
 
-def run(command):
-    args = get_args(command)
+def run(subcommand):
+    args = get_args(subcommand)
 
-    if command == "reclassification":
+    if subcommand == "reclassification":
         nl.filterate_by_panel(
             args.input_vcf,
             args.output_vcf,
@@ -100,11 +101,11 @@ def run(command):
         )
         sys.exit(1)
 
-    if command == "nonsomatic" or command == "recurrence":
+    if subcommand == "nonsomatic" or subcommand == "recurrence":
         cosmic = pysam.TabixFile(
             "{}/cosmic/CosmicCodingMuts.indel.vcf.gz".format(data_dir)
         )
-        if command == "nonsomatic":
+        if subcommand == "nonsomatic":
             nl.make_non_somatic_panel(
                 args.vcf_list,
                 args.output_vcf,
@@ -115,13 +116,15 @@ def run(command):
             print("rnaindel nonsomaic completed successfully.", file=sys.stdout)
             sys.exit(0)
         else:
-            nl.annotate_recurrence(args.vcf_list, pysam.FastaFile(args.fasta), cosmic, args.out_dir)
+            nl.annotate_recurrence(
+                args.vcf_list, pysam.FastaFile(args.fasta), cosmic, args.out_dir
+            )
             print("rnaindel recurrence completed successfully.", file=sys.stdout)
             sys.exit(0)
 
     log_dir = args.log_dir.rstrip("/")
 
-    if command == "training":
+    if subcommand == "training":
         df = tl.input_validator(args.training_data, args.indel_class)
 
         # downsampling
@@ -243,7 +246,7 @@ def run(command):
         df = rl.indel_annotator(df, genome, exons, chr_prefixed)
 
         # feature calculation
-        if command == "feature":
+        if subcommand == "feature":
             df, df_filtered_premerge = rl.indel_sequence_processor(
                 df,
                 genome,
@@ -265,7 +268,7 @@ def run(command):
                         downsample_thresholds["multi_nuleotide_indels"] = int(
                             line.rstrip().split("\t")[1]
                         )
-            
+
             df, df_filtered_premerge = rl.indel_sequence_processor(
                 df,
                 genome,
@@ -288,8 +291,8 @@ def run(command):
             df, genome, dbsnp, clinvar, germline_db, chr_prefixed
         )
 
-        # command "feature" exits here
-        if command == "feature":
+        # subcommand "feature" exits here
+        if subcommand == "feature":
             df = rl.indel_feature_reporter(df, genome, args.output_tab, chr_prefixed)
             print("rnaindel feature completed successfully.", file=sys.stdout)
             sys.exit(0)
@@ -334,11 +337,11 @@ def run(command):
         print("rnaindel analysis completed successfully.", file=sys.stdout)
 
 
-def get_args(command):
-    prog = "rnaindel " + command
+def get_args(subcommand):
+    prog = "rnaindel " + subcommand
     parser = argparse.ArgumentParser(prog=prog)
 
-    if command == "analysis" or command == "feature":
+    if subcommand == "analysis" or subcommand == "feature":
         parser.add_argument(
             "-i",
             "--bam",
@@ -348,7 +351,7 @@ def get_args(command):
             help="input tumor RNA-Seq BAM file (must be STAR-mapped).",
         )
 
-    if command == "training":
+    if subcommand == "training":
         parser.add_argument(
             "-t",
             "--training-data",
@@ -358,7 +361,7 @@ def get_args(command):
             help="input training data file (tab delimited).",
         )
 
-    if command != "training":
+    if subcommand != "training":
         parser.add_argument(
             "-r",
             "--fasta",
@@ -369,10 +372,10 @@ def get_args(command):
         )
 
     if (
-        command == "analysis"
-        or command == "feature"
-        or command == "nonsomatic"
-        or command == "recurrence"
+        subcommand == "analysis"
+        or subcommand == "feature"
+        or subcommand == "nonsomatic"
+        or subcommand == "recurrence"
     ):
         parser.add_argument(
             "-d",
@@ -383,7 +386,7 @@ def get_args(command):
             type=check_folder_existence,
         )
 
-    if command == "training":
+    if subcommand == "training":
         parser.add_argument(
             "-d",
             "--data-dir",
@@ -393,15 +396,28 @@ def get_args(command):
             type=check_folder_existence,
         )
 
-    if (
-        command == "analysis"
-        or command == "nonsomatic"
-        or command == "reclassification"
-    ):
+    if subcommand == "analysis":
         parser.add_argument(
             "-o", "--output-vcf", metavar="FILE", required=True, help="output VCF file"
         )
-    elif command == "feature":
+
+    elif subcommand == "nonsomatic":
+        parser.add_argument(
+            "-o",
+            "--output-vcf",
+            metavar="FILE",
+            required=True,
+            help="nonsomatic VCF file",
+        )
+    elif subcommand == "reclassification":
+        parser.add_argument(
+            "-o",
+            "--output-vcf",
+            metavar="FILE",
+            required=True,
+            help="reclassified VCF file",
+        )
+    elif subcommand == "feature":
         parser.add_argument(
             "-o",
             "--output-tab",
@@ -412,7 +428,7 @@ def get_args(command):
     else:
         pass
 
-    if command == "training":
+    if subcommand == "training":
         parser.add_argument(
             "-c",
             "--indel-class",
@@ -423,18 +439,18 @@ def get_args(command):
         )
 
     # input VCF (RNAIndel output) for reclassification
-    if command == "reclassification":
+    if subcommand == "reclassification":
         parser.add_argument(
             "-i",
             "--input-vcf",
             metavar="FILE",
             required=True,
             type=partial(check_file, file_name="VCF (.vcf) file"),
-            help="RNAIndel ouput for reclassification",
+            help="RNAIndel ouput VCF to be reclassified",
         )
 
     # input VCF from other callers (optional)
-    if command == "analysis" or command == "feature":
+    if subcommand == "analysis" or subcommand == "feature":
         parser.add_argument(
             "-v",
             "--input-vcf",
@@ -443,7 +459,7 @@ def get_args(command):
             help="input VCF file from other callers",
         )
 
-    if command == "analysis" or command == "feature":
+    if subcommand == "analysis" or subcommand == "feature":
         parser.add_argument(
             "-q",
             "--uniq-mapq",
@@ -453,7 +469,7 @@ def get_args(command):
             help="STAR mapping quality MAPQ for unique mappers (default: 255)",
         )
 
-    if command == "training":
+    if subcommand == "training":
         parser.add_argument(
             "-k",
             "--k-fold",
@@ -463,7 +479,7 @@ def get_args(command):
             help="number of folds in k-fold cross-validation (default: 5)",
         )
 
-    if command == "analysis" or command == "feature" or command == "training":
+    if subcommand == "analysis" or subcommand == "feature" or subcommand == "training":
         parser.add_argument(
             "-p",
             "--process-num",
@@ -473,26 +489,26 @@ def get_args(command):
             help="number of processes (default: 1)",
         )
 
-    if command == "analysis":
+    if subcommand == "analysis":
         parser.add_argument(
             "-n",
             "--non-somatic-panel",
             metavar="FILE",
-            type=partial(check_file, file_name="Panel of non-somatic (.vcf.gz)"),
-            help="user-defined panel of non-somatic indels in VCF format (tabixed)",
+            type=partial(check_file, file_name="nonsomatic panel (.vcf.gz)"),
+            help="user-defined panel of non-somatic indels in bgzip-compressed VCF format",
         )
 
-    if command == "reclassification":
+    if subcommand == "reclassification":
         parser.add_argument(
             "-n",
             "--non-somatic-panel",
             metavar="FILE",
             required=True,
-            type=partial(check_file, file_name="Panel of non-somatic (.vcf.gz)"),
-            help="user-defined panel of non-somatic indels in VCF format (tabixed)",
+            type=partial(check_file, file_name="nonsomatic panel (.vcf.gz)"),
+            help="user-defined panel of non-somatic indels in bgzip-compressed VCF format",
         )
 
-    if command == "analysis" or command == "feature":
+    if subcommand == "analysis" or subcommand == "feature":
         parser.add_argument(
             "-m",
             "--heap-memory",
@@ -501,16 +517,16 @@ def get_args(command):
             help="maximum heap space (default: 6000m)",
         )
 
-    if command == "analysis" or command == "feature":
+    if subcommand == "analysis" or subcommand == "feature":
         parser.add_argument(
             "-g",
             "--germline-db",
             metavar="FILE",
             type=check_file,
-            help="user-provided germline database in VCF format (tabixed)",
+            help="user-provided germline database in bgzip-compressed VCF format",
         )
-    
-    if command == "analysis" or command == "feature":
+
+    if subcommand == "analysis" or subcommand == "feature":
         parser.add_argument(
             "--exclude-softclipped-alignments",
             dest="softclip_analysis",
@@ -519,7 +535,7 @@ def get_args(command):
         )
         parser.set_defaults(softclip_analysis=True)
 
-    if command == "analysis" or command == "feature" or command == "training":
+    if subcommand == "analysis" or subcommand == "feature" or subcommand == "training":
         parser.add_argument(
             "-l",
             "--log-dir",
@@ -529,13 +545,13 @@ def get_args(command):
             help="directory to ouput log files (default: current)",
         )
 
-    if command == "training":
+    if subcommand == "training":
         parser.add_argument(
             "--downsample-ratio",
             metavar="INT",
             default=None,
             type=partial(check_int, preset="downsample"),
-            help="Train with specified downsample ratio in [1, 20]. (default: None)",
+            help="train with specified downsample ratio in [1, 20]. (default: None)",
         )
 
         parser.add_argument(
@@ -543,13 +559,13 @@ def get_args(command):
             metavar="FILE",
             default=None,
             type=check_file,
-            help="Train with specified subset of features. Supply as file containing a feature name per line (default: None)",
+            help="train with specified subset of features. Supply as file containing a feature name per line (default: None)",
         )
 
         parser.add_argument(
             "--auto-param",
             action="store_true",
-            help='Train with sklearn.RandomForestClassifer\'s max_features="auto"',
+            help='train with sklearn.RandomForestClassifer\'s max_features="auto"',
         )
 
         parser.add_argument(
@@ -576,13 +592,13 @@ def get_args(command):
             help="F_beta to be optimized in parameter_tuning step. optimized for TPR when beta >100 given. (default: 10)",
         )
 
-    if command == "nonsomatic":
+    if subcommand == "nonsomatic":
         parser.add_argument(
             "--vcf-list",
             metavar="FILE",
             required=True,
             type=check_file,
-            help="File containing paths to VCF file generated from normal samples",
+            help="file containing paths to normal VCF files",
         )
 
         parser.add_argument(
@@ -590,18 +606,18 @@ def get_args(command):
             metavar="INT",
             required=True,
             type=check_int,
-            help="Indels observed >= count in the normal samples used for non-somatic panel creation",
+            help="use indels observed >= count times for panel compilation",
         )
 
-    if command == "recurrence":
+    if subcommand == "recurrence":
         parser.add_argument(
             "--vcf-list",
             metavar="FILE",
             required=True,
             type=check_file,
-            help="File containing paths to RNAIndel output VCF file to be annotated",
+            help="file containing paths to RNAIndel output VCF files to be annotated",
         )
-       
+
         parser.add_argument(
             "--out-dir",
             metavar="DIR",
@@ -609,7 +625,6 @@ def get_args(command):
             type=check_folder_existence,
             help="directory to ouput (default: input file directory)",
         )
-
 
     args = parser.parse_args(sys.argv[2:])
     return args

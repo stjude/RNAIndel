@@ -271,7 +271,7 @@ def merge_equivalents(df):
     # merge recovered softclips
     merged_softclips = df.loc[:, "realigned_sftclips"].sum()
     samping_factor = df.loc[:, "sampling_factor"].max()
-    rescued_softclip_num = math.floor(len(set(merged_softclips))/samping_factor)
+    rescued_softclip_num = math.floor(len(set(merged_softclips)) / samping_factor)
 
     # adjust ref counts
     diff = merged_indel_count - df["alt_count"]
@@ -281,7 +281,11 @@ def merge_equivalents(df):
     df.loc[df["ref_count"] < 0, "ref_count"] = df["lower_bound_ref_count"].min()
 
     # assign the merged indel count
-    df.loc[:, "alt_count"] = merged_indel_count + rescued_softclip_num
+    df.loc[:, "alt_count"] = (
+        merged_indel_count + rescued_softclip_num
+        if samping_factor == 1
+        else max(merged_indel_count + rescued_softclip_num, 2)
+    )
 
     # homoginizes 'is_multiallelic' for equivalents
     if df["is_multiallelic"].sum() > 0:
