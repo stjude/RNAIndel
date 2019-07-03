@@ -76,12 +76,14 @@ rnaindel analysis -b BAM -v INPUT_VCF -o OUTPUT_VCF -f FASTA -d DATA_DIR [other 
     * ```-l``` direcotry to store log files (default: current)
     * ```-n``` user-defined panel of non-somatic indels in tabixed VCF format (default: built-in reviewed indel set)
     * ```-g``` user-provided germline indel database in tabixed VCF format (default: built-in database in data dir)
-               * Use only if the model is trained with the user-provided database.           
+               <pre>
+               Use only if the model is trained with the user-provided database.
+               </pre>           
     * ```--exclude-softclipped-alignments``` softclipped indels will not be used for analysis if added (default: False)
 *</details>
 
 ### Train RNAIndel
-Users can [train]() RNAIndel with their own training set. 
+Users can [train](./rnaindel/training_lib/README.md) RNAIndel with their own training set. 
 
 ### Filter false positives
 RNAIndel supports [custom filtering]() to refine the predicted result.
