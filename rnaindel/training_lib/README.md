@@ -22,7 +22,7 @@ rnaindel feature -i BAM -o OUTPUT_TAB -f FASTA -d DATA_DIR -g YOUR_DB [other opt
 * ```-i``` input [STAR](https://academic.oup.com/bioinformatics/article/29/1/15/272537)-mapped BAM file (required)
 * ```-o``` output tab-delimited file (required)
 * ```-r``` reference genome (GRCh37 or 38) FASTA file (required)
-* ```-d``` [data directory](#setup) contains trained models and databases (required)
+* ```-d``` [data directory](../../README.md/#setup) contains trained models and databases (required)
 * ```-v``` VCF file from user's caller (if applicable)
 * ```-g``` user-provided germline indel database in tabixed VCF format (if applicable)
 *<details>
