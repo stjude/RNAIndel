@@ -155,11 +155,14 @@ def is_on_db(row, preset="dbsnp"):
     Returns:
         is_on_db (int): 1 if True 0 othewise
     """
-    if row["is_common"]:
-        return 1
-    else:
-        is_on_db = 1 if row[preset].startswith("rs") and row["db"].is_common_in_non_cancer_population() else 0
     
+    if preset == "dbsnp" and row["is_common"]:
+        return 1
+    elif preset == "dbsnp":
+        is_on_db = 1 if row[preset].startswith("rs") and row["db"].is_common_in_non_cancer_population() else 0
+    else:
+        is_on_db = 1 if row[preset] != "-" else 0
+
     return is_on_db
 
 

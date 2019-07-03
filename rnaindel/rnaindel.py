@@ -449,7 +449,7 @@ def get_args(command):
             "--uniq-mapq",
             metavar="INT",
             default=255,
-            type=partial(check_int, prest="mapq"),
+            type=partial(check_int, preset="mapq"),
             help="STAR mapping quality MAPQ for unique mappers (default: 255)",
         )
 
