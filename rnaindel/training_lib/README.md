@@ -1,7 +1,7 @@
-### Train RNAIndel
+# Train RNAIndel
 RNAIndel trains the model based on the truth annotated by the user.
 
-#### Step 1 (feature calculation)
+### Step 1 (feature calculation)
 Features are calculated for each indel and reported in a tab-delimited file.<br>
 Using a callset by the built-in caller, 
 ```
@@ -17,14 +17,18 @@ rnaindel feature -b BAM -o OUTPUT_TAB -f FASTA -d DATA_DIR -g YOUR_DB [other opt
 ```
 The germline databse is expected to be a tabixed VCF file with no missing value in ID field.
 
-See [options](#../../#Options) for detail.
- 
-#### Step 2 (annotation)
+See [options](../../#Options) for detail.
+
+<br>
+
+### Step 2 (annotation)
 The output tab-delimited file has a column \"truth\". Users annotate each indel
 by filling the column with either of <br> 
 \"somatic\", \"germline\", or \"artifact\". 
 
-#### Step 3 (update models)
+<br>
+
+### Step 3 (update models)
 Repeat Step 1 and 2 for N samples.<br>
 Users concatenate the annotated files. Here, assuming the files are \"sample.i.tab\" (i = 1,...,N), 
 ```
@@ -44,6 +48,7 @@ rnaindel training -t TRAINING_SET -d DATA_DIR -c INDEL_CLASS [other options]
 * ```-c``` indel class to be trained. s for single-nucleotide indel and m for multi-nucleotide indel (required)
 *<details>
      <summary>other options (click to open)</summary>
+    
     * ```-k``` number of folds in k-fold cross-validation (default: 5)
     * ```-p``` number of processes (default: 1)
     * ```-l``` directory to ouput log files (default: current)
