@@ -77,7 +77,7 @@ rnaindel analysis -b BAM -v INPUT_VCF -o OUTPUT_VCF -f FASTA -d DATA_DIR [other 
     * ```-n``` user-defined panel of non-somatic indels in tabixed VCF format (default: built-in reviewed false-positive set)
     * ```-g``` user-provided germline indel database in tabixed VCF format (default: built-in database compiled from dbSNP and gnomAD)
     * ```--exclude-softclipped-alignments``` softclipped indels will not be used for analysis if added (default: False)
-*<details>
+*</details>
 
 ### Train RNAIndel
 Users can [train]() RNAIndel with their own training set. 
