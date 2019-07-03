@@ -17,7 +17,7 @@ rnaindel feature -b BAM -o OUTPUT_TAB -f FASTA -d DATA_DIR -g YOUR_DB [other opt
 ```
 The germline databse is expected to be a tabixed VCF file with no missing value in ID field.
 
-See [options](../../#Options) for detail.
+See [options](../../README.md/#Options) for detail.
 
 <br>
 
