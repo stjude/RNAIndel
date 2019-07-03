@@ -70,6 +70,7 @@ rnaindel analysis -b BAM -v INPUT_VCF -o OUTPUT_VCF -f FASTA -d DATA_DIR [other 
 * ```-d``` [data directory](#setup) contains trained models and databases (required)
 <details>
     <summary>other options</summary>
+    
     * ```-q``` STAR mapping quality MAPQ for unique mappers (default: 255)
     * ```-p``` number of cores (default: 1)
     * ```-m``` maximum heap space (default: 6000m)
