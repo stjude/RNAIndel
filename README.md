@@ -45,7 +45,7 @@ Commands are invoked:
 rnaindel command [command-specific options]
 ```
 
-### Discover somatin indels ([demo](./sample_data))
+### Discover somatic indels ([demo](./sample_data))
 
 #### Use the built-in caller
 RNAIndel calls indels by the [built-in caller](https://academic.oup.com/bioinformatics/article/27/6/865/236751), which is optimized 

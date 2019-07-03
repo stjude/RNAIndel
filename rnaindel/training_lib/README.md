@@ -17,16 +17,27 @@ rnaindel feature -b BAM -o OUTPUT_TAB -f FASTA -d DATA_DIR -g YOUR_DB [other opt
 ```
 The germline databse is expected to be a tabixed VCF file with no missing value in ID field.
 
-See [options](../../#Options) for detail.
-
-<br>
+#### Options
+* ```-b``` input [STAR](https://academic.oup.com/bioinformatics/article/29/1/15/272537)-mapped BAM file (required)
+* ```-o``` output tab-delimited file (required)
+* ```-f``` reference genome (GRCh37 or 38) FASTA file (required)
+* ```-d``` [data directory](#setup) contains trained models and databases (required)
+* ```-v``` VCF file from user's caller (if applicable)
+* ```-g``` user-provided germline indel database in tabixed VCF format (if applicable)
+*<details>
+    <summary>other options (click to open)</summary>
+    
+    * ```-q``` STAR mapping quality MAPQ for unique mappers (default: 255)
+    * ```-p``` number of cores (default: 1)
+    * ```-m``` maximum heap space (default: 6000m)
+    * ```-l``` direcotry to store log files (default: current)
+    * ```-n``` user-defined panel of non-somatic indels in tabixed VCF format (default: built-in reviewed indel set)
+    * ```--exclude-softclipped-alignments``` softclipped indels will not be used for analysis if added (default: False)
 
 ### Step 2 (annotation)
 The output tab-delimited file has a column \"truth\". Users annotate each indel
 by filling the column with either of <br> 
 \"somatic\", \"germline\", or \"artifact\". 
-
-<br>
 
 ### Step 3 (update models)
 Repeat Step 1 and 2 for N samples.<br>
@@ -55,7 +66,7 @@ rnaindel training -t TRAINING_SET -d DATA_DIR -c INDEL_CLASS [other options]
     * ```-ds-beta``` F beta to be optimized in down sampling step. Optimized for TPR if beta > 100. (default: 10)
     * ```-fs-beta``` F beta to be optimized in feature selection step. Optimized for TPR if beta > 100. (default: 10)
     * ```-pt-beta``` F beta to be optimized in parameter tuning step. Optimized for TPR if beta > 100. (default: 10)
-    * ```--downsample-ratio``` Train with a user-specified downsample ratio: integer between 1 and 20. (default: None)
-    * ```--feature-names``` Train with a user-specified subset of features. Supply feature names in a text file containing a feature name per line (default: None)
-    * ```--auto-param``` Train with sklearn.RandomForestClassifer's max_features="auto" (default: False)
+    * ```--downsample-ratio``` train with a user-specified downsample ratio: integer between 1 and 20. (default: None)
+    * ```--feature-names``` train with a user-specified subset of features: [input example](../../sample_data/inputs/feature_names.txt) (default: None)
+    * ```--auto-param``` train with sklearn.RandomForestClassifer's max_features="auto" (default: False)
 *</details>
