@@ -250,7 +250,7 @@ def run(command):
                 alignments,
                 args.uniq_mapq,
                 chr_prefixed,
-                softclip_analysis=False,
+                softclip_analysis=args.softclip_analysis,
             )
         else:
             coverage_in_trainingset = "{}/models/coverage.txt".format(data_dir)
@@ -265,13 +265,14 @@ def run(command):
                         downsample_thresholds["multi_nuleotide_indels"] = int(
                             line.rstrip().split("\t")[1]
                         )
-
+            
             df, df_filtered_premerge = rl.indel_sequence_processor(
                 df,
                 genome,
                 alignments,
                 args.uniq_mapq,
                 chr_prefixed,
+                softclip_analysis=args.softclip_analysis,
                 downsample_thresholds=downsample_thresholds,
             )
 
@@ -508,6 +509,15 @@ def get_args(command):
             type=check_file,
             help="user-provided germline database in VCF format (tabixed)",
         )
+    
+    if command == "analysis" or command == "feature":
+        parser.add_argument(
+            "--exclude-softclipped-alignments",
+            dest="softclip_analysis",
+            action="store_false",
+            help="do not use softclipped alignments for feature calculation",
+        )
+        parser.set_defaults(softclip_analysis=True)
 
     if command == "analysis" or command == "feature" or command == "training":
         parser.add_argument(
@@ -538,9 +548,8 @@ def get_args(command):
 
         parser.add_argument(
             "--auto-param",
-            metavar="BOOL",
-            default=False,
-            help='Train with sklearn.RandomForestClassifer\'s max_features="auto" (default: False)',
+            action="store_true",
+            help='Train with sklearn.RandomForestClassifer\'s max_features="auto"',
         )
 
         parser.add_argument(

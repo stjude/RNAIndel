@@ -281,7 +281,7 @@ def merge_equivalents(df):
     df.loc[df["ref_count"] < 0, "ref_count"] = df["lower_bound_ref_count"].min()
 
     # assign the merged indel count
-    df.loc[:, "alt_count"] = max(merged_indel_count + rescued_softclip_num, 2)
+    df.loc[:, "alt_count"] = merged_indel_count + rescued_softclip_num
 
     # homoginizes 'is_multiallelic' for equivalents
     if df["is_multiallelic"].sum() > 0:
