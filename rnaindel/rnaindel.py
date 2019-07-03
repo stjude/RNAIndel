@@ -340,7 +340,7 @@ def get_args(command):
 
     if command == "analysis" or command == "feature":
         parser.add_argument(
-            "-b",
+            "-i",
             "--bam",
             metavar="FILE",
             required=True,
@@ -360,7 +360,7 @@ def get_args(command):
 
     if command != "training":
         parser.add_argument(
-            "-f",
+            "-r",
             "--fasta",
             metavar="FILE",
             required=True,
@@ -422,7 +422,7 @@ def get_args(command):
             type=check_indel_class,
         )
 
-    # input VCF (RNAIndel output)  for reclassification
+    # input VCF (RNAIndel output) for reclassification
     if command == "reclassification":
         parser.add_argument(
             "-i",

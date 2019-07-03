@@ -3,24 +3,25 @@ RNAIndel trains the model based on the truth annotated by the user.
 
 ### Step 1 (feature calculation)
 Features are calculated for each indel and reported in a tab-delimited file.<br>
-Using a callset by the built-in caller, 
+
+To use the built-in caller for training, 
 ```
-rnaindel feature -b BAM -o OUTPUT_TAB -f FASTA -d DATA_DIR [other options]
+rnaindel feature -i BAM -o OUTPUT_TAB -r REFERENCE -d DATA_DIR [other options]
 ```
-To train based on a callset from your caller, specify the input VCF by ```-v```.
+To use your caller, specify the input VCF from your caller by ```-v```.
 ```
-rnaindel feature -b BAM -v INPUT_VCF -o OUTPUT_TAB -f FASTA -d DATA_DIR [other options]
+rnaindel feature -i BAM -v INPUT_VCF -o OUTPUT_TAB -r REFERENCE -d DATA_DIR [other options]
 ```
-To train based on a germline database of your choice, specify the database by ```-g```.
-```
-rnaindel feature -b BAM -o OUTPUT_TAB -f FASTA -d DATA_DIR -g YOUR_DB [other options]
-```
+To use your germline database for training, specify the database by ```-g```. <br>
 The germline databse is expected to be a tabixed VCF file with no missing value in ID field.
+```
+rnaindel feature -i BAM -o OUTPUT_TAB -f FASTA -d DATA_DIR -g YOUR_DB [other options]
+```
 
 #### Options
-* ```-b``` input [STAR](https://academic.oup.com/bioinformatics/article/29/1/15/272537)-mapped BAM file (required)
+* ```-i``` input [STAR](https://academic.oup.com/bioinformatics/article/29/1/15/272537)-mapped BAM file (required)
 * ```-o``` output tab-delimited file (required)
-* ```-f``` reference genome (GRCh37 or 38) FASTA file (required)
+* ```-r``` reference genome (GRCh37 or 38) FASTA file (required)
 * ```-d``` [data directory](#setup) contains trained models and databases (required)
 * ```-v``` VCF file from user's caller (if applicable)
 * ```-g``` user-provided germline indel database in tabixed VCF format (if applicable)
