@@ -71,4 +71,4 @@ rnaindel training -t TRAINING_SET -d DATA_DIR -c INDEL_CLASS [other options]
     * ```--feature-names``` train with a user-specified subset of features: [input example](../../sample_data/inputs/feature_names.txt) (default: None)
     * ```--auto-param``` train with sklearn.RandomForestClassifer's max_features="auto" (default: False)
 
-*</details>
+</details>

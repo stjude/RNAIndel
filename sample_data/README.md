@@ -30,9 +30,9 @@ RNAIndel
 
 ### Working with the built-in caller
 ```
-$ rnaindel analysis -b ./sample_data/inputs/sample.bam \
+$ rnaindel analysis -i ./sample_data/inputs/sample.bam \
                     -o ./sample_data/outputs/sample.vcf \
-                    -f path/to/your_GRCh38.fa \
+                    -r path/to/your_GRCh38.fa \
                     -d ./data_dir_38
 
 indel calling completed successfully.          # indel calling by the built-in caller is done.
@@ -52,10 +52,10 @@ generated a VCF file ([sample_gatk.vcf](./inputs/sample_gatk.vcf)). Now, the ind
 **Please input the original BAM file (sample.bam), not the preprocessed one (sample.gatk.bam)**.
 
 ```
-$ rnaindel analysis -b ./sample_data/inputs/sample.bam \
+$ rnaindel analysis -i ./sample_data/inputs/sample.bam \
                     -v ./sample_data/inputs/sample_gatk.vcf \
                     -o ./sample_data/outputs/sample_gatk_classified.vcf \
-                    -f path/to/your_GRCh38.fa \
+                    -r path/to/your_GRCh38.fa \
                     -d ./data_dir_38
 
 rnaindel analysis completed successfully. # all steps done (no calling by the built-in caller) 
