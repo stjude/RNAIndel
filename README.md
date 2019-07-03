@@ -45,7 +45,7 @@ Commands are invoked:
 rnaindel command [command-specific options]
 ```
 
-### Discover somatin indels from RNA-Seq data ([demo](./sample_data))
+### Discover somatin indels ([demo](./sample_data))
 
 #### Use the built-in caller
 RNAIndel calls indels by the [built-in caller](https://academic.oup.com/bioinformatics/article/27/6/865/236751), which is optimized 
@@ -74,8 +74,9 @@ rnaindel analysis -b BAM -v INPUT_VCF -o OUTPUT_VCF -f FASTA -d DATA_DIR [other 
     * ```-p``` number of cores (default: 1)
     * ```-m``` maximum heap space (default: 6000m)
     * ```-l``` direcotry to store log files (default: current)
-    * ```-n``` user-defined panel of non-somatic indels in tabixed VCF format (default: built-in reviewed false-positive set)
-    * ```-g``` user-provided germline indel database in tabixed VCF format (default: built-in database compiled from dbSNP and gnomAD)
+    * ```-n``` user-defined panel of non-somatic indels in tabixed VCF format (default: built-in reviewed indel set)
+    * ```-g``` user-provided germline indel database in tabixed VCF format (default: built-in database in data dir)
+               * Use only if the model is trained with the user-provided database.           
     * ```--exclude-softclipped-alignments``` softclipped indels will not be used for analysis if added (default: False)
 *</details>
 
