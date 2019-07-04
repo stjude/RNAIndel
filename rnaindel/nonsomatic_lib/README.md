@@ -15,7 +15,7 @@ tabix -p vcf NONSOMATIC_VCF.gz
 * ```--count``` indel occurrence count to be defined as common in the supplied VCF files (required)
 * ```-o``` output non-somatic VCF file (required)
 * ```-r``` reference genome FASTA file (required)
-* ```-d``` [data directory](../../README.md/#setup) contains the COSMIC database (required)
+* ```-d``` [data directory](../../README.md/#setup) contains the [COSMIC](https://cancer.sanger.ac.uk/cosmic) database (required)
 
  
 ### Step 2 (reclassification) 
@@ -35,7 +35,7 @@ rnaindel reclassification -i RNAIndel_OUTPUT_VCF -o RECLASSIFIED_VCF -r REFERENC
 ### Recurrent non-COSMIC indel annotation
 When multiple RNAIndel output VCF files are available as in a case of cohort study, 
 RNAIndel annotates indels recurring in the samples that are not present in the 
-COSMIC databse. Such recurrent indels are possibly common artifact/germline rather 
+[COSMIC](https://cancer.sanger.ac.uk/cosmic) databse. Such recurrent indels are possibly common artifact/germline rather 
 than a somatic hotspot. Annotation is made in INFO field. 
 
 ```
@@ -46,5 +46,5 @@ rnaindel recurrence --vcf-list FILE -r REFERENCE -d DATADIR --out-dir
 * ```--vcf-list``` file containing paths to RNAIndel output VCF files ([example](../../sample_data/inputs/rnaindel_vcfs.txt)) (required)
 * ```-r``` reference genome FASTA file (required)
 * ```-d``` [data directory](../../README.md/#setup) contains the COSMIC database (required)
-* ```--out-dir``` output direcory for annotated VCF file. The input file dir is used if not specified. <br>
-&nbsp;   &nbsp;   &nbsp;   &nbsp;  &nbsp;  &nbsp; (file name will not be changed after annotation)
+* ```--out-dir``` output directory for annotated VCF file. The input file dir is used if not specified. <br>
+&nbsp;   &nbsp;   &nbsp;   &nbsp;  &nbsp;  &nbsp;  &nbsp;  &nbsp;  &nbsp;  &nbsp; (file name will not be changed after annotation)

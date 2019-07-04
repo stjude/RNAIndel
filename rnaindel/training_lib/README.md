@@ -1,14 +1,14 @@
 # Train RNAIndel
-RNAIndel trains the model based on the truth annotated by the user.
+RNAIndel trains the model using your training set.
 
 ### Step 1 (feature calculation)
 Features are calculated for each indel and reported in a tab-delimited file.<br>
 
-To use the built-in caller for training, 
+At default, RNAIndel calculates features based on a call set by the built-in caller. 
 ```
 rnaindel feature -i BAM -o OUTPUT_TAB -r REFERENCE -d DATA_DIR [other options]
 ```
-To use your caller, specify the input VCF from your caller by ```-v```.
+To calculate for your caller's call set, specify the input VCF from your caller by ```-v```.
 ```
 rnaindel feature -i BAM -v INPUT_VCF -o OUTPUT_TAB -r REFERENCE -d DATA_DIR [other options]
 ```
@@ -38,13 +38,17 @@ rnaindel feature -i BAM -o OUTPUT_TAB -r REFERENCE -d DATA_DIR -g YOUR_DB [other
 </p></details>
 
 ### Step 2 (annotation)
-The output tab-delimited file has a column \"truth\". Users annotate each indel
-by filling the column with either of <br> 
-\"somatic\", \"germline\", or \"artifact\". 
+The output tab-delimited file has \"truth\" column. Users annotate each indel by filling the column.
+Possible values are:
+```
+somatic, germline, artifact 
+```
+<br>
+Repeat Step 1 and 2 for N samples.
+<br>
 
 ### Step 3 (update models)
-Repeat Step 1 and 2 for N samples.<br>
-Users concatenate the annotated files. Here, assuming the files are \"sample.i.tab\" (i = 1,...,N), 
+Users concatenate the annotated files. Here, assuming the files are named \"sample.i.tab\" (i = 1,...,N), 
 ```
 head -1 sample.1.tab > training_set.tab           # keep the header line
 ```
