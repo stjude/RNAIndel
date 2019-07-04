@@ -67,6 +67,7 @@ rnaindel analysis -i BAM -v INPUT_VCF -o OUTPUT_VCF -r REFERENCE -d DATA_DIR [ot
 * ```-r``` reference genome FASTA file (required)
 * ```-d``` [data directory](#setup) contains trained models and databases (required)
 * ```-v``` VCF file from user`s caller (default: None)
+<details>
     <summary>other options (click to open)</summary>
     
     * ```-q``` STAR mapping quality MAPQ for unique mappers (default: 255)
@@ -77,7 +78,7 @@ rnaindel analysis -i BAM -v INPUT_VCF -o OUTPUT_VCF -r REFERENCE -d DATA_DIR [ot
     * ```-g``` user-provided germline indel database in tabixed VCF format (default: built-in database in data dir) <br>
     &nbsp;   &nbsp;   &nbsp;   &nbsp;Use only if the model is trained with the user-provided database.      
     * ```--exclude-softclipped-alignments``` softclipped indels will not be used for analysis if added (default: False)
-
+</details>
 
 ### Train RNAIndel
 Users can [train](./rnaindel/training_lib) RNAIndel with their own training set. 
