@@ -23,10 +23,10 @@ rnaindel feature -i BAM -o OUTPUT_TAB -f FASTA -d DATA_DIR -g YOUR_DB [other opt
 * ```-o``` output tab-delimited file (required)
 * ```-r``` reference genome (GRCh37 or 38) FASTA file (required)
 * ```-d``` [data directory](../../README.md/#setup) contains trained models and databases (required)
-* ```-v``` VCF file from user's caller (if applicable)
-* ```-g``` user-provided germline indel database in tabixed VCF format (if applicable)
-<details>
-    <summary>other options (click to open)</summary>
+* ```-v``` VCF file from user's caller (default: None)
+* ```-g``` user-provided germline indel database in tabixed VCF format (defalt: None)
+* <details>
+    <summary>other options (click to open)</summary><p>
     
     * ```-q``` STAR mapping quality MAPQ for unique mappers (default: 255)
     * ```-p``` number of cores (default: 1)
@@ -34,6 +34,8 @@ rnaindel feature -i BAM -o OUTPUT_TAB -f FASTA -d DATA_DIR -g YOUR_DB [other opt
     * ```-l``` direcotry to store log files (default: current)
     * ```-n``` user-defined panel of non-somatic indels in tabixed VCF format (default: built-in reviewed indel set)
     * ```--exclude-softclipped-alignments``` softclipped indels will not be used for analysis if added (default: False)
+
+</p></details>
 
 ### Step 2 (annotation)
 The output tab-delimited file has a column \"truth\". Users annotate each indel
@@ -56,10 +58,10 @@ rnaindel training -t TRAINING_SET -d DATA_DIR -c INDEL_CLASS [other options]
 ```
 #### Options
 * ```-t``` training set with annotation (required)
-* ```-d``` [data directory](#setup) contains trained models and databases (required) 
+* ```-d``` [data directory](../../README.md/#setup) contains trained models and databases (required) 
 * ```-c``` indel class to be trained. s for single-nucleotide indel and m for multi-nucleotide indel (required)
-<details>
-     <summary>other options (click to open)</summary>
+* <details>
+    <summary>other options (click to open)</summary><p>
     
     * ```-k``` number of folds in k-fold cross-validation (default: 5)
     * ```-p``` number of processes (default: 1)
@@ -71,4 +73,4 @@ rnaindel training -t TRAINING_SET -d DATA_DIR -c INDEL_CLASS [other options]
     * ```--feature-names``` train with a user-specified subset of features: [input example](../../sample_data/inputs/feature_names.txt) (default: None)
     * ```--auto-param``` train with sklearn.RandomForestClassifer's max_features="auto" (default: False)
 
-</details>
+</p></details>

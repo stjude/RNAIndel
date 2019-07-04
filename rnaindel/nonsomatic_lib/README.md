@@ -39,4 +39,4 @@ rnaindel recurrence --vcf-list FILE -r REFERENCE -d DATADIR --out-dir
 * ```-r``` reference genome FASTA file (required)
 * ```-d``` [data directory](../../README.md/#setup) contains the COSMIC database (required)
 * ```--out-dir``` output direcory for annotated VCF file. The input file dir is used if not specified. <br>
-&nbsp;   &nbsp;   &nbsp;   &nbsp;  (file name will not be changed after annotation)
+&nbsp;   &nbsp;   &nbsp;   &nbsp;  &nbsp;  &nbsp; (file name will not be changed after annotation)
