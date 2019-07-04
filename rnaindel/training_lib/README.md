@@ -58,7 +58,7 @@ rnaindel training -t TRAINING_SET -d DATA_DIR -c INDEL_CLASS [other options]
 * ```-t``` training set with annotation (required)
 * ```-d``` [data directory](#setup) contains trained models and databases (required) 
 * ```-c``` indel class to be trained. s for single-nucleotide indel and m for multi-nucleotide indel (required)
-*<details>
+<details>
      <summary>other options (click to open)</summary>
     
     * ```-k``` number of folds in k-fold cross-validation (default: 5)
