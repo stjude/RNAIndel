@@ -79,6 +79,8 @@ rnaindel analysis -i BAM -v INPUT_VCF -o OUTPUT_VCF -r REFERENCE -d DATA_DIR [ot
     &nbsp;   &nbsp;   &nbsp;   &nbsp;Use only if the model is trained with the user-provided database.      
     * ```--exclude-softclipped-alignments``` softclipped indels will not be used for analysis if added (default: False)
 
+</details>
+
 ### Train RNAIndel
 Users can [train](./rnaindel/training_lib) RNAIndel with their own training set. 
 
