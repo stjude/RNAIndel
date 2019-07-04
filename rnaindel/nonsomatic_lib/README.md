@@ -9,31 +9,39 @@ rnaindel nonsomatic --vcf-list FILE --count INT -o NONSOMATIC_VCF -r REFERENCE -
 bgzip NONSOMATIC_VCF
 tabix -p vcf NONSOMATIC_VCF.gz
 ```
+
 #### Options
 * ```--vcf-list``` file containing paths to normal VCF files ([example](../../sample_data/inputs/normals.txt)) (required)
 * ```--count``` indel occurrence count to be defined as common in the supplied VCF files (required)
 * ```-o``` output non-somatic VCF file (required)
 * ```-r``` reference genome FASTA file (required)
 * ```-d``` [data directory](../../README.md/#setup) contains the COSMIC database (required)
+
  
 ### Step 2 (reclassification) 
+Putative somatic indels found in the non-somatic panel will be reclassifed based on the prediction probability assigned by RNAIndel.
+
 ```
 rnaindel reclassification -i RNAIndel_OUTPUT_VCF -o RECLASSIFIED_VCF -r REFERENCE -n NON_SOMATIC_VCF.gz 
 ```
+
 #### Options
 * ```-i``` RNAIndel output VCF file to be reclassified (required).
 * ```-o``` reclassifed VCF file (required)
 * ```-r``` reference genome FASTA file (required)
 * ```-n``` non-somatic indel panel in bgzip-compressed VCF file (required)
 
+
 ### Recurrent non-COSMIC indel annotation
 When multiple RNAIndel output VCF files are available as in a case of cohort study, 
 RNAIndel annotates indels recurring in the samples that are not present in the 
 COSMIC databse. Such recurrent indels are possibly common artifact/germline rather 
 than a somatic hotspot. Annotation is made in INFO field. 
+
 ```
 rnaindel recurrence --vcf-list FILE -r REFERENCE -d DATADIR --out-dir
 ```
+
 #### Options
 * ```--vcf-list``` file containing paths to RNAIndel output VCF files ([example](../../sample_data/inputs/rnaindel_vcfs.txt)) (required)
 * ```-r``` reference genome FASTA file (required)

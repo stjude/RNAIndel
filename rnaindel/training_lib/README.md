@@ -12,10 +12,10 @@ To use your caller, specify the input VCF from your caller by ```-v```.
 ```
 rnaindel feature -i BAM -v INPUT_VCF -o OUTPUT_TAB -r REFERENCE -d DATA_DIR [other options]
 ```
-To use your germline database for training, specify the database by ```-g```. <br>
-The germline databse is expected to be a tabixed VCF file with no missing value in ID field.
+To use your germline indel database for training, specify the database by ```-g```. <br>
+The databse is expected to be a bgzip-compressed VCF file with no missing value in ID field.
 ```
-rnaindel feature -i BAM -o OUTPUT_TAB -f FASTA -d DATA_DIR -g YOUR_DB [other options]
+rnaindel feature -i BAM -o OUTPUT_TAB -r REFERENCE -d DATA_DIR -g YOUR_DB [other options]
 ```
 
 #### Options
@@ -52,14 +52,14 @@ head -1 sample.1.tab > training_set.tab           # keep the header line
 tail -n +2 -q sample.*.tab > training_set.tab     # concatenate files without header
 ```
 The concatenated file is used as a training set to update the models.
-Specify the indel class to be trained by -c. 
+Specify the indel class to be trained by ```-c```. 
 ```
 rnaindel training -t TRAINING_SET -d DATA_DIR -c INDEL_CLASS [other options]
 ```
 #### Options
 * ```-t``` training set with annotation (required)
 * ```-d``` [data directory](../../README.md/#setup) contains trained models and databases (required) 
-* ```-c``` indel class to be trained. s for single-nucleotide indel and m for multi-nucleotide indel (required)
+* ```-c``` indel class to be trained. "s" for single-nucleotide indel and "m" for multi-nucleotide indel (required)
 * <details>
     <summary>other options (click to open)</summary><p>
     

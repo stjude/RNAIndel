@@ -35,9 +35,9 @@ class Commands(object):
 subcommands are:
     analysis              Predict somatic indels from tumor RNA-Seq data
     feature               Calculate and report features for training
-    nonsomatic            Create panel of non-somatic indels
-    reclassification      Reclassify possible false positives by non-somatic panel
-    recurrence            Annotate possible false positives by recurrence
+    nonsomatic            Compile non-somatic indel panel
+    reclassification      Reclassify false positives by non-somatic panel
+    recurrence            Annotate false positives by recurrence
     training              Train models""",
         )
 
