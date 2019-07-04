@@ -25,7 +25,7 @@ rnaindel feature -i BAM -o OUTPUT_TAB -f FASTA -d DATA_DIR -g YOUR_DB [other opt
 * ```-d``` [data directory](../../README.md/#setup) contains trained models and databases (required)
 * ```-v``` VCF file from user's caller (if applicable)
 * ```-g``` user-provided germline indel database in tabixed VCF format (if applicable)
-*<details>
+<details>
     <summary>other options (click to open)</summary>
     
     * ```-q``` STAR mapping quality MAPQ for unique mappers (default: 255)
