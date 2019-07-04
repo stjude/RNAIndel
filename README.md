@@ -87,6 +87,9 @@ Users can [train](./rnaindel/training_lib) RNAIndel with their own training set.
 ### Filter false positives
 RNAIndel supports [custom filtering](./rnaindel/nonsomatic_lib) to refine the predicted result.
 
+## Limitations
+1. RNAIndel does not perform well for samples with microsatellite instability such as colon adenocarcinoma hypermutated subtype. 
+
 ## Reference
 1. Hagiwara, K., Ding, L., Edmonson, M.N., Rice, S.V., Newman, S., Meshinchi, S., Ries, R.E., Rusch, M., Zhang, J. 
 RNAIndel: a machine-learning framework for discovery of somatic coding indels using tumor RNA-Seq data.
