@@ -67,7 +67,7 @@ rnaindel analysis -i BAM -v INPUT_VCF -o OUTPUT_VCF -r REFERENCE -d DATA_DIR [ot
 * ```-r``` reference genome FASTA file (required)
 * ```-d``` [data directory](#setup) contains trained models and databases (required)
 * ```-v``` VCF file from user`s caller (default: None)
-* <details>
+<details>
     <summary>other options (click to open)</summary><p>
     
     * ```-q``` STAR mapping quality MAPQ for unique mappers (default: 255)
