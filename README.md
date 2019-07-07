@@ -82,10 +82,10 @@ rnaindel analysis -i BAM -v INPUT_VCF -o OUTPUT_VCF -r REFERENCE -d DATA_DIR [ot
 </p></details>
 
 ### Train RNAIndel
-Users can [train](./doc/training) RNAIndel with their own training set. 
+Users can [train](./docs/training) RNAIndel with their own training set. 
 
 ### Filter false positives
-RNAIndel supports [custom filtering](./doc/filtering) to refine the predicted result.
+RNAIndel supports [custom filtering](./docs/filtering) to refine the predicted result.
 
 ## Limitations
 1. RNAIndel does not perform well for samples with microsatellite instability such as colon adenocarcinoma hypermutated subtype. 
