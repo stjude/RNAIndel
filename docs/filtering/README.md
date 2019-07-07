@@ -2,10 +2,6 @@
 
 RNAIndel has subcommands to filter artifact and germline indels predicted as somatic.
 
-### Reclassification
-
-<img src="reclassification.JPG" width="300">
-
 ### Step 1 (panel compilation)
 RNAIndel compiles a non-somatic indel panel using common non-COSMIC indels found in matched or public normal samples.
 ```
