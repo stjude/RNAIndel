@@ -4,16 +4,16 @@ RNAIndel trains the model using your training set.
 ### Step 1 (feature calculation)
 Features are calculated for each indel and reported in a tab-delimited file.<br>
 
-At default, RNAIndel calculates features based on a call set by the built-in caller. 
+By default, RNAIndel calculates features based on a call set by the built-in caller. 
 ```
 rnaindel feature -i BAM -o OUTPUT_TAB -r REFERENCE -d DATA_DIR [other options]
 ```
-To calculate for your caller's call set, specify the input VCF from your caller by ```-v```.
+To calculate for your caller's call set, specify the input VCF from your caller with ```-v```.
 ```
 rnaindel feature -i BAM -v INPUT_VCF -o OUTPUT_TAB -r REFERENCE -d DATA_DIR [other options]
 ```
-To use your germline indel database for training, specify the database by ```-g```. <br>
-The databse is expected to be a bgzip-compressed VCF file with no missing value in ID field.
+To use your germline indel database for training, specify the database with ```-g```. <br>
+The database is expected to be a bgzip-compressed VCF file with no missing values in the ID field.
 ```
 rnaindel feature -i BAM -o OUTPUT_TAB -r REFERENCE -d DATA_DIR -g YOUR_DB [other options]
 ```
@@ -24,7 +24,7 @@ rnaindel feature -i BAM -o OUTPUT_TAB -r REFERENCE -d DATA_DIR -g YOUR_DB [other
 * ```-r``` reference genome (GRCh37 or 38) FASTA file (required)
 * ```-d``` [data directory](../../README.md/#setup) contains trained models and databases (required)
 * ```-v``` VCF file from user's caller (default: None)
-* ```-g``` user-provided germline indel database in tabixed VCF format (defalt: None)
+* ```-g``` user-provided germline indel database in tabixed VCF format (default: None)
 * <details>
     <summary>other options (click to open)</summary><p>
     
@@ -33,7 +33,7 @@ rnaindel feature -i BAM -o OUTPUT_TAB -r REFERENCE -d DATA_DIR -g YOUR_DB [other
     * ```-m``` maximum heap space (default: 6000m)
     * ```-l``` direcotry to store log files (default: current)
     * ```-n``` user-defined panel of non-somatic indels in tabixed VCF format (default: built-in reviewed indel set)
-    * ```--exclude-softclipped-alignments``` softclipped indels will not be used for analysis if added (default: False)
+    * ```--exclude-softclipped-alignments``` softclipped indels will not be used for analysis if used (default: False)
 
 </p></details>
 

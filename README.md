@@ -1,7 +1,7 @@
 # RNAIndel
 
-RNAIndel calls coding indels and classifies them into 
-somatic, germline, and artifact from tumor RNA-Seq data.
+RNAIndel calls coding indels from tumor RNA-Seq data and 
+classifies them as somatic, germline, and artifactual.
 You can also use RNAIndel as a postprocessor to
 classify indels called by your own caller. 
 RNAIndel supports GRCh38.<br> 
@@ -49,7 +49,7 @@ rnaindel subcommand [subcommand-specific options]
 
 #### Use the built-in caller
 RNAIndel calls indels by the [built-in caller](https://academic.oup.com/bioinformatics/article/27/6/865/236751), which is optimized 
-for RNA-Seq indel calling, and classifies detected indels into somatic, germline, and artifact. 
+for RNA-Seq indel calling, and classifies detected indels as somatic, germline, and artifactual. 
 ```
 rnaindel analysis -i BAM -o OUTPUT_VCF -r REFERENCE -d DATA_DIR [other options]
 ```
@@ -66,14 +66,14 @@ rnaindel analysis -i BAM -v INPUT_VCF -o OUTPUT_VCF -r REFERENCE -d DATA_DIR [ot
 * ```-o``` output VCF file (required)
 * ```-r``` reference genome FASTA file (required)
 * ```-d``` [data directory](#setup) contains trained models and databases (required)
-* ```-v``` VCF file from user`s caller (default: None)
+* ```-v``` VCF file from user's caller (default: None)
 * <details>
     <summary>other options (click to open)</summary><p>
     
     * ```-q``` STAR mapping quality MAPQ for unique mappers (default: 255)
     * ```-p``` number of cores (default: 1)
     * ```-m``` maximum heap space (default: 6000m)
-    * ```-l``` direcotry to store log files (default: current)
+    * ```-l``` directory to store log files (default: current)
     * ```-n``` user-defined panel of non-somatic indels in tabixed VCF format (default: built-in reviewed indel set)
     * ```-g``` user-provided germline indel database in tabixed VCF format (default: built-in database in data dir) <br>
     &nbsp;   &nbsp;   &nbsp;   &nbsp;use only if the model is trained with the user-provided database ([more](./rnaindel/training_lib)).      
@@ -85,7 +85,7 @@ rnaindel analysis -i BAM -v INPUT_VCF -o OUTPUT_VCF -r REFERENCE -d DATA_DIR [ot
 Users can [train](./docs/training) RNAIndel with their own training set. 
 
 ### Filter false positives
-RNAIndel supports [custom filtering](./docs/filtering) to refine the predicted result.
+RNAIndel supports [custom filtering](./docs/filtering) to refine the predicted results.
 
 ## Limitations
 1. RNAIndel does not perform well for samples with microsatellite instability such as colon adenocarcinoma hypermutated subtype. 

@@ -33,10 +33,10 @@ rnaindel reclassification -i RNAIndel_OUTPUT_VCF -o RECLASSIFIED_VCF -r REFERENC
 
 
 ### Recurrent non-COSMIC indel annotation
-When multiple RNAIndel output VCF files are available as in a case of cohort study, 
+When multiple RNAIndel output VCF files are available as in the case of cohort studies, 
 RNAIndel annotates indels recurring in the samples that are not present in the 
-[COSMIC](https://cancer.sanger.ac.uk/cosmic) databse. Such recurrent indels are possibly common artifact/germline rather 
-than a somatic hotspot. Annotation is made in INFO field. 
+[COSMIC](https://cancer.sanger.ac.uk/cosmic) database. Such recurrent indels are possibly common artifacual/germline indels rather 
+than somatic hotspots. Annotation is made in INFO field. 
 
 ```
 rnaindel recurrence --vcf-list FILE -r REFERENCE -d DATADIR --out-dir
