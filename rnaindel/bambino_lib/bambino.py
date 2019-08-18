@@ -36,7 +36,11 @@ def bambino(bam, fasta, output_file, heap_memory="6000m"):
         print(stderr, file=sys.stderr)
         sys.exit(return_code)
     else:
-        print("indel calling completed successfully.", file=sys.stdout)
+        if os.stat(outfile).st_size == 0:
+            print("No variants called. Check if the input reference FASTA file is the same file used for mapping.")
+            sys.exit(1) 
+        else:
+            print("indel calling completed successfully.", file=sys.stdout)
 
 
 def run_shell_command(command_string):
