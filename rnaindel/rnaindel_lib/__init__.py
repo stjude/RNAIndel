@@ -19,3 +19,4 @@ from .indel_vcf_writer import *
 from .indel_vcf import *
 from .indel_rescuer import *
 from .indel_softclip_realigner import *
+from .input_validator import *

@@ -209,6 +209,9 @@ def run(subcommand):
 
         germline_db = pysam.TabixFile(args.germline_db) if args.germline_db else None
 
+        # input validation
+        rl.input_validator(alignments, genome, args.uniq_mapq)
+        
         # preprocessing
         # variant calling will be performed if no external VCF is supplied
         if not args.input_vcf:

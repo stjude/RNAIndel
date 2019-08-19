@@ -38,7 +38,8 @@ def bambino(bam, fasta, output_file, heap_memory="6000m"):
     else:
         if os.stat(output_file).st_size == 0:
             print(
-                "No variants called. Check if the input reference FASTA file is the same file used for mapping."
+                "No variants called. Check if the input reference FASTA file is the same file used for mapping.",
+                file=sys.stderr,
             )
             sys.exit(1)
         else:
