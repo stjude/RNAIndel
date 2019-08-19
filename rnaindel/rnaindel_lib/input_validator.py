@@ -30,6 +30,23 @@ def input_validator(alignments, genome, uniq_mapq):
         )
         sys.exit(1)
 
+    reads = sample_reads(alignments)
+
+    if reads:
+        max_mapq = max([read.mapping_quality for read in reads])
+        if max_mapq != uniq_mapq:
+            print("The MAPQ for unique mapping looks like {}.".format(max_mapq))
+            print("Please specify this MAPQ by -q (default: 255).", file=sys.stderr)
+            sys.exit(1)
+
+        has_md = sum([read.has_tag("MD") for read in reads])
+        if has_md == 0:
+            print("MD tag is missing in input BAM.", file=sys.stderr)
+            sys.exit(1)
+    else:
+        print("Please check if the input BAM contains alignments.", file=sys.stderr)
+        sys.exit(1)
+
 
 def is_canonical(chrom_name):
     chrom_name_nochr = chrom_name.replace("chr", "")
@@ -40,27 +57,15 @@ def is_canonical(chrom_name):
         return False
 
 
-def sample_reads(alignments, uniq_mapq):
-    n, i = 1000, 0
-    reads = []
-    for read in alignments.fetch():
-        reads.append(read)
-        i += 1
-        if i > n:
-            break
-
-    max_mapq = max([read.mapping_quality for read in reads])
-    print(len(reads))
-    print([read.mapping_quality for read in reads])
-    print(max_mapq)
-    if max_mapq != uniq_mapq:
-        print(
-            "Please specify MAPQ for STAR unique mappers by -q (default: 255).",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    has_md = sum([read.has_tag("MD") for read in reads])
-    if has_md == 0:
-        print("MD tag is missing in input BAM.", file=sys.stderr)
-        sys.exit(1)
+def sample_reads(alignments):
+    try:
+        n, i = 1000, 0
+        reads = []
+        for read in alignments.fetch():
+            reads.append(read)
+            i += 1
+            if i > n:
+                break
+        return reads
+    except:
+        return None
