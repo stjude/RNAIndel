@@ -50,6 +50,9 @@ def sample_reads(alignments, uniq_mapq):
             break
 
     max_mapq = max([read.mapping_quality for read in reads])
+    print(len(reads))
+    print([read.mapping_quality for read in reads])
+    print(max_mapq)
     if max_mapq != uniq_mapq:
         print(
             "Please specify MAPQ for STAR unique mappers by -q (default: 255).",
