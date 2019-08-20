@@ -211,7 +211,7 @@ def run(subcommand):
 
         # input validation
         rl.input_validator(alignments, genome, args.uniq_mapq)
-        
+
         # preprocessing
         # variant calling will be performed if no external VCF is supplied
         if not args.input_vcf:
@@ -312,14 +312,16 @@ def run(subcommand):
         )
 
         # panel of non somatic
-        pons = (
+        default_pons = pysam.TabixFile(
             os.path.join(args.data_dir, "non_somatic/non_somatic.vcf.gz")
-            if not args.non_somatic_panel
-            else args.non_somatic_panel
         )
-        pons = pysam.TabixFile(pons)
+        user_pons = (
+            pysam.TabixFile(args.non_somatic_panel) if args.non_somatic_panel else None
+        )
 
-        df = rl.indel_reclassifier(df, genome, pons, cosmic, chr_prefixed)
+        df = rl.indel_reclassifier(
+            df, genome, default_pons, user_pons, cosmic, chr_prefixed
+        )
 
         # postProcessing & VCF formatting
         df, df_filtered = rl.indel_postprocessor(
@@ -497,8 +499,9 @@ def get_args(subcommand):
             "-n",
             "--non-somatic-panel",
             metavar="FILE",
+            default=None,
             type=partial(check_file, file_name="nonsomatic panel (.vcf.gz)"),
-            help="user-defined panel of non-somatic indels in bgzip-compressed VCF format",
+            help="user-defined panel of non-somatic indels in bgzip-compressed VCF format (default: None)",
         )
 
     if subcommand == "reclassification":

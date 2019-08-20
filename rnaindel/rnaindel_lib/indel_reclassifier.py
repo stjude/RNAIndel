@@ -12,13 +12,14 @@ from .indel_snp_annotator import vcf2bambino
 from .indel_curator import curate_indel_in_genome
 
 
-def indel_reclassifier(df, genome, pons, cosmic, chr_prefixed):
+def indel_reclassifier(df, genome, default_pons, user_pons, cosmic, chr_prefixed):
     """Knowledge-based reclassification
     
     Args:
         df (pandas.DataFrame): df with prediction made
         genome (pysam.FastaFile): reference genome 
-        pons (pysam.TabixFile): user-defined VCF non-somatic indels
+        default_pons (pysam.TabixFile): default black list indels in .vcf.gz
+        user_pons (pysam.TabixFile): user's panel of non-somatic indels in .vcf.gz. may be None
         cosmic (pysam.TabixFile): COSMIC db 
         chr_prefixed (bool): True if chromosome names in BAM are "chr"-prefixed
     Returns:
@@ -29,11 +30,23 @@ def indel_reclassifier(df, genome, pons, cosmic, chr_prefixed):
         *df.apply(
             reclassify_by_pons,
             genome=genome,
-            pons=pons,
+            pons=default_pons,
             chr_prefixed=chr_prefixed,
             axis=1,
         )
     )
+
+    if user_pons:
+        df["predicted_class"], df["reclassified"] = zip(
+            *df.apply(
+                reclassify_by_pons,
+                genome=genome,
+                pons=user_pons,
+                chr_prefixed=chr_prefixed,
+                axis=1,
+            )
+        )
+
     df["predicted_class"], df["reclassified"] = zip(
         *df.apply(
             reclassify_by_cosmic,
@@ -47,8 +60,10 @@ def indel_reclassifier(df, genome, pons, cosmic, chr_prefixed):
         *df.apply(rescue_highquality_homopolymer, cosmic=cosmic, axis=1)
     )
 
-    df["predicted_class"], df["reclassified"] = zip(*df.apply(reclassify_by_mappability, axis=1))
-    
+    df["predicted_class"], df["reclassified"] = zip(
+        *df.apply(reclassify_by_mappability, axis=1)
+    )
+
     return df
 
 
@@ -58,7 +73,11 @@ def reclassify_by_pons(row, genome, pons, chr_prefixed, preset="pons"):
     Args: see 'relassify_by_db'
     Returns: see 'relassify_by_db'
     """
-    if row["predicted_class"] == "somatic" and row["is_common"] != 1:
+    if (
+        row["predicted_class"] == "somatic"
+        and row["is_common"] != 1
+        and row["reclassified"] == "-"
+    ):
         return relassify_by_db(row, genome, pons, chr_prefixed, preset)
     else:
         return row["predicted_class"], row["reclassified"]
