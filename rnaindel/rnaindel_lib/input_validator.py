@@ -25,19 +25,23 @@ def input_validator(alignments, genome, uniq_mapq):
 
     if not set(shorter) <= set(longer):
         print(
-            "Please use input the same reference FASTA file used for mapping.",
+            "Please input the same reference FASTA file used for mapping.",
             file=sys.stderr,
         )
         sys.exit(1)
 
-    reads = sample_reads(alignments)
+    # select only good reads
+    reads = sample_reads(alignments, 300)
 
     if reads:
         max_mapq = max([read.mapping_quality for read in reads])
         if max_mapq != uniq_mapq:
-            print("The MAPQ for unique mapping looks like {}.".format(max_mapq))
-            print("Please specify this MAPQ by -q (default: 255).", file=sys.stderr)
-            sys.exit(1)
+            reads = sample_reads(alignments, 30000)
+            max_mapq = max([read.mapping_quality for read in reads])
+            if max_mapq != uniq_mapq:
+                print("The MAPQ for unique mapping looks like {}.".format(max_mapq))
+                print("Please specify this MAPQ by -q (default: 255).", file=sys.stderr)
+                sys.exit(1)
 
         has_md = sum([read.has_tag("MD") for read in reads])
         if has_md == 0:
@@ -57,15 +61,18 @@ def is_canonical(chrom_name):
         return False
 
 
-def sample_reads(alignments):
+def sample_reads(alignments, n):
     try:
-        n, i = 1000, 0
+        i = 0
         reads = []
         for read in alignments.fetch():
-            reads.append(read)
-            i += 1
+            if not read.is_secondary and not read.is_duplicate:
+                reads.append(read)
+                i += 1
+            
             if i > n:
                 break
+
         return reads
     except:
         return None
