@@ -27,6 +27,7 @@ def vcf_header():
         "##fileformat=VCFv4.2",
         "##filedate=" + today,
         '##INFO=<ID=OCCURRENCE,Number=1,Type=Integer,Description="Indel count in the dataset">',
+        "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO",
     ]
     return "\n".join(header)
 
