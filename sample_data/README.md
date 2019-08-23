@@ -32,7 +32,7 @@ RNAIndel
 ```
 $ rnaindel analysis -i ./sample_data/inputs/sample.bam \
                     -o ./sample_data/outputs/sample.vcf \
-                    -r path/to/your_GRCh38.fa (Use sample reference if you get an error)\
+                    -r path/to/your_GRCh38.fa (Use [sample reference](http://ftp.stjude.org/pub/software/RNAIndel/sample_reference) if you get an error)\
                     -d ./data_dir_38
 
 indel calling completed successfully.          # indel calling by the built-in caller is done.

@@ -38,7 +38,7 @@ rnaindel reclassification -i RNAIndel_OUTPUT_VCF -o RECLASSIFIED_VCF -r REFERENC
 * ```-n``` non-somatic indel panel in bgzip-compressed VCF file (required)
 
 ### Example panel
-Panels compiled from 100 blood RNA samples of healthy volunteers ([PRJNA553703](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA553703)) are available. <br><br>
+Panels compiled from 100 blood RNA samples of healthy volunteers ([PRJNA553703](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA553703)) are [available](http://ftp.stjude.org/pub/software/RNAIndel/normal_panel). <br><br>
 
 
 ### Recurrent non-COSMIC indel annotation
