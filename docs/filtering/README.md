@@ -1,24 +1,30 @@
 # Indel filtration 
+RNAIndel can compile a filtering panel and apply it to filter artifact and germline indels predicted as somatic.   
 
-RNAIndel has subcommands to filter artifact and germline indels predicted as somatic.
+### Step 1 (indel calling on normal samples)
+Generate VCF files from normal RNA-Seq samples. Such samples may be matched or publicly available samples with similar technical specifications.
+VCFs may be from your caller or RNAIndel:
+```
+rnaindel analysis -i NORMAL_i_BAM -r REFERENCE -d DATA_DIR -o NORMAL_i_VCF   (for i = 1,...,N)
+```
 
-### Step 1 (panel compilation)
+### Step 2 (panel compilation)
 RNAIndel compiles a non-somatic indel panel using common non-COSMIC indels found in matched or public normal samples.
 ```
 rnaindel nonsomatic --vcf-list FILE --count INT -o NONSOMATIC_VCF -r REFERENCE -d DATA_DIR
-bgzip NONSOMATIC_VCF
-tabix -p vcf NONSOMATIC_VCF.gz
+bgzip NON_SOMATIC_VCF
+tabix -p vcf NON_SOMATIC_VCF.gz
 ```
 
 #### Options
 * ```--vcf-list``` file containing paths to normal VCF files ([example](../../sample_data/inputs/normals.txt)) (required)
-* ```--count``` indel occurrence count to be defined as common in the supplied VCF files (required)
+* ```--count``` indel occurrence count to be defined as common in the input set of VCF files (required)
 * ```-o``` output non-somatic VCF file (required)
 * ```-r``` reference genome FASTA file (required)
 * ```-d``` [data directory](../../README.md/#setup) contains the [COSMIC](https://cancer.sanger.ac.uk/cosmic) database (required)
 
  
-### Step 2 (reclassification) 
+### Step 3 (reclassification) 
 Putative somatic indels found in the non-somatic panel will be reclassifed based on the prediction probability assigned by RNAIndel.
 
 ```
@@ -30,6 +36,9 @@ rnaindel reclassification -i RNAIndel_OUTPUT_VCF -o RECLASSIFIED_VCF -r REFERENC
 * ```-o``` reclassifed VCF file (required)
 * ```-r``` reference genome FASTA file (required)
 * ```-n``` non-somatic indel panel in bgzip-compressed VCF file (required)
+
+### Example panel
+Example panels compiled from 100 blood RNA samples of healthy volunteers ([PRJNA553703](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA553703)) are available. 
 
 
 ### Recurrent non-COSMIC indel annotation
