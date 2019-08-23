@@ -15,7 +15,7 @@ RNAIndel supports GRCh38.<br>
 * [java>=1.8.0](https://www.java.com/en/download/) 
 
 ## Setup
-Install RNAIndel. Be sure that the [dependencies](#dependencies) are satisfied before pip installation.  
+Install RNAIndel. The pip command will install the dependencies except for Java.  
 ```
 pip install rnaindel
 ```
