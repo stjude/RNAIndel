@@ -15,7 +15,8 @@ RNAIndel
      |_ sample_data <------ sample dataset (GRCh38) 
      ...
 ```
-**Step 2:**  Download and unpack data package for [GRCh38](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz).  
+**Step 2:**  Download and unpack data package for [GRCh38](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz).
+                                                
 ```
 RNAIndel
     |_ rnaindel
@@ -32,12 +33,14 @@ RNAIndel
 ```
 $ rnaindel analysis -i ./sample_data/inputs/sample.bam \
                     -o ./sample_data/outputs/sample.vcf \
-                    -r path/to/your_GRCh38.fa (Use [sample reference](http://ftp.stjude.org/pub/software/RNAIndel/sample_reference) if you get an error)\
+                    -r path/to/your_GRCh38.fa \
                     -d ./data_dir_38
 
 indel calling completed successfully.          # indel calling by the built-in caller is done.
 rnaindel analysis completed successfully.      # all steps done. 
 ```
+(Use [sample reference](http://ftp.stjude.org/pub/software/RNAIndel/sample_reference/) if you get an error)<br>  
+
 Fifteen coding indels are reported in the ouput [VCF](./outputs/sample.vcf) file: 2 somatic, 1 germline, and 12 artifact indels (see INFO field).
 The two *PTEN* indels are predicted as somatic. 
 The first indel is a complex indel in which a 2-nt deletion and a 9-nt insertion 
