@@ -4,8 +4,7 @@ RNAIndel calls coding indels from tumor RNA-Seq data and
 classifies them as somatic, germline, and artifactual.
 You can also use RNAIndel as a postprocessor to
 classify indels called by your own caller. 
-RNAIndel supports GRCh38.<br> 
-(GRCh37 to be supported soon)
+RNAIndel supports GRCh38 and GRCh37.<br> 
 
 ## Dependencies
 * [python>=3.5.2](https://www.python.org/downloads/)
@@ -24,7 +23,7 @@ Test the installation.
 rnaindel -h
 ```
 
-Download data package ([GRCh38](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz)) and 
+Download data package ([GRCh38](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz), [GRCh37](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_37.tar.gz)) and 
 unpack it in a convenient directory on your system. 
 
 ```
