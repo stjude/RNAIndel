@@ -2,7 +2,7 @@
 RNAIndel can compile a filtering panel and apply it to filter artifact and germline indels predicted as somatic.   
 
 ### Step 1 (indel calling on normal samples)
-Generate VCF files from normal RNA-Seq samples. Such samples may be matched or publicly available samples with similar technical specifications.
+Generate VCF files from normal RNA-Seq samples. Such samples may be matched or publicly available normal RNA-Seq data with similar technical specifications.
 VCFs may be from your caller or RNAIndel:
 ```
 rnaindel analysis -i NORMAL_i_BAM -r REFERENCE -d DATA_DIR -o NORMAL_i_VCF   (for i = 1,...,N)
@@ -40,7 +40,7 @@ rnaindel reclassification -i RNAIndel_OUTPUT_VCF -o RECLASSIFIED_VCF -r REFERENC
 ### Example panel
 Example panels compiled from 100 blood RNA samples of healthy volunteers ([PRJNA553703](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA553703)) are available. 
 
-
+<br>
 ### Recurrent non-COSMIC indel annotation
 When multiple RNAIndel output VCF files are available as in the case of cohort studies, 
 RNAIndel annotates indels recurring in the samples that are not present in the 
