@@ -38,9 +38,9 @@ rnaindel reclassification -i RNAIndel_OUTPUT_VCF -o RECLASSIFIED_VCF -r REFERENC
 * ```-n``` non-somatic indel panel in bgzip-compressed VCF file (required)
 
 ### Example panel
-Example panels compiled from 100 blood RNA samples of healthy volunteers ([PRJNA553703](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA553703)) are available. 
+Example panels compiled from 100 blood RNA samples of healthy volunteers ([PRJNA553703](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA553703)) are available. <br>
 
-<br>
+
 ### Recurrent non-COSMIC indel annotation
 When multiple RNAIndel output VCF files are available as in the case of cohort studies, 
 RNAIndel annotates indels recurring in the samples that are not present in the 
