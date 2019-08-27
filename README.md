@@ -91,6 +91,5 @@ RNAIndel supports [custom filtering](./docs/filtering) to refine the predicted r
 
 ## Reference
 1. Hagiwara, K., Ding, L., Edmonson, M.N., Rice, S.V., Newman, S., Meshinchi, S., Ries, R.E., Rusch, M., Zhang, J. 
-RNAIndel: a machine-learning framework for discovery of somatic coding indels using tumor RNA-Seq data.
-([preprint](https://www.biorxiv.org/content/early/2019/01/07/512749?rss=1))  
-
+RNAIndel: discovering somatic coding indels from tumor RNA-Seq data.
+([preprint](https://www.biorxiv.org/content/10.1101/512749v2))
