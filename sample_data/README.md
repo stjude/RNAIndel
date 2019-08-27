@@ -1,39 +1,31 @@
 ## Introduction
 Here, we demonstrate an analysis example using sample data prepared from the Jurkat T-cell leukemia cell line.<br>
 This cell line harbors two known indels in the *PTEN* tumor suppressor gene: a 2-nt deletion followed by a 9-nt insertion at codon 234 and a 39-nt insertion at codon 246 ([Shan et al. 2000](https://www.ncbi.nlm.nih.gov/pubmed/10958690)). 
-We apply RNAIndel to a sample BAM file ([sample.bam](./inputs/sample.bam)), which contains the GRCh38 region chr10:80,000,000-90,000,000 (the *PTEN* locus is chr10:87,863,113-87,971,930). 
+We apply RNAIndel to a [sample data](http://ftp.stjude.org/pub/software/RNAIndel/sample_data.tar.gz), which contains the GRCh38 region chr10:80,000,000-90,000,000 (the *PTEN* locus is chr10:87,863,113-87,971,930). 
 
 ## Setup
 We assume RNAIndel is [installed](../README.md#setup).<br>
-**Step 1:** Download the sample dataset.
+**Step 1:** Download the [data_pakage](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz) and [sample data](http://ftp.stjude.org/pub/software/RNAIndel/sample_data.tar.gz).<br> 
+**Step 2:** Unpack them under your convenient direcotry.
 ```
-git clone https://github.com/stjude/RNAIndel.git 
+cd your/convenient/direcotry
 
-RNAIndel
-     |_ rnaindel
-     ...
-     |_ sample_data <------ sample dataset (GRCh38) 
-     ...
+tar xvzf sample_data.tar.gz
+tar xvzf data_dir_38.tar.gz 
 ```
-**Step 2:**  Download and unpack data package for [GRCh38](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz).
-                                                
+The sample data is located in "inputs":
 ```
-RNAIndel
-    |_ rnaindel
-    ...
-    |_ sample_data
-    ...
-    |_ data_dir_38 <--- Unpacked here for demo. 
-    ...
+sample_data
+    |_ inputs  
+    |_ outputs (sample outputs)
 ```
-
 ## Perform analysis
 
 ### Working with the built-in caller
 ```
 $ rnaindel analysis -i ./sample_data/inputs/sample.bam \
-                    -o ./sample_data/outputs/sample.vcf \
-                    -r path/to/your_GRCh38.fa \
+                    -o your_test_with_built_in_caller.vcf \
+                    -r ./sample_data/inputs/chr10.fa \
                     -d ./data_dir_38
 
 indel calling completed successfully.          # indel calling by the built-in caller is done.
@@ -57,8 +49,8 @@ generated a VCF file ([sample_gatk.vcf](./inputs/sample_gatk.vcf)). Now, the ind
 ```
 $ rnaindel analysis -i ./sample_data/inputs/sample.bam \
                     -v ./sample_data/inputs/sample_gatk.vcf \
-                    -o ./sample_data/outputs/sample_gatk_classified.vcf \
-                    -r path/to/your_GRCh38.fa \
+                    -o your_test_with_gatk_hc.vcf \
+                    -r ./sample_data/inputs/chr10.fa \
                     -d ./data_dir_38
 
 rnaindel analysis completed successfully. # all steps done (no calling by the built-in caller) 
