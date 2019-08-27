@@ -6,9 +6,9 @@ We apply RNAIndel to a [sample data](http://ftp.stjude.org/pub/software/RNAIndel
 ## Setup
 We assume RNAIndel is [installed](../README.md#setup).<br>
 **Step 1:** Download the [data_pakage](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz) and [sample data](http://ftp.stjude.org/pub/software/RNAIndel/sample_data.tar.gz).<br> 
-**Step 2:** Unpack them under your convenient direcotry.
+**Step 2:** Unpack them under your convenient directory.
 ```
-cd your/convenient/direcotry
+cd your/convenient/directory
 
 tar xvzf sample_data.tar.gz
 tar xvzf data_dir_38.tar.gz 
