@@ -1,7 +1,7 @@
 ## Introduction
 Here, we demonstrate an analysis example using sample data prepared from the Jurkat T-cell leukemia cell line.<br>
 This cell line harbors two known indels in the *PTEN* tumor suppressor gene: a 2-nt deletion followed by a 9-nt insertion at codon 234 and a 39-nt insertion at codon 246 ([Shan et al. 2000](https://www.ncbi.nlm.nih.gov/pubmed/10958690)). 
-We apply RNAIndel to a [sample data](http://ftp.stjude.org/pub/software/RNAIndel/sample_data.tar.gz), which contains the GRCh38 region chr10:80,000,000-90,000,000 (the *PTEN* locus is chr10:87,863,113-87,971,930). 
+We apply RNAIndel to the [sample data](http://ftp.stjude.org/pub/software/RNAIndel/sample_data.tar.gz), which contains the GRCh38 region chr10:80,000,000-90,000,000 (the *PTEN* locus is chr10:87,863,113-87,971,930). 
 
 ## Setup
 We assume RNAIndel is [installed](../README.md#setup).<br>
@@ -13,11 +13,11 @@ cd your/convenient/directory
 tar xvzf sample_data.tar.gz
 tar xvzf data_dir_38.tar.gz 
 ```
-The sample data is located in "inputs":
+"sample_data" directory is structured:
 ```
 sample_data
-    |_ inputs  
-    |_ outputs (sample outputs)
+    |_ inputs  (sample BAM & reference FASTA files)
+    |_ outputs (sample output VCF files)
 ```
 ## Perform analysis
 
