@@ -1,4 +1,5 @@
 # RNAIndel
+[![PyPI version](https://badge.fury.io/py/rnaindel.png)](https://badge.fury.io/py/rnaindel)
 
 RNAIndel calls coding indels from tumor RNA-Seq data and 
 classifies them as somatic, germline, and artifactual.
