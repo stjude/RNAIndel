@@ -2,11 +2,11 @@
 [![PyPI version](https://badge.fury.io/py/rnaindel.png)](https://badge.fury.io/py/rnaindel)
 [![Build Status](https://travis-ci.org/rawagiha/RNAIndel.svg?branch=master)](https://travis-ci.org/rawagiha/RNAIndel)
 
-RNAIndel calls coding indels from tumor RNA-Seq data and 
+[RNAIndel](https://doi.org/10.1093/bioinformatics/btz753) calls coding indels from tumor RNA-Seq data and 
 classifies them as somatic, germline, and artifactual.
 You can also use RNAIndel as a postprocessor to
 classify indels called by your own caller. 
-RNAIndel supports GRCh38 and 37.<br> 
+RNAIndel supports GRCh38 and 37. <br> 
 
 ## Dependencies
 * [python>=3.5.2](https://www.python.org/downloads/)
@@ -95,8 +95,3 @@ RNAIndel supports [custom filtering](./docs/filtering) to refine the predicted r
 
 ## Limitations
 1. RNAIndel does not perform well for samples with microsatellite instability such as colon adenocarcinoma hypermutated subtype. 
-
-## Reference
-1. Hagiwara, K., Ding, L., Edmonson, M.N., Rice, S.V., Newman, S., Meshinchi, S., Ries, R.E., Rusch, M., Zhang, J. 
-RNAIndel: discovering somatic coding indels from tumor RNA-Seq data.
-([preprint](https://www.biorxiv.org/content/10.1101/512749v2))
