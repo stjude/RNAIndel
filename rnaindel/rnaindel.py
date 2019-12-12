@@ -213,13 +213,14 @@ def run(subcommand):
         # input validation
         rl.input_validator(alignments, genome, args.uniq_mapq)
 
+        # region analysis
+        region = args.region if subcommand == "analysis" else None
+
         # preprocessing
         # variant calling will be performed if no external VCF is supplied
         if not args.input_vcf:
             # indel calling
             bambino_output = os.path.join(tempfile.mkdtemp(), "bambino.txt")
-
-            region = args.region if subcommand == "analysis" else None
 
             bl.bambino(
                 args.bam, args.fasta, bambino_output, args.heap_memory, args.region
@@ -239,7 +240,7 @@ def run(subcommand):
         else:
             # preprocess indels from external VCF
             df, chr_prefixed = rl.indel_vcf_preprocessor(
-                args.input_vcf, genome, alignments, exons, args.region
+                args.input_vcf, genome, alignments, exons, region
             )
 
             df = rl.indel_rescuer(
