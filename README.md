@@ -82,7 +82,7 @@ rnaindel analysis -i BAM -v INPUT_VCF -o OUTPUT_VCF -r REFERENCE -d DATA_DIR [ot
     * ```-l``` directory to store log files (default: current)
     * ```-n``` user-defined panel of non-somatic indels in tabixed VCF format (default: built-in reviewed indel set)
     * ```-g``` user-provided germline indel database in tabixed VCF format (default: built-in database in data dir) <br>
-    &nbsp;   &nbsp;   &nbsp;   &nbsp;use only if the model is trained with the user-provided database ([more](./doc/training)).      
+    &nbsp;   &nbsp;   &nbsp;   &nbsp;use only if the model is trained with the user-provided database ([more](./docs/training)).      
     * ```--region``` target genomic region. specify by chrN:start-stop (default: None)
     * ```--exclude-softclipped-alignments``` softclipped indels will not be used for analysis if added (default: False)
 
