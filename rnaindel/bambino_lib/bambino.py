@@ -7,7 +7,7 @@ import subprocess
 from functools import partial
 
 
-def bambino(bam, fasta, output_file, heap_memory="6000m", region):
+def bambino(bam, fasta, output_file, heap_memory, region):
 
     # Add Bambino home dir to CLASSPATH
     bambino_home = os.path.dirname(os.path.realpath(__file__))

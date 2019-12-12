@@ -218,6 +218,9 @@ def run(subcommand):
         if not args.input_vcf:
             # indel calling
             bambino_output = os.path.join(tempfile.mkdtemp(), "bambino.txt")
+
+            region = args.region if subcommand == "analysis" else None
+
             bl.bambino(
                 args.bam, args.fasta, bambino_output, args.heap_memory, args.region
             )
