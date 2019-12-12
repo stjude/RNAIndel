@@ -32,7 +32,6 @@ rnaindel feature -i BAM -o OUTPUT_TAB -r REFERENCE -d DATA_DIR -g YOUR_DB [other
     * ```-p``` number of cores (default: 1)
     * ```-m``` maximum heap space (default: 6000m)
     * ```-l``` direcotry to store log files (default: current)
-    * ```-n``` user-defined panel of non-somatic indels in tabixed VCF format (default: built-in reviewed indel set)
     * ```--exclude-softclipped-alignments``` softclipped indels will not be used for analysis if used (default: False)
 
 </p></details>
