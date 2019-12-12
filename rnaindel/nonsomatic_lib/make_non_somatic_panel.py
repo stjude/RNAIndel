@@ -2,6 +2,7 @@
 
 import os
 import sys
+import pysam
 import datetime
 import pandas as pd
 from collections import Counter
@@ -18,7 +19,8 @@ def make_non_somatic_panel(file_lst, panelname, genome, cosmic_db, cnt):
     with open(panelname, "w") as f:
         f.write(vcf_header() + "\n")
         f.write("\n".join(vcf_data))
-
+   
+    pysam.tabix_index(panelname, preset="vcf")
 
 def vcf_header():
     dt = datetime.datetime.now()
