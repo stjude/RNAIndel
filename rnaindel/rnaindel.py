@@ -218,7 +218,9 @@ def run(subcommand):
         if not args.input_vcf:
             # indel calling
             bambino_output = os.path.join(tempfile.mkdtemp(), "bambino.txt")
-            bl.bambino(args.bam, args.fasta, bambino_output, args.heap_memory)
+            bl.bambino(
+                args.bam, args.fasta, bambino_output, args.heap_memory, args.region
+            )
 
             # preprocess indels from the built-in caller
             df, chr_prefixed = rl.indel_preprocessor(
@@ -234,7 +236,7 @@ def run(subcommand):
         else:
             # preprocess indels from external VCF
             df, chr_prefixed = rl.indel_vcf_preprocessor(
-                args.input_vcf, genome, alignments, exons
+                args.input_vcf, genome, alignments, exons, args.region
             )
 
             df = rl.indel_rescuer(
@@ -347,144 +349,6 @@ def get_args(subcommand):
     prog = "rnaindel " + subcommand
     parser = argparse.ArgumentParser(prog=prog)
 
-    if subcommand == "analysis" or subcommand == "feature":
-        parser.add_argument(
-            "-i",
-            "--bam",
-            metavar="FILE",
-            required=True,
-            type=partial(check_file, file_name="BAM file (.bam)"),
-            help="input tumor RNA-Seq BAM file (must be STAR-mapped).",
-        )
-
-    if subcommand == "training":
-        parser.add_argument(
-            "-t",
-            "--training-data",
-            metavar="FILE",
-            required=True,
-            type=partial(check_file, file_name="data file (.tab)"),
-            help="input training data file (tab delimited).",
-        )
-
-    if subcommand != "training":
-        parser.add_argument(
-            "-r",
-            "--fasta",
-            metavar="FILE",
-            required=True,
-            type=partial(check_file, file_name="FASTA file"),
-            help="reference genome FASTA file.",
-        )
-
-    if (
-        subcommand == "analysis"
-        or subcommand == "feature"
-        or subcommand == "nonsomatic"
-        or subcommand == "recurrence"
-    ):
-        parser.add_argument(
-            "-d",
-            "--data-dir",
-            metavar="DIR",
-            required=True,
-            help="data directory contains databases and models",
-            type=check_folder_existence,
-        )
-
-    if subcommand == "training":
-        parser.add_argument(
-            "-d",
-            "--data-dir",
-            metavar="DIR",
-            required=True,
-            help="data directory contains databases and models. training will update the models in the directory",
-            type=check_folder_existence,
-        )
-
-    if subcommand == "analysis":
-        parser.add_argument(
-            "-o", "--output-vcf", metavar="FILE", required=True, help="output VCF file"
-        )
-
-    elif subcommand == "nonsomatic":
-        parser.add_argument(
-            "-o",
-            "--output-vcf",
-            metavar="FILE",
-            required=True,
-            help="nonsomatic VCF file",
-        )
-    elif subcommand == "reclassification":
-        parser.add_argument(
-            "-o",
-            "--output-vcf",
-            metavar="FILE",
-            required=True,
-            help="reclassified VCF file",
-        )
-    elif subcommand == "feature":
-        parser.add_argument(
-            "-o",
-            "--output-tab",
-            metavar="FILE",
-            required=True,
-            help="output tab-delimited file",
-        )
-    else:
-        pass
-
-    if subcommand == "training":
-        parser.add_argument(
-            "-c",
-            "--indel-class",
-            metavar="STR",
-            required=True,
-            help="indel class to be trained: s for single-nucleotide indel or m for multi-nucleotide indels",
-            type=check_indel_class,
-        )
-
-    # input VCF (RNAIndel output) for reclassification
-    if subcommand == "reclassification":
-        parser.add_argument(
-            "-i",
-            "--input-vcf",
-            metavar="FILE",
-            required=True,
-            type=partial(check_file, file_name="VCF (.vcf) file"),
-            help="RNAIndel ouput VCF to be reclassified",
-        )
-
-    # input VCF from other callers (optional)
-    if subcommand == "analysis" or subcommand == "feature":
-        parser.add_argument(
-            "-v",
-            "--input-vcf",
-            metavar="FILE",
-            type=partial(check_file, file_name="VCF (.vcf) file"),
-            help="input VCF file from other callers",
-        )
-
-    if subcommand == "analysis" or subcommand == "feature":
-        parser.add_argument(
-            "-q",
-            "--uniq-mapq",
-            metavar="INT",
-            default=255,
-            type=partial(check_int, preset="mapq"),
-            help="STAR mapping quality MAPQ for unique mappers (default: 255)",
-        )
-
-    if subcommand == "training":
-        parser.add_argument(
-            "-k",
-            "--k-fold",
-            metavar="INT",
-            default=5,
-            type=partial(check_int, preset="k_fold"),
-            help="number of folds in k-fold cross-validation (default: 5)",
-        )
-
     if subcommand == "analysis" or subcommand == "feature" or subcommand == "training":
         parser.add_argument(
             "-p",
@@ -495,54 +359,6 @@ def get_args(subcommand):
             help="number of processes (default: 1)",
         )
 
-    if subcommand == "analysis":
-        parser.add_argument(
-            "-n",
-            "--non-somatic-panel",
-            metavar="FILE",
-            default=None,
-            type=partial(check_file, file_name="nonsomatic panel (.vcf.gz)"),
-            help="user-defined panel of non-somatic indels in bgzip-compressed VCF format (default: None)",
-        )
-
-    if subcommand == "reclassification":
-        parser.add_argument(
-            "-n",
-            "--non-somatic-panel",
-            metavar="FILE",
-            required=True,
-            type=partial(check_file, file_name="nonsomatic panel (.vcf.gz)"),
-            help="user-defined panel of non-somatic indels in bgzip-compressed VCF format",
-        )
-
-    if subcommand == "analysis" or subcommand == "feature":
-        parser.add_argument(
-            "-m",
-            "--heap-memory",
-            metavar="STR",
-            default="6000m",
-            help="maximum heap space (default: 6000m)",
-        )
-
-    if subcommand == "analysis" or subcommand == "feature":
-        parser.add_argument(
-            "-g",
-            "--germline-db",
-            metavar="FILE",
-            type=check_file,
-            help="user-provided germline database in bgzip-compressed VCF format",
-        )
-
-    if subcommand == "analysis" or subcommand == "feature":
-        parser.add_argument(
-            "--exclude-softclipped-alignments",
-            dest="softclip_analysis",
-            action="store_false",
-            help="do not use softclipped alignments for feature calculation",
-        )
-        parser.set_defaults(softclip_analysis=True)
-
-    if subcommand == "analysis" or subcommand == "feature" or subcommand == "training":
         parser.add_argument(
             "-l",
             "--log-dir",
@@ -552,86 +368,283 @@ def get_args(subcommand):
             help="directory to ouput log files (default: current)",
         )
 
-    if subcommand == "training":
-        parser.add_argument(
-            "--downsample-ratio",
-            metavar="INT",
-            default=None,
-            type=partial(check_int, preset="downsample"),
-            help="train with specified downsample ratio in [1, 20]. (default: None)",
-        )
+        if subcommand == "analysis" or subcommand == "feature":
+            parser.add_argument(
+                "-i",
+                "--bam",
+                metavar="FILE",
+                required=True,
+                type=partial(check_file, file_name="BAM file (.bam)"),
+                help="input tumor RNA-Seq BAM file (must be STAR-mapped).",
+            )
 
-        parser.add_argument(
-            "--feature-names",
-            metavar="FILE",
-            default=None,
-            type=check_file,
-            help="train with specified subset of features. Supply as file containing a feature name per line (default: None)",
-        )
+            parser.add_argument(
+                "-r",
+                "--fasta",
+                metavar="FILE",
+                required=True,
+                type=partial(check_file, file_name="FASTA file"),
+                help="reference genome FASTA file.",
+            )
 
-        parser.add_argument(
-            "--auto-param",
-            action="store_true",
-            help='train with sklearn.RandomForestClassifer\'s max_features="auto"',
-        )
+            parser.add_argument(
+                "-d",
+                "--data-dir",
+                metavar="DIR",
+                required=True,
+                help="data directory contains databases and models",
+                type=check_folder_existence,
+            )
 
-        parser.add_argument(
-            "--ds-beta",
-            metavar="INT",
-            default="10",
-            type=check_int,
-            help="F_beta to be optimized in down_sampling step. optimized for TPR when beta >100 given. (default: 10)",
-        )
+            parser.add_argument(
+                "-v",
+                "--input-vcf",
+                metavar="FILE",
+                type=partial(check_file, file_name="VCF (.vcf) file"),
+                help="input VCF file from other callers",
+            )
 
-        parser.add_argument(
-            "--fs-beta",
-            metavar="INT",
-            default="10",
-            type=check_int,
-            help="F_beta to be optimized in feature selection step. optimized for TPR when beta >100 given. (default: 10)",
-        )
+            parser.add_argument(
+                "-q",
+                "--uniq-mapq",
+                metavar="INT",
+                default=255,
+                type=partial(check_int, preset="mapq"),
+                help="STAR mapping quality MAPQ for unique mappers (default: 255)",
+            )
 
-        parser.add_argument(
-            "--pt-beta",
-            metavar="INT",
-            default="10",
-            type=check_int,
-            help="F_beta to be optimized in parameter_tuning step. optimized for TPR when beta >100 given. (default: 10)",
-        )
+            parser.add_argument(
+                "-m",
+                "--heap-memory",
+                metavar="STR",
+                default="6000m",
+                help="maximum heap space (default: 6000m)",
+            )
 
-    if subcommand == "nonsomatic":
+            parser.add_argument(
+                "-g",
+                "--germline-db",
+                metavar="FILE",
+                type=check_file,
+                help="user-provided germline database in bgzip-compressed VCF format",
+            )
+
+            parser.add_argument(
+                "--exclude-softclipped-alignments",
+                dest="softclip_analysis",
+                action="store_false",
+                help="do not use softclipped alignments for feature calculation",
+            )
+            parser.set_defaults(softclip_analysis=True)
+
+            if subcommand == "analysis":
+
+                parser.add_argument(
+                    "-o",
+                    "--output-vcf",
+                    metavar="FILE",
+                    required=True,
+                    help="output VCF file",
+                )
+
+                parser.add_argument(
+                    "-n",
+                    "--non-somatic-panel",
+                    metavar="FILE",
+                    default=None,
+                    type=partial(check_file, file_name="nonsomatic panel (.vcf.gz)"),
+                    help="user-defined panel of non-somatic indels in bgzip-compressed VCF format (default: None)",
+                )
+
+                parser.add_argument(
+                    "--region",
+                    metavar="STR",
+                    default=None,
+                    type=check_region,
+                    help="specify region for target analysis: chrN:start-stop (default: None)",
+                )
+            elif subcommand == "feature":
+
+                parser.add_argument(
+                    "-o",
+                    "--output-tab",
+                    metavar="FILE",
+                    required=True,
+                    help="output tab-delimited file",
+                )
+
+            elif subcommand == "training":
+                parser.add_argument(
+                    "-t",
+                    "--training-data",
+                    metavar="FILE",
+                    required=True,
+                    type=partial(check_file, file_name="data file (.tab)"),
+                    help="input training data file (tab delimited).",
+                )
+
+                parser.add_argument(
+                    "-d",
+                    "--data-dir",
+                    metavar="DIR",
+                    required=True,
+                    help="data directory contains databases and models. training will update the models in the directory",
+                    type=check_folder_existence,
+                )
+
+                parser.add_argument(
+                    "-c",
+                    "--indel-class",
+                    metavar="STR",
+                    required=True,
+                    help="indel class to be trained: s for single-nucleotide indel or m for multi-nucleotide indels",
+                    type=check_indel_class,
+                )
+
+                parser.add_argument(
+                    "-k",
+                    "--k-fold",
+                    metavar="INT",
+                    default=5,
+                    type=partial(check_int, preset="k_fold"),
+                    help="number of folds in k-fold cross-validation (default: 5)",
+                )
+
+                parser.add_argument(
+                    "--ds-beta",
+                    metavar="INT",
+                    default="10",
+                    type=check_int,
+                    help="F_beta to be optimized in down_sampling step. optimized for TPR when beta >100 given. (default: 10)",
+                )
+
+                parser.add_argument(
+                    "--fs-beta",
+                    metavar="INT",
+                    default="10",
+                    type=check_int,
+                    help="F_beta to be optimized in feature selection step. optimized for TPR when beta >100 given. (default: 10)",
+                )
+
+                parser.add_argument(
+                    "--pt-beta",
+                    metavar="INT",
+                    default="10",
+                    type=check_int,
+                    help="F_beta to be optimized in parameter_tuning step. optimized for TPR when beta >100 given. (default: 10)",
+                )
+
+                parser.add_argument(
+                    "--downsample-ratio",
+                    metavar="INT",
+                    default=None,
+                    type=partial(check_int, preset="downsample"),
+                    help="train with specified downsample ratio in [1, 20]. (default: None)",
+                )
+
+                parser.add_argument(
+                    "--feature-names",
+                    metavar="FILE",
+                    default=None,
+                    type=check_file,
+                    help="train with specified subset of features. Supply as file containing a feature name per line (default: None)",
+                )
+
+                parser.add_argument(
+                    "--auto-param",
+                    action="store_true",
+                    help='train with sklearn.RandomForestClassifer\'s max_features="auto"',
+                )
+
+    elif (
+        subcommand == "nonsomatic"
+        or subcommand == "reclassification"
+        or subcommand == "recurrence"
+    ):
         parser.add_argument(
-            "--vcf-list",
+            "-r",
+            "--fasta",
             metavar="FILE",
             required=True,
-            type=check_file,
-            help="file containing paths to normal VCF files",
+            type=partial(check_file, file_name="FASTA file"),
+            help="reference genome FASTA file.",
         )
 
-        parser.add_argument(
-            "--count",
-            metavar="INT",
-            required=True,
-            type=check_int,
-            help="use indels observed >= count times for panel compilation",
-        )
+        if subcommand == "nonsomatic" or subcommand == "recurrence":
+            parser.add_argument(
+                "-d",
+                "--data-dir",
+                metavar="DIR",
+                required=True,
+                help="data directory contains databases and models",
+                type=check_folder_existence,
+            )
+            if subcommand == "nonsomatic":
+                parser.add_argument(
+                    "--vcf-list",
+                    metavar="FILE",
+                    required=True,
+                    type=check_file,
+                    help="file containing paths to normal VCF files",
+                )
 
-    if subcommand == "recurrence":
-        parser.add_argument(
-            "--vcf-list",
-            metavar="FILE",
-            required=True,
-            type=check_file,
-            help="file containing paths to RNAIndel output VCF files to be annotated",
-        )
+                parser.add_argument(
+                    "--count",
+                    metavar="INT",
+                    required=True,
+                    type=check_int,
+                    help="use indels observed >= count times for panel compilation",
+                )
 
-        parser.add_argument(
-            "--out-dir",
-            metavar="DIR",
-            default=None,
-            type=check_folder_existence,
-            help="directory to ouput (default: input file directory)",
-        )
+                parser.add_argument(
+                    "-o",
+                    "--output-vcf",
+                    metavar="FILE",
+                    required=True,
+                    help="nonsomatic VCF file",
+                )
+            else:
+                parser.add_argument(
+                    "--vcf-list",
+                    metavar="FILE",
+                    required=True,
+                    type=check_file,
+                    help="file containing paths to RNAIndel output VCF files to be annotated",
+                )
+
+                parser.add_argument(
+                    "--out-dir",
+                    metavar="DIR",
+                    default=None,
+                    type=check_folder_existence,
+                    help="directory to ouput (default: input file directory)",
+                )
+        else:
+            parser.add_argument(
+                "-i",
+                "--input-vcf",
+                metavar="FILE",
+                required=True,
+                type=partial(check_file, file_name="VCF (.vcf) file"),
+                help="RNAIndel ouput VCF to be reclassified",
+            )
+
+            parser.add_argument(
+                "-o",
+                "--output-vcf",
+                metavar="FILE",
+                required=True,
+                help="reclassified VCF file",
+            )
+
+            parser.add_argument(
+                "-n",
+                "--non-somatic-panel",
+                metavar="FILE",
+                required=True,
+                type=partial(check_file, file_name="nonsomatic panel (.vcf.gz)"),
+                help="user-defined panel of non-somatic indels in bgzip-compressed VCF format",
+            )
 
     args = parser.parse_args(sys.argv[2:])
     return args
@@ -700,22 +713,25 @@ def check_file(file_path, file_name=None):
 def check_region(region):
     region = region.replace("chr", "")
     is_valid = bool(re.match(r"[0-9XY]+:[0-9]+-[0-9]+", region))
-    
+
     if is_valid:
         roi_lst = region.split(":")
         chr, span = roi_lst[0], roi_lst[1].split("-")
-        start, stop = int(span[0]), int(span[1])  
+        start, stop = int(span[0]), int(span[1])
     else:
         sys.exit("Check the region format: chrN:start-stop")
-    
-    canonicals = [str(i) for i in range(1,23)] + ["X", "Y"]
+
+    canonicals = [str(i) for i in range(1, 23)] + ["X", "Y"]
     if not chr in canonicals:
-        sys.exit("RNAIndel only supports human canonical chrmosomes: chr1-22,X,Y") 
-    
+        sys.exit("RNAIndel only supports human canonical chrmosomes: chr1-22,X,Y")
+
     if start >= stop:
-        sys.exit("Check the stop is larger than the start in your region: chrN:start-stop")
+        sys.exit(
+            "Check the stop is larger than the start in your region: chrN:start-stop"
+        )
 
     return ("chr{}".format(chr), start, stop)
+
 
 if __name__ == "__main__":
     main()
