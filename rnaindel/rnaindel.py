@@ -223,7 +223,7 @@ def run(subcommand):
             bambino_output = os.path.join(tempfile.mkdtemp(), "bambino.txt")
 
             bl.bambino(
-                args.bam, args.fasta, bambino_output, args.heap_memory, args.region
+                args.bam, args.fasta, bambino_output, args.heap_memory, region
             )
 
             # preprocess indels from the built-in caller
