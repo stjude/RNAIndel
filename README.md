@@ -11,7 +11,7 @@ RNAIndel supports GRCh38 and 37. <br>
 ## Dependencies
 * [python>=3.5.2](https://www.python.org/downloads/)
     * [pandas>=0.23.0](https://pandas.pydata.org/) 
-    * [scikit-learn>=0.18.1](http://scikit-learn.org/stable/install.html#)
+    * [scikit-learn>=0.20.0](http://scikit-learn.org/stable/install.html#)
     * [pysam>=0.13.0](https://pysam.readthedocs.io/en/latest/index.html)
 * [java>=1.8.0](https://www.java.com/en/download/) 
 
