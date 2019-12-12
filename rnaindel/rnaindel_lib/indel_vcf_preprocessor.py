@@ -17,7 +17,7 @@ from .indel_preprocessor import perform_left_alignment
 logger = logging.getLogger(__name__)
 
 
-def indel_vcf_preprocessor(vcffile, genome, alignments, exons):
+def indel_vcf_preprocessor(vcffile, genome, alignments, exons, region):
     """Convert input VCF to Bambino format and check chromosome name format
     
     Args:
@@ -25,6 +25,7 @@ def indel_vcf_preprocessor(vcffile, genome, alignments, exons):
         genome (pysam.FastaFile): reference genome
         alignments (pysam.AlignmentFile): bam data
         exons (pysam.TabixFile): coding exon data
+        region (tuple): (chrN, start, stop)
     Returns:
         df (pandas.DataFrame): df with indels reported as in Bambino output
     """
@@ -41,6 +42,22 @@ def indel_vcf_preprocessor(vcffile, genome, alignments, exons):
 
     # left-alignment
     df = perform_left_alignment(df, genome, chr_prefixed)
+    
+    if region:
+        chr, start, stop = region[0], region[1], region[2]
+        
+        try:
+            df = df.groupby("chr").get_group(chr)
+        except:
+            logging.warning("No indels detected on {}. Analysis done.").format(chr)
+            sys.exit(0)
+
+        df = df[(df.pos >= start) & (df.pos <= stop + 1)]
+        df = df.reset_index(drop=True)
+            
+        if len(df) == 0:
+            logging.warning("No indels detected in {}:{}-{}. Analysis done.").format(chr, str(start), str(stop))
+            sys.exit(0)
     
     # filter non coding indels
     df["is_coding"] = df.apply(

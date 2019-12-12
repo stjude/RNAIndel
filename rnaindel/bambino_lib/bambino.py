@@ -7,7 +7,7 @@ import subprocess
 from functools import partial
 
 
-def bambino(bam, fasta, output_file, heap_memory="6000m"):
+def bambino(bam, fasta, output_file, heap_memory="6000m", region):
 
     # Add Bambino home dir to CLASSPATH
     bambino_home = os.path.dirname(os.path.realpath(__file__))
@@ -29,6 +29,11 @@ def bambino(bam, fasta, output_file, heap_memory="6000m"):
         "-poly-x-min-run-length 10 -merge-equivalent-indels -autotune -query-mode".format(
             heap_memory, output_file, fasta, bam
         )
+    
+    if region:
+        chrom, start, stop = region[0], region[1], region[2]
+        com_str = com_str + "-chr {} -start {} -end {}".format(chrom, start, stop)
+
     )
     stdout, stderr, return_code = run_shell_command(cmd_str)
     if return_code != 0:

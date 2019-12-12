@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import re
 import sys
 import pysam
 import uuid
@@ -695,6 +696,26 @@ def check_file(file_path, file_name=None):
             sys.exit("Error: {} Not Found.".format(file_path))
     return file_path
 
+
+def check_region(region):
+    region = region.replace("chr", "")
+    is_valid = bool(re.match(r"[0-9XY]+:[0-9]+-[0-9]+", region))
+    
+    if is_valid:
+        roi_lst = region.split(":")
+        chr, span = roi_lst[0], roi_lst[1].split("-")
+        start, stop = int(span[0]), int(span[1])  
+    else:
+        sys.exit("Check the region format: chrN:start-stop")
+    
+    canonicals = [str(i) for i in range(1,23)] + ["X", "Y"]
+    if not chr in canonicals:
+        sys.exit("RNAIndel only supports human canonical chrmosomes: chr1-22,X,Y") 
+    
+    if start >= stop:
+        sys.exit("Check the stop is larger than the start in your region: chrN:start-stop")
+
+    return ("chr{}".format(chr), start, stop)
 
 if __name__ == "__main__":
     main()
