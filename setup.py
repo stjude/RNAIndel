@@ -14,7 +14,7 @@ setup(
     license="Apache License 2.0",
     install_requires=[
         "pandas >= 0.23.0",
-        "scikit-learn >= 0.18.1",
+        "scikit-learn >= 0.20.0",
         "pysam >= 0.13.0", 
     ],
     python_requires=">=3.5.2",
