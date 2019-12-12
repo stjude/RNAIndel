@@ -12,8 +12,6 @@ rnaindel analysis -i NORMAL_i_BAM -r REFERENCE -d DATA_DIR -o NORMAL_i_VCF   (fo
 RNAIndel compiles a non-somatic indel panel using common non-COSMIC indels found in matched or public normal samples.
 ```
 rnaindel nonsomatic --vcf-list FILE --count INT -o NONSOMATIC_VCF -r REFERENCE -d DATA_DIR
-bgzip NON_SOMATIC_VCF
-tabix -p vcf NON_SOMATIC_VCF.gz
 ```
 
 #### Options
