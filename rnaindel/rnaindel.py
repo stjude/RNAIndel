@@ -466,7 +466,7 @@ def get_args(subcommand):
                     type=check_region,
                     help="specify region for target analysis: chrN:start-stop (default: None)",
                 )
-            elif subcommand == "feature":
+            else:
 
                 parser.add_argument(
                     "-o",
@@ -476,88 +476,88 @@ def get_args(subcommand):
                     help="output tab-delimited file",
                 )
 
-            elif subcommand == "training":
-                parser.add_argument(
-                    "-t",
-                    "--training-data",
-                    metavar="FILE",
-                    required=True,
-                    type=partial(check_file, file_name="data file (.tab)"),
-                    help="input training data file (tab delimited).",
-                )
+        else:
+            parser.add_argument(
+                "-t",
+                "--training-data",
+                metavar="FILE",
+                required=True,
+                type=partial(check_file, file_name="data file (.tab)"),
+                help="input training data file (tab delimited).",
+            )
 
-                parser.add_argument(
-                    "-d",
-                    "--data-dir",
-                    metavar="DIR",
-                    required=True,
-                    help="data directory contains databases and models. training will update the models in the directory",
-                    type=check_folder_existence,
-                )
+            parser.add_argument(
+                "-d",
+                "--data-dir",
+                metavar="DIR",
+                required=True,
+                help="data directory contains databases and models. training will update the models in the directory",
+                type=check_folder_existence,
+            )
 
-                parser.add_argument(
-                    "-c",
-                    "--indel-class",
-                    metavar="STR",
-                    required=True,
-                    help="indel class to be trained: s for single-nucleotide indel or m for multi-nucleotide indels",
-                    type=check_indel_class,
-                )
+            parser.add_argument(
+                "-c",
+                "--indel-class",
+                metavar="STR",
+                required=True,
+                help="indel class to be trained: s for single-nucleotide indel or m for multi-nucleotide indels",
+                type=check_indel_class,
+            )
 
-                parser.add_argument(
-                    "-k",
-                    "--k-fold",
-                    metavar="INT",
-                    default=5,
-                    type=partial(check_int, preset="k_fold"),
-                    help="number of folds in k-fold cross-validation (default: 5)",
-                )
+            parser.add_argument(
+                "-k",
+                "--k-fold",
+                metavar="INT",
+                default=5,
+                type=partial(check_int, preset="k_fold"),
+                help="number of folds in k-fold cross-validation (default: 5)",
+            )
 
-                parser.add_argument(
-                    "--ds-beta",
-                    metavar="INT",
-                    default="10",
-                    type=check_int,
-                    help="F_beta to be optimized in down_sampling step. optimized for TPR when beta >100 given. (default: 10)",
-                )
+            parser.add_argument(
+                "--ds-beta",
+                metavar="INT",
+                default="10",
+                type=check_int,
+                help="F_beta to be optimized in down_sampling step. optimized for TPR when beta >100 given. (default: 10)",
+            )
 
-                parser.add_argument(
-                    "--fs-beta",
-                    metavar="INT",
-                    default="10",
-                    type=check_int,
-                    help="F_beta to be optimized in feature selection step. optimized for TPR when beta >100 given. (default: 10)",
-                )
+            parser.add_argument(
+                "--fs-beta",
+                metavar="INT",
+                default="10",
+                type=check_int,
+                help="F_beta to be optimized in feature selection step. optimized for TPR when beta >100 given. (default: 10)",
+            )
 
-                parser.add_argument(
-                    "--pt-beta",
-                    metavar="INT",
-                    default="10",
-                    type=check_int,
-                    help="F_beta to be optimized in parameter_tuning step. optimized for TPR when beta >100 given. (default: 10)",
-                )
+            parser.add_argument(
+                "--pt-beta",
+                metavar="INT",
+                default="10",
+                type=check_int,
+                help="F_beta to be optimized in parameter_tuning step. optimized for TPR when beta >100 given. (default: 10)",
+            )
 
-                parser.add_argument(
-                    "--downsample-ratio",
-                    metavar="INT",
-                    default=None,
-                    type=partial(check_int, preset="downsample"),
-                    help="train with specified downsample ratio in [1, 20]. (default: None)",
-                )
+            parser.add_argument(
+                "--downsample-ratio",
+                metavar="INT",
+                default=None,
+                type=partial(check_int, preset="downsample"),
+                help="train with specified downsample ratio in [1, 20]. (default: None)",
+            )
 
-                parser.add_argument(
-                    "--feature-names",
-                    metavar="FILE",
-                    default=None,
-                    type=check_file,
-                    help="train with specified subset of features. Supply as file containing a feature name per line (default: None)",
-                )
+            parser.add_argument(
+                "--feature-names",
+                metavar="FILE",
+                default=None,
+                type=check_file,
+                help="train with specified subset of features. Supply as file containing a feature name per line (default: None)",
+            )
 
-                parser.add_argument(
-                    "--auto-param",
-                    action="store_true",
-                    help='train with sklearn.RandomForestClassifer\'s max_features="auto"',
-                )
+            parser.add_argument(
+                "--auto-param",
+                action="store_true",
+                help='train with sklearn.RandomForestClassifer\'s max_features="auto"',
+            )
 
     elif (
         subcommand == "nonsomatic"
