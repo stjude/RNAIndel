@@ -33,7 +33,7 @@ def bambino(bam, fasta, output_file, heap_memory, region):
 
     if region:
         chrom, start, stop = region[0], region[1], region[2]
-        com_str = com_str + "-chr {} -start {} -end {}".format(chrom, start, stop)
+        cmd_str = cmd_str + " -chr {} -start {} -end {}".format(chrom, start, stop)
 
     stdout, stderr, return_code = run_shell_command(cmd_str)
     if return_code != 0:
