@@ -36,7 +36,8 @@ def bambino(bam, fasta, output_file, heap_memory, region):
         cmd_str = cmd_str + " -chr {} -start {} -end {}".format(chrom, start, stop)
 
     stdout, stderr, return_code = run_shell_command(cmd_str)
-    if return_code != 0:
+
+    if return_code != 0 or not os.path.isfile(output_file):
         print("Failed while calling indels.", file=sys.stderr)
         print(stderr, file=sys.stderr)
         sys.exit(return_code)

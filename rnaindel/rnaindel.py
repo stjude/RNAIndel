@@ -219,24 +219,24 @@ def run(subcommand):
         # preprocessing
         # variant calling will be performed if no external VCF is supplied
         if not args.input_vcf:
-            # indel calling
-            bambino_output = os.path.join(tempfile.mkdtemp(), "bambino.txt")
 
-            bl.bambino(
-                args.bam, args.fasta, bambino_output, args.heap_memory, region
-            )
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                # indel calling
+                bambino_output = os.path.join(tmp_dir, "bambino.txt")
 
-            # preprocess indels from the built-in caller
-            df, chr_prefixed = rl.indel_preprocessor(
-                bambino_output, genome, alignments, exons
-            )
+                bl.bambino(
+                    args.bam, args.fasta, bambino_output, args.heap_memory, region
+                )
 
-            df = rl.indel_rescuer(
-                df, args.fasta, args.bam, chr_prefixed, args.process_num
-            )
+                # preprocess indels from the built-in caller
+                df, chr_prefixed = rl.indel_preprocessor(
+                    bambino_output, genome, alignments, exons
+                )
 
-            # delete the temp file
-            os.remove(bambino_output)
+                df = rl.indel_rescuer(
+                    df, args.fasta, args.bam, chr_prefixed, args.process_num
+                )
+
         else:
             # preprocess indels from external VCF
             df, chr_prefixed = rl.indel_vcf_preprocessor(
