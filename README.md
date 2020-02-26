@@ -9,7 +9,7 @@ classify indels called by your own caller.
 RNAIndel supports GRCh38 and 37. <br> 
 
 ## Dependencies
-* [python>=3.5.2](https://www.python.org/downloads/)
+* [python>=3.6.0](https://www.python.org/downloads/)
     * [pandas>=0.23.0](https://pandas.pydata.org/) 
     * [scikit-learn>=0.20.0](http://scikit-learn.org/stable/install.html#)
     * [pysam>=0.13.0](https://pysam.readthedocs.io/en/latest/index.html)

@@ -17,8 +17,8 @@ setup(
         "scikit-learn >= 0.20.0",
         "pysam >= 0.13.0", 
     ],
-    python_requires=">=3.5.2",
-    packages=find_packages(exclude=["contrib", "docs", "tests"]),
+    python_requires=">=3.6.0",
+    packages=find_packages(exclude=["contrib", "docs", "tests", "sample_data"]),
     package_data={
         "rnaindel": [
             "bambino_lib/bambino-1.0.jar",
