@@ -60,4 +60,4 @@ However, GATK-HC detected the indel at codon 234 as a combination of two inserti
 the GGCCC insertion at chr10:87957916 and the TG insertion at chr10:87957917. In the output [VCF](./outputs/sample_gatk_classified.vcf), 
 these two are annotated as "RQB=chr10:87957916:G:GGGCCCAT". This means that RNAIndel could not find these two insertions in the BAM 
 file as reported by GATK-HC and, instead, found a GGCCCAT insertion at chr10:87957916 and used this for prediction; they were rescued by (RQB)
-the GGGCCCAT insertion.  
+the GGCCCAT insertion.  
