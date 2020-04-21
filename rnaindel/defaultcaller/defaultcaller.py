@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import os
 import sys
 import shlex
@@ -7,7 +5,7 @@ import subprocess
 from functools import partial
 
 
-def bambino(bam, fasta, output_file, heap_memory, region):
+def callindel(bam, fasta, output_file, heap_memory, region):
 
     # Add Bambino home dir to CLASSPATH
     bambino_home = os.path.dirname(os.path.realpath(__file__))
@@ -77,6 +75,3 @@ def check_file(file_path, file_name):
         sys.exit("Error: {} Not Found.".format(file_name))
     return file_path
 
-
-if __name__ == "__main__":
-    main()
