@@ -94,7 +94,7 @@ Users can [train](./docs/training) RNAIndel with their own training set.
 RNAIndel supports [custom filtering](./docs/filtering) to refine the predicted results.
 
 ## Contact
-* kohei.hagiwaraATstjude.org
+* kohei.hagiwaraATstjude.org\
 Please let me know what your experience with RNAIndel was like (even bad comments are welcome)!
 
 ## Limitations
