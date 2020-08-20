@@ -93,5 +93,9 @@ Users can [train](./docs/training) RNAIndel with their own training set.
 ### Filter false positives
 RNAIndel supports [custom filtering](./docs/filtering) to refine the predicted results.
 
+## Contact
+* kohei.hagiwaraATstjude.org
+Please let me know what your experience with RNAIndel was like (even bad comments are welcome)!
+
 ## Limitations
 1. RNAIndel does not perform well for samples with microsatellite instability such as colon adenocarcinoma hypermutated subtype. 
