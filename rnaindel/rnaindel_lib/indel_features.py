@@ -91,7 +91,14 @@ class IndelSnpFeatures(Indel):
         self.clnvr_info = []
         self.clnvr_origin = []
         self.germline_id = []
-
+        self.cosmic_cnt = 0
+     
+    def add_cosmic_cnt(self, cosmic):
+        self.cosmic_cnt += cosmic
+    
+    def report_cosmic_cnt(self):
+        return self.cosmic_cnt
+           
     def add_dbsnp_id(self, rs):
         """Add dbSNP ID
          

@@ -298,7 +298,7 @@ def run(subcommand):
 
         # SNP annotation
         df = rl.indel_snp_annotator(
-            df, genome, dbsnp, clinvar, germline_db, chr_prefixed
+            df, genome, dbsnp, clinvar, cosmic, germline_db, chr_prefixed
         )
 
         # subcommand "feature" exits here
