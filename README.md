@@ -40,8 +40,9 @@
    <a href="https://doi.org/10.1093/bioinformatics/btz753"><strong>Read the paper »</strong></a>
    <br />
    <br />
-   <a href="https://github.com/stjudecloud/cicero/issues/new?assignees=&labels=&template=feature_request.md&title=Descriptive%20Title&labels=enhancement">Request Feature</a>
-   <a href="https://github.com/stjudecloud/cicero/issues/new?assignees=&labels=&template=bug_report.md&title=Descriptive%20Title&labels=bug">Report Bug</a>
+   <a href="https://github.com/stjude/RNAIndel/issues/new?assignees=&labels=&template=feature_request.md&title=Descriptive%20Title&labels=enhancement">Request Feature</a>
+    | 
+   <a href="https://github.com/stjude/RNAIndel/issues/new?assignees=&labels=&template=bug_report.md&title=Descriptive%20Title&labels=bug">Report Bug</a>
    <br />
     ⭐ Consider starring the repo! ⭐
    <br />
