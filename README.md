@@ -1,7 +1,7 @@
 <p align="center">
 
   <h1 align="center">
-    CICERO 0.3.0
+    RNAIndel
   </h1>
 
   <p align="center">
@@ -9,15 +9,15 @@
      <img alt="Status"
           src="https://img.shields.io/badge/status-active-success.svg" />
    </a>
-   <a href="https://github.com/stjude/CICERO/issues" target="_blank">
+   <a href="https://github.com/stjude/RNAIndel/issues" target="_blank">
      <img alt="Github Issues"
           src="https://img.shields.io/github/issues/stjude/RNAIndel" />
    </a>
-   <a href="https://github.com/stjude/CICERO/pulls" target="_blank">
+   <a href="https://github.com/stjude/RNAIndel/pulls" target="_blank">
      <img alt="Pull Requests"
           src="https://img.shields.io/github/issues-pr/stjude/RNAIndel" />
    </a>
-   <a href="https://actions-badge.atrox.dev/stjude/CICERO/goto" target="_blank">
+   <a href="https://actions-badge.atrox.dev/stjude/RNAIndel/goto" target="_blank">
      <img alt="Actions: CI Status"
           src="https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fstjude%2FRNAIndel%2Fbadge&style=flat" />
    </a>
@@ -25,16 +25,19 @@
      <img alt="License: MIT"
           src="https://img.shields.io/badge/License-MIT-blue.svg" />
    </a>
+   <a href="https://badge.fury.io/py/rnaindel" target="_blank">
+     <img alt="PyPI version"
+          src="https://badge.fury.io/py/rnaindel.png" />
+   </a>
   </p>
 
 
   <p align="center">
-    CICERO (Clipped-reads Extended for RNA Optimization) is an assembly-based algorithm to detect diverse classes
-    of driver gene fusions from RNA-seq.
+   RNAIndel calls small coding indels from tumor RNA-Seq data and classifies them as somatic, germline, and artifactual.  You can also use RNAIndel as a postprocessor to classify indels called by your own caller. RNAIndel supports GRCh38 and 37. <br> 
    <br />
-   <a href="https://stjudecloud.github.io/cicero/"><strong>Explore the docs »</strong></a>
+   <a href="https://stjudecloud.github.io/RNAIndel/"><strong>Explore the docs »</strong></a>
    <br />
-   <a href="https://genomebiology.biomedcentral.com/articles/10.1186/s13059-020-02043-x"><strong>Read the paper »</strong></a>
+   <a href="https://doi.org/10.1093/bioinformatics/btz753"><strong>Read the paper »</strong></a>
    <br />
    <br />
    <a href="https://github.com/stjudecloud/cicero/issues/new?assignees=&labels=&template=feature_request.md&title=Descriptive%20Title&labels=enhancement">Request Feature</a>
@@ -46,15 +49,6 @@
 </p>
 
 ---
-# RNAIndel
-[![PyPI version](https://badge.fury.io/py/rnaindel.png)](https://badge.fury.io/py/rnaindel)
-
-[RNAIndel](https://doi.org/10.1093/bioinformatics/btz753) calls small coding indels from tumor RNA-Seq data and 
-classifies them as somatic, germline, and artifactual.
-You can also use RNAIndel as a postprocessor to
-classify indels called by your own caller. 
-RNAIndel supports GRCh38 and 37. <br> 
-
 ## Dependencies
 * [python>=3.6.0](https://www.python.org/downloads/)
     * [pandas>=0.23.0](https://pandas.pydata.org/) 
