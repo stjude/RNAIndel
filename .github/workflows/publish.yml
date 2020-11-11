@@ -45,6 +45,8 @@ jobs:
             ghcr.io/${{ env.REPO_LOWER }}:latest
             ghcr.io/${{ env.REPO_LOWER }}:${{ env.SHORT_SHA }}
             ghcr.io/${{ env.REPO_LOWER }}:${{ env.RELEASE_VERSION }}
+          labels: |
+            org.opencontainers.image.source https://github.com/${{ github.repository }} 
       - 
         name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
