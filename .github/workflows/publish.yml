@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v2
       - 
         name: Determine Short SHA
-        run: echo -n ${{ github.sha }} | tail -c 7 | (read; echo SHORT_SHA=$REPLY) >> $GITHUB_ENV
+        run: echo ${{ github.sha }} | tail -c 7 | (read; echo SHORT_SHA=$REPLY) >> $GITHUB_ENV
       -
         name: Sanitize Repo Name for Tagging
         run: echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]' | (read; echo REPO_LOWER=$REPLY) >> $GITHUB_ENV
