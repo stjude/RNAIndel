@@ -17,17 +17,22 @@
      <img alt="Pull Requests"
           src="https://img.shields.io/github/issues-pr/stjude/RNAIndel" />
    </a>
-   <a href="https://actions-badge.atrox.dev/stjude/RNAIndel/goto" target="_blank">
-     <img alt="Actions: CI Status"
-          src="https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fstjude%2FRNAIndel%2Fbadge&style=flat" />
-   </a>
-   <a href="https://github.com/stjudecloud/RNAIndel/blob/master/LICENSE.md" target="_blank">
+   <a href="https://github.com/stjude/RNAIndel/blob/master/LICENSE.md" target="_blank">
      <img alt="License: MIT"
           src="https://img.shields.io/badge/License-MIT-blue.svg" />
    </a>
    <a href="https://badge.fury.io/py/rnaindel" target="_blank">
      <img alt="PyPI version"
           src="https://badge.fury.io/py/rnaindel.png" />
+   </a>
+   <br />
+   <a href="https://github.com/stjude/RNAIndel/actions?query=workflow%3ADocumentation" target="_blank">
+     <img alt="Actions: Documentation Status"
+          src="https://github.com/stjude/RNAIndel/workflows/Documentation/badge.svg" />
+   </a>
+   <a href="https://github.com/stjude/RNAIndel/actions?query=workflow%3APackage" target="_blank">
+     <img alt="Actions: Package Status"
+          src="https://github.com/stjude/RNAIndel/workflows/Package/badge.svg" />
    </a>
   </p>
 
@@ -50,6 +55,36 @@
 </p>
 
 ---
+## Quick Start
+We publish our latest docker builds on GitHub.  You can run the latest code base by running the following command
+```
+> docker run --rm -v ${pwd}:/data ghcr.io/stjude/rnaindel:latest
+```
+
+If you want to have a more native feel, you can add an alias to your shell's rc file.
+```
+> alias rnaindel="docker run --rm -v ${pwd}:/data ghcr.io/stjude/rnaindel:latest"
+> rnaindel
+usage: rnaindel <subcommand> [<args>]
+
+subcommands are:
+    analysis              Predict somatic indels from tumor RNA-Seq data
+    feature               Calculate and report features for training
+    nonsomatic            Compile non-somatic indel panel
+    reclassification      Reclassify false positives by non-somatic panel
+    recurrence            Annotate false positives by recurrence
+    training              Train models
+
+positional arguments:
+  subcommand  analysis, feature, nonsomatic, reclassification, recurrence,
+              training
+
+optional arguments:
+  -h, --help  show this help message and exit
+  --version   show program's version number and exit
+```
+Note: if its the first time you are executing the `docker run` command, you will see the output of docker downloading the image
+
 ## Dependencies
 * [python>=3.6.0](https://www.python.org/downloads/)
     * [pandas>=0.23.0](https://pandas.pydata.org/) 

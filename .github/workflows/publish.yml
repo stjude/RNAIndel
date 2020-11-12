@@ -1,4 +1,4 @@
-name: Publish Docker image on tag
+name: Package
 on:
   release:
     types: [released, edited]

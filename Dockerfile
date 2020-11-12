@@ -1,9 +1,17 @@
-FROM python:3.6
+FROM openjdk:8
 
-WORKDIR /data
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/* 
+
+VOLUME /data
+WORKDIR /tmp
+
 ADD . .
 
-RUN pip install .
+RUN python3 -m pip install . && rm -rf /tmp/*
 
+WORKDIR /data
 ENTRYPOINT ["rnaindel"]
 CMD ["-h"]
