@@ -85,6 +85,15 @@ optional arguments:
 ```
 Note: if its the first time you are executing the `docker run` command, you will see the output of docker downloading the image
 
+```
+❯ rnaindel analysis -i ./sample_data/inputs/sample.bam \
+                      -o output.vcf \
+                      -r ./sample_data/inputs/chr10.fa \
+                      -d ./data_dir_38
+indel calling completed successfully.
+rnaindel analysis completed successfully.
+```
+
 ## Dependencies
 * [python>=3.6.0](https://www.python.org/downloads/)
     * [pandas>=0.23.0](https://pandas.pydata.org/) 
