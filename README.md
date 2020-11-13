@@ -56,6 +56,9 @@
 
 ---
 ## Quick Start
+RNAIndel can be executed via Docker or ran locally, downloadable via PyPI.
+
+### Docker
 We publish our latest docker builds on GitHub.  You can run the latest code base by running the following command
 ```
 > docker run --rm -v ${pwd}:/data ghcr.io/stjude/rnaindel:latest
@@ -64,6 +67,25 @@ We publish our latest docker builds on GitHub.  You can run the latest code base
 If you want to have a more native feel, you can add an alias to your shell's rc file.
 ```
 > alias rnaindel="docker run --rm -v ${pwd}:/data ghcr.io/stjude/rnaindel:latest"
+```
+Note: if its the first time you are executing the `docker run` command, you will see the output of docker downloading the image
+
+### PyPI
+Installing RNAIndel via the pip command will install the dependencies except for Java.  
+
+#### Dependencies
+* [python>=3.6.0](https://www.python.org/downloads/)
+    * [pandas>=0.23.0](https://pandas.pydata.org/) 
+    * [scikit-learn>=0.20.0](http://scikit-learn.org/stable/install.html#)
+    * [pysam>=0.13.0](https://pysam.readthedocs.io/en/latest/index.html)
+* [java>=1.8.0](https://www.java.com/en/download/) 
+
+```
+> pip install rnaindel
+```
+
+Test the installation.
+```
 > rnaindel
 usage: rnaindel <subcommand> [<args>]
 
@@ -83,8 +105,18 @@ optional arguments:
   -h, --help  show this help message and exit
   --version   show program's version number and exit
 ```
-Note: if its the first time you are executing the `docker run` command, you will see the output of docker downloading the image
+You can download data package (GRCh38, GRCh37) and unpack it in a convenient directory on your system. 
+```
+# GRCh38
+> curl -LO http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz
+> tar -xzf data_dir_38.tar.gz
+# GRCh37
+> curl -LO http://ftp.stjude.org/pub/software/RNAIndel/data_dir_37.tar.gz
+> tar -xzf data_dir_37.tar.gz
+```
 
+
+Test it out!
 ```
 ❯ rnaindel analysis -i ./sample_data/inputs/sample.bam \
                       -o output.vcf \
@@ -93,39 +125,14 @@ Note: if its the first time you are executing the `docker run` command, you will
 indel calling completed successfully.
 rnaindel analysis completed successfully.
 ```
-
-## Dependencies
-* [python>=3.6.0](https://www.python.org/downloads/)
-    * [pandas>=0.23.0](https://pandas.pydata.org/) 
-    * [scikit-learn>=0.20.0](http://scikit-learn.org/stable/install.html#)
-    * [pysam>=0.13.0](https://pysam.readthedocs.io/en/latest/index.html)
-* [java>=1.8.0](https://www.java.com/en/download/) 
-
-## Setup
-Install RNAIndel. The pip command will install the dependencies except for Java.  
-```
-pip install rnaindel
-```
-Test the installation.
-```
-rnaindel -h
-```
-
-Download data package ([GRCh38](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz), [GRCh37](http://ftp.stjude.org/pub/software/RNAIndel/data_dir_37.tar.gz)) and 
-unpack it in a convenient directory on your system. 
-
-```
-tar xzvf data_dir_38.tar.gz  # for GRCh38
-```
-
 ## Usage 
-RNAIndel has 6 subcommands:
-* ```analysis``` analyze RNA-Seq data for indel discovery
-* ```feature``` calculate features for training
-* ```nonsomatic``` make a non-somatic indel panel
-* ```reclassification``` reclassify false positives by non-somatic panel
-* ```recurrence``` annotate false positives by recurrence
-* ```training``` train and update the models
+RNAIndel has 6 subcommands:   
+* ```analysis``` analyze RNA-Seq data for indel discovery   
+* ```feature``` calculate features for training   
+* ```nonsomatic``` make a non-somatic indel panel    
+* ```reclassification``` reclassify false positives by non-somatic panel    
+* ```recurrence``` annotate false positives by recurrence   
+* ```training``` train and update the models   
 
 Subcommands are invoked:
 ```
@@ -181,7 +188,7 @@ Users can [train](./docs/training) RNAIndel with their own training set.
 RNAIndel supports [custom filtering](./docs/filtering) to refine the predicted results.
 
 ## Contact
-* kohei.hagiwaraATstjude.org\
+* kohei.hagiwara[AT]stjude.org   
 Please let me know what your experience with RNAIndel was like (even bad comments are welcome)!
 
 ## Limitations
