@@ -1,0 +1,3 @@
+/path/to/normal_1.vcf
+/path/to/normal_2.vcf
+/path/to/normal_3.vcf
