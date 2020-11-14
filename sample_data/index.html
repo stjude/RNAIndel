@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <meta name="author" content="St. Jude Cloud">
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Index - RNAIndel - St. Jude</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/purebasic.min.css">
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">RNAIndel - St. Jude</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="navitem">
+                                <a href=".." class="nav-link">Home</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../filtering/" class="nav-link">Filtering</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../training/" class="nav-link">Training</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/stjude/RNAIndel/edit/master/docs/sample_data/README.md" class="nav-link"><i class="fa fa-github"></i> Edit on GitHub</a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="2"><a href="#introduction" class="nav-link">Introduction</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#setup" class="nav-link">Setup</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#perform-analysis" class="nav-link">Perform analysis</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h2 id="introduction">Introduction</h2>
+<p>Here, we demonstrate an analysis example using sample data prepared from the Jurkat T-cell leukemia cell line.<br>
+This cell line harbors two known indels in the <em>PTEN</em> tumor suppressor gene: a 2-nt deletion followed by a 9-nt insertion at codon 234 and a 39-nt insertion at codon 246 (<a href="https://www.ncbi.nlm.nih.gov/pubmed/10958690">Shan et al. 2000</a>). 
+We apply RNAIndel to the <a href="http://ftp.stjude.org/pub/software/RNAIndel/sample_data.tar.gz">sample data</a>, which contains the GRCh38 region chr10:80,000,000-90,000,000 (the <em>PTEN</em> locus is chr10:87,863,113-87,971,930). </p>
+<h2 id="setup">Setup</h2>
+<p>We assume RNAIndel is <a href="../README.md#setup">installed</a>.<br>
+<strong>Step 1:</strong> Download the <a href="http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz">data_pakage</a> and <a href="http://ftp.stjude.org/pub/software/RNAIndel/sample_data.tar.gz">sample data</a>.<br> 
+<strong>Step 2:</strong> Unpack them under your convenient directory.</p>
+<pre><code>cd your/convenient/directory
+
+tar xvzf sample_data.tar.gz
+tar xvzf data_dir_38.tar.gz 
+</code></pre>
+<p>"sample_data" directory is structured:</p>
+<pre><code>sample_data
+    |_ inputs  (sample BAM &amp; reference FASTA files)
+    |_ outputs (sample output VCF files)
+</code></pre>
+<h2 id="perform-analysis">Perform analysis</h2>
+<h3 id="working-with-the-built-in-caller">Working with the built-in caller</h3>
+<pre><code>$ rnaindel analysis -i ./sample_data/inputs/sample.bam \
+                    -o your_test_with_built_in_caller.vcf \
+                    -r ./sample_data/inputs/chr10.fa \
+                    -d ./data_dir_38
+
+indel calling completed successfully.          # indel calling by the built-in caller is done.
+rnaindel analysis completed successfully.      # all steps done. 
+</code></pre>
+<p>Fifteen coding indels are reported in the ouput <a href="outputs/sample.vcf">VCF</a> file: 2 somatic, 1 germline, and 12 artifact indels (see INFO field).
+The two <em>PTEN</em> indels are predicted as somatic. 
+The first indel is a complex indel in which a 2-nt deletion and a 9-nt insertion 
+are involved. This indel is detected as a 7-nt insertion at codon 233. 
+The second indel is also detected as a 7-nt insertion at codon 246, not as a 39-nt insertion, due to the soft-clipped alignment. </p>
+<h3 id="working-with-gatk-haplotypecaller">Working with GATK-HaplotypeCaller</h3>
+<p>The sample BAM file was preprocessed following GATK RNA-Seq Variant Calling 
+<a href="https://software.broadinstitute.org/gatk/documentation/article.php?id=3891">BestPractice</a>. 
+GATK-HC (ver 4.0.2.1) called variants in the preprocessed BAM file (<a href="inputs/sample.gatk.bam">sample.gatk.bam</a>) and 
+generated a VCF file (<a href="inputs/sample_gatk.vcf">sample_gatk.vcf</a>). Now, the indels in the GATK VCF file are classified. 
+<strong>Please input the original BAM file (sample.bam), not the preprocessed one (sample.gatk.bam)</strong>.</p>
+<pre><code>$ rnaindel analysis -i ./sample_data/inputs/sample.bam \
+                    -v ./sample_data/inputs/sample_gatk.vcf \
+                    -o your_test_with_gatk_hc.vcf \
+                    -r ./sample_data/inputs/chr10.fa \
+                    -d ./data_dir_38
+
+rnaindel analysis completed successfully. # all steps done (no calling by the built-in caller) 
+</code></pre>
+<p>Four coding indels are reported in the output <a href="outputs/sample_gatk_classified.vcf">VCF</a> file: 2 somatic, 1 germline, and 1 artifact. 
+Both <em>PTEN</em> indels are predicated as somatic. The 39-nt insertion at codon 246 is also detected as a 7-nt insertion by GATK-HC.<br> 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+However, GATK-HC detected the indel at codon 234 as a combination of two insertions: 
+the GGCCC insertion at chr10:87957916 and the TG insertion at chr10:87957917. In the output <a href="outputs/sample_gatk_classified.vcf">VCF</a>, 
+these two are annotated as "RQB=chr10:87957916:G:GGGCCCAT". This means that RNAIndel could not find these two insertions in the BAM 
+file as reported by GATK-HC and, instead, found a GGCCCAT insertion at chr10:87957916 and used this for prediction; they were rescued by (RQB)
+the GGCCCAT insertion.  </p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+                <p>© 2020 St. Jude Children's Research Hospital</p>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

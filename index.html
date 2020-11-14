@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="RNAIndel calls small coding indels from tumor RNA-Seq data and classifies them as somatic, germline, and artifactual.">
+        <meta name="author" content="St. Jude Cloud">
+        
+        <link rel="shortcut icon" href="img/favicon.ico">
+        <title>RNAIndel - St. Jude</title>
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <link href="css/font-awesome.min.css" rel="stylesheet">
+        <link href="css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/purebasic.min.css">
+
+        <script src="js/jquery-1.10.2.min.js" defer></script>
+        <script src="js/bootstrap.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body class="homepage">
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href=".">RNAIndel - St. Jude</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="navitem active">
+                                <a href="." class="nav-link">Home</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="filtering/" class="nav-link">Filtering</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="training/" class="nav-link">Training</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" class="nav-link disabled">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="filtering/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/stjude/RNAIndel/edit/master/docs/index.md" class="nav-link"><i class="fa fa-github"></i> Edit on GitHub</a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="2"><a href="#quick-start" class="nav-link">Quick Start</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#usage" class="nav-link">Usage</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#contact" class="nav-link">Contact</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#limitations" class="nav-link">Limitations</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<p align="center">
+
+  <h1 align="center">
+    RNAIndel
+  </h1>
+
+  <p align="center">
+   <a href="https://github.com/stjude/RNAIndel" target="_blank">
+     <img alt="Status"
+          src="https://img.shields.io/badge/status-active-success.svg" />
+   </a>
+   <a href="https://github.com/stjude/RNAIndel/issues" target="_blank">
+     <img alt="Github Issues"
+          src="https://img.shields.io/github/issues/stjude/RNAIndel" />
+   </a>
+   <a href="https://github.com/stjude/RNAIndel/pulls" target="_blank">
+     <img alt="Pull Requests"
+          src="https://img.shields.io/github/issues-pr/stjude/RNAIndel" />
+   </a>
+   <a href="https://github.com/stjude/RNAIndel/blob/master/LICENSE.md" target="_blank">
+     <img alt="License: MIT"
+          src="https://img.shields.io/badge/License-MIT-blue.svg" />
+   </a>
+   <a href="https://badge.fury.io/py/rnaindel" target="_blank">
+     <img alt="PyPI version"
+          src="https://badge.fury.io/py/rnaindel.png" />
+   </a>
+   <br />
+   <a href="https://github.com/stjude/RNAIndel/actions?query=workflow%3ADocumentation" target="_blank">
+     <img alt="Actions: Documentation Status"
+          src="https://github.com/stjude/RNAIndel/workflows/Documentation/badge.svg" />
+   </a>
+   <a href="https://github.com/stjude/RNAIndel/actions?query=workflow%3APackage" target="_blank">
+     <img alt="Actions: Package Status"
+          src="https://github.com/stjude/RNAIndel/workflows/Package/badge.svg" />
+   </a>
+  </p>
+
+
+  <p align="center">
+   RNAIndel calls small coding indels from tumor RNA-Seq data and classifies them as somatic, germline, and artifactual.  You can also use RNAIndel as a postprocessor to classify indels called by your own caller. RNAIndel supports GRCh38 and 37. <br> 
+   <br />
+   <a href="https://stjudecloud.github.io/RNAIndel/"><strong>Explore the docs »</strong></a>
+   <br />
+   <a href="https://doi.org/10.1093/bioinformatics/btz753"><strong>Read the paper »</strong></a>
+   <br />
+   <br />
+   <a href="https://github.com/stjude/RNAIndel/issues/new?assignees=&labels=&template=feature_request.md&title=Descriptive%20Title&labels=enhancement">Request Feature</a>
+    | 
+   <a href="https://github.com/stjude/RNAIndel/issues/new?assignees=&labels=&template=bug_report.md&title=Descriptive%20Title&labels=bug">Report Bug</a>
+   <br />
+    ⭐ Consider starring the repo! ⭐
+   <br />
+  </p>
+</p>
+
+<hr />
+<h2 id="quick-start">Quick Start</h2>
+<p>RNAIndel can be executed via Docker or ran locally, downloadable via PyPI.</p>
+<h3 id="docker">Docker</h3>
+<p>We publish our latest docker builds on GitHub.  You can run the latest code base by running the following command</p>
+<pre><code>&gt; docker run --rm -v ${pwd}:/data ghcr.io/stjude/rnaindel:latest
+</code></pre>
+<p>If you want to have a more native feel, you can add an alias to your shell's rc file.</p>
+<pre><code>&gt; alias rnaindel=&quot;docker run --rm -v ${pwd}:/data ghcr.io/stjude/rnaindel:latest&quot;
+</code></pre>
+<p>Note: if its the first time you are executing the <code>docker run</code> command, you will see the output of docker downloading the image</p>
+<h3 id="pypi">PyPI</h3>
+<p>Installing RNAIndel via the pip command will install the dependencies except for Java.  </p>
+<h4 id="dependencies">Dependencies</h4>
+<ul>
+<li><a href="https://www.python.org/downloads/">python&gt;=3.6.0</a><ul>
+<li><a href="https://pandas.pydata.org/">pandas&gt;=0.23.0</a> </li>
+<li><a href="http://scikit-learn.org/stable/install.html#">scikit-learn&gt;=0.20.0</a></li>
+<li><a href="https://pysam.readthedocs.io/en/latest/index.html">pysam&gt;=0.13.0</a></li>
+</ul>
+</li>
+<li><a href="https://www.java.com/en/download/">java&gt;=1.8.0</a> </li>
+</ul>
+<pre><code>&gt; pip install rnaindel
+</code></pre>
+<p>Test the installation.</p>
+<pre><code>&gt; rnaindel
+usage: rnaindel &lt;subcommand&gt; [&lt;args&gt;]
+
+subcommands are:
+    analysis              Predict somatic indels from tumor RNA-Seq data
+    feature               Calculate and report features for training
+    nonsomatic            Compile non-somatic indel panel
+    reclassification      Reclassify false positives by non-somatic panel
+    recurrence            Annotate false positives by recurrence
+    training              Train models
+
+positional arguments:
+  subcommand  analysis, feature, nonsomatic, reclassification, recurrence,
+              training
+
+optional arguments:
+  -h, --help  show this help message and exit
+  --version   show program's version number and exit
+</code></pre>
+<p>You can download data package (GRCh38, GRCh37) and unpack it in a convenient directory on your system. </p>
+<pre><code># GRCh38
+&gt; curl -LO http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz
+&gt; tar -xzf data_dir_38.tar.gz
+# GRCh37
+&gt; curl -LO http://ftp.stjude.org/pub/software/RNAIndel/data_dir_37.tar.gz
+&gt; tar -xzf data_dir_37.tar.gz
+</code></pre>
+<p>Test it out!</p>
+<pre><code>❯ rnaindel analysis -i ./sample_data/inputs/sample.bam \
+                      -o output.vcf \
+                      -r ./sample_data/inputs/chr10.fa \
+                      -d ./data_dir_38
+indel calling completed successfully.
+rnaindel analysis completed successfully.
+</code></pre>
+<h2 id="usage">Usage</h2>
+<p>RNAIndel has 6 subcommands: <br />
+<em> <code>analysis</code> analyze RNA-Seq data for indel discovery <br />
+</em> <code>feature</code> calculate features for training <br />
+<em> <code>nonsomatic</code> make a non-somatic indel panel  <br />
+</em> <code>reclassification</code> reclassify false positives by non-somatic panel  <br />
+<em> <code>recurrence</code> annotate false positives by recurrence <br />
+</em> <code>training</code> train and update the models   </p>
+<p>Subcommands are invoked:</p>
+<pre><code>rnaindel subcommand [subcommand-specific options]
+</code></pre>
+<h3 id="discover-somatic-indels-demo">Discover somatic indels (<a href="./sample_data">demo</a>)</h3>
+<h4 id="input-bam-file">Input BAM file</h4>
+<p>RNAIndel expects <a href="https://academic.oup.com/bioinformatics/article/29/1/15/272537">STAR</a> 2-pass mapped BAM file with sorted by coordinate 
+and <a href="https://broadinstitute.github.io/picard/command-line-overview.html#MarkDuplicates">MarkDuplicates</a>. Further preprocessing such as 
+indel realignment may prevent desired behavior (RNAIndel internally realigns indels to correct allele count).  </p>
+<h4 id="use-the-built-in-caller">Use the built-in caller</h4>
+<p>RNAIndel calls indels by the <a href="https://academic.oup.com/bioinformatics/article/27/6/865/236751">built-in caller</a>, which is optimized 
+for RNA-Seq indel calling, and classifies detected indels as somatic, germline, and artifactual. </p>
+<pre><code>rnaindel analysis -i BAM -o OUTPUT_VCF -r REFERENCE -d DATA_DIR [other options]
+</code></pre>
+<h4 id="use-your-caller">Use your caller</h4>
+<p>RNAIndel can be used as a postprocessor for indel calls generated by your caller such as 
+<a href="https://software.broadinstitute.org/gatk/documentation/tooldocs/4.0.8.0/org_broadinstitute_hellbender_tools_walkers_haplotypecaller_HaplotypeCaller.php">GATK-HaplotypeCaller</a>, 
+<a href="https://software.broadinstitute.org/gatk/documentation/tooldocs/4.0.8.0/org_broadinstitute_hellbender_tools_walkers_mutect_Mutect2.php">Mutect2</a>
+and <a href="https://github.com/ekg/freebayes">freebayes</a>. Specify the input VCF file with <code>-v</code>.</p>
+<pre><code>rnaindel analysis -i BAM -v INPUT_VCF -o OUTPUT_VCF -r REFERENCE -d DATA_DIR [other options]
+</code></pre>
+<h4 id="options">Options</h4>
+<ul>
+<li><code>-i</code> input <a href="https://academic.oup.com/bioinformatics/article/29/1/15/272537">STAR</a>-mapped BAM file (required)</li>
+<li><code>-o</code> output VCF file (required)</li>
+<li><code>-r</code> reference genome FASTA file (required)</li>
+<li><code>-d</code> <a href="#setup">data directory</a> contains trained models and databases (required)</li>
+<li><code>-v</code> VCF file from user's caller (default: None)</li>
+<li>
+<p><details>
+    <summary>other options (click to open)</summary><p></p>
+<ul>
+<li><code>-q</code> STAR mapping quality MAPQ for unique mappers (default: 255)</li>
+<li><code>-p</code> number of cores (default: 1)</li>
+<li><code>-m</code> maximum heap space (default: 6000m)</li>
+<li><code>-l</code> directory to store log files (default: current)</li>
+<li><code>-n</code> user-defined panel of non-somatic indels in tabixed VCF format (default: built-in reviewed indel set)</li>
+<li><code>-g</code> user-provided germline indel database in tabixed VCF format (default: built-in database in data dir) <br>
+&nbsp;   &nbsp;   &nbsp;   &nbsp;use only if the model is trained with the user-provided database (<a href="./docs/training">more</a>).      </li>
+<li><code>--region</code> target genomic region. specify by chrN:start-stop (default: None)</li>
+<li><code>--exclude-softclipped-alignments</code> softclipped indels will not be used for analysis if added (default: False)</li>
+</ul>
+</li>
+</ul>
+<p></p></details></p>
+<h3 id="train-rnaindel">Train RNAIndel</h3>
+<p>Users can <a href="./docs/training">train</a> RNAIndel with their own training set. </p>
+<h3 id="filter-false-positives">Filter false positives</h3>
+<p>RNAIndel supports <a href="./docs/filtering">custom filtering</a> to refine the predicted results.</p>
+<h2 id="contact">Contact</h2>
+<ul>
+<li>kohei.hagiwara[AT]stjude.org <br />
+Please let me know what your experience with RNAIndel was like (even bad comments are welcome)!</li>
+</ul>
+<h2 id="limitations">Limitations</h2>
+<ol>
+<li>RNAIndel does not perform well for samples with microsatellite instability such as colon adenocarcinoma hypermutated subtype. </li>
+</ol></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+                <p>© 2020 St. Jude Children's Research Hospital</p>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = ".",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="js/base.js" defer></script>
+        <script src="search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
+
+<!--
+MkDocs version : 1.1.2
+Build Date UTC : 2020-11-14 04:49:31.835952+00:00
+-->
