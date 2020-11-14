@@ -40,7 +40,7 @@
   <p align="center">
    RNAIndel calls small coding indels from tumor RNA-Seq data and classifies them as somatic, germline, and artifactual.  You can also use RNAIndel as a postprocessor to classify indels called by your own caller. RNAIndel supports GRCh38 and 37. <br> 
    <br />
-   <a href="https://stjudecloud.github.io/RNAIndel/"><strong>Explore the docs »</strong></a>
+   <a href="https://stjude.github.io/RNAIndel/"><strong>Explore the docs »</strong></a>
    <br />
    <a href="https://doi.org/10.1093/bioinformatics/btz753"><strong>Read the paper »</strong></a>
    <br />
