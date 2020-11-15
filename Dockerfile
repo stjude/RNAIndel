@@ -16,5 +16,6 @@ ENV PYTHONWARNINGS="ignore"
 RUN python3 -m pip install . && rm -rf /tmp/*
 
 WORKDIR /data
+RUN chmod 777 -R /data
 ENTRYPOINT ["rnaindel"]
 CMD ["-h"]
