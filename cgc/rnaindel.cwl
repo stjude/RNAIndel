@@ -1,119 +1,183 @@
-class: CommandLineTool
-cwlVersion: v1.0
-$namespaces:
-  sbg: 'https://sevenbridges.com'
-baseCommand: []
-inputs:
-  - id: subcommand
-    type:
-      type: enum
-      symbols:
-        - analysis
-        - feature
-        - nonsomatic
-        - reclassification
-        - recurrence
-        - training
-      name: subcommand
-    inputBinding:
-      position: 0
-      shellQuote: false
-  - id: input_bam
-    type: File
-    inputBinding:
-      position: 1
-      prefix: '-i'
-      shellQuote: false
-    label: Input BAM file
-    'sbg:fileTypes': BAM
-    secondaryFiles:
-      - .bai
-  - id: fasta
-    type: File
-    inputBinding:
-      position: 3
-      prefix: '-r'
-      shellQuote: false
-    label: Input FASTA
-    'sbg:fileTypes': FA
-    secondaryFiles:
-      - .fai
-  - id: data
-    type: Directory
-    inputBinding:
-      position: 4
-      prefix: '-d'
-      shellQuote: false
-    label: Data Directory
-  - id: user_caller_vcf
-    type: File?
-    inputBinding:
-      position: 10
-      prefix: '-v'
-      shellQuote: false
-    'sbg:fileTypes': VCF
-  - id: star_mapping
-    type: int?
-    inputBinding:
-      position: 10
-      prefix: '-q'
-      shellQuote: false
-  - id: num_cores
-    type: int?
-    inputBinding:
-      position: 10
-      prefix: '-p'
-      shellQuote: false
-  - id: max_heap_space
-    type: string?
-    inputBinding:
-      position: 10
-      prefix: '-m'
-      shellQuote: false
-  - id: log_directory
-    type: string?
-    inputBinding:
-      position: 10
-      prefix: '-l'
-      shellQuote: false
-  - id: nonsomatic_indels_vcf
-    type: File?
-    inputBinding:
-      position: 10
-      prefix: '-n'
-      shellQuote: false
-    'sbg:fileTypes': VCF
-  - id: germline_indels_vcf
-    type: File?
-    inputBinding:
-      position: 10
-      prefix: '-g'
-      shellQuote: false
-    'sbg:fileTypes': VCF
-  - id: input
-    type: string?
-    inputBinding:
-      position: 10
-      prefix: '--region'
-      shellQuote: false
-outputs:
-  - id: '#output_file'
-    type: File
-    outputBinding:
-      glob: '*.vcf'
-label: rnaindel
-arguments:
-  - position: 101
-    prefix: '-o'
-    shellQuote: false
-    valueFrom: $(inputs.input_bam.nameroot).vcf
-requirements:
-  - class: ShellCommandRequirement
-  - class: EnvVarRequirement
-    envDef:
-      TMPDIR: /data
-  - class: InlineJavascriptRequirement
-hints:
-  - class: DockerRequirement
-    dockerPull: 'ghcr.io/stjude/rnaindel:latest'
-'sbg:projectName': rnaindel
+{
+    "class": "CommandLineTool",
+    "cwlVersion": "v1.1",
+    "id": "rnaindel",
+    "baseCommand": [],
+    "inputs": [
+        {
+            "id": "subcommand",
+            "type": {
+                "type": "enum",
+                "symbols": [
+                    "analysis",
+                    "feature",
+                    "nonsomatic",
+                    "reclassification",
+                    "recurrence",
+                    "training"
+                ],
+                "name": "subcommand"
+            },
+            "inputBinding": {
+                "shellQuote": false,
+                "position": 0
+            }
+        },
+        {
+            "id": "input_bam",
+            "type": "File",
+            "inputBinding": {
+                "prefix": "-i",
+                "shellQuote": false,
+                "position": 1
+            },
+            "label": "Input BAM file",
+            "sbg:fileTypes": "BAM",
+            "secondaryFiles": [
+                {
+                    "pattern": ".bai?"
+                },
+                {
+                    "pattern": "$(self.nameroot).bai?"
+                }
+            ]
+        },
+        {
+            "id": "fasta",
+            "type": "File",
+            "inputBinding": {
+                "prefix": "-r",
+                "shellQuote": false,
+                "position": 3
+            },
+            "label": "Input FASTA",
+            "sbg:fileTypes": "FA",
+            "secondaryFiles": [
+                {
+                    "pattern": ".fai"
+                }
+            ]
+        },
+        {
+            "loadListing": "deep_listing",
+            "id": "data",
+            "type": "Directory",
+            "inputBinding": {
+                "prefix": "-d",
+                "shellQuote": false,
+                "position": 4
+            },
+            "label": "Data Directory"
+        },
+        {
+            "id": "user_caller_vcf",
+            "type": "File?",
+            "inputBinding": {
+                "prefix": "-v",
+                "shellQuote": false,
+                "position": 10
+            },
+            "sbg:fileTypes": "VCF"
+        },
+        {
+            "id": "star_mapping",
+            "type": "int?",
+            "inputBinding": {
+                "prefix": "-q",
+                "shellQuote": false,
+                "position": 10
+            }
+        },
+        {
+            "id": "num_cores",
+            "type": "int?",
+            "inputBinding": {
+                "prefix": "-p",
+                "shellQuote": false,
+                "position": 10
+            }
+        },
+        {
+            "id": "max_heap_space",
+            "type": "string?",
+            "inputBinding": {
+                "prefix": "-m",
+                "shellQuote": false,
+                "position": 10
+            }
+        },
+        {
+            "id": "log_directory",
+            "type": "string?",
+            "inputBinding": {
+                "prefix": "-l",
+                "shellQuote": false,
+                "position": 10
+            }
+        },
+        {
+            "id": "nonsomatic_indels_vcf",
+            "type": "File?",
+            "inputBinding": {
+                "prefix": "-n",
+                "shellQuote": false,
+                "position": 10
+            },
+            "sbg:fileTypes": "VCF"
+        },
+        {
+            "id": "germline_indels_vcf",
+            "type": "File?",
+            "inputBinding": {
+                "prefix": "-g",
+                "shellQuote": false,
+                "position": 10
+            },
+            "sbg:fileTypes": "VCF"
+        },
+        {
+            "id": "input",
+            "type": "string?",
+            "inputBinding": {
+                "prefix": "--region",
+                "shellQuote": false,
+                "position": 10
+            }
+        }
+    ],
+    "outputs": [
+        {
+            "id": "#output_file",
+            "type": "File",
+            "outputBinding": {
+                "glob": "*.vcf"
+            }
+        }
+    ],
+    "label": "rnaindel",
+    "arguments": [
+        {
+            "prefix": "-o",
+            "shellQuote": false,
+            "position": 101,
+            "valueFrom": "$(inputs.input_bam.nameroot).vcf"
+        }
+    ],
+    "requirements": [
+        {
+            "class": "ShellCommandRequirement"
+        },
+        {
+            "class": "LoadListingRequirement"
+        },
+        {
+            "class": "InlineJavascriptRequirement"
+        }
+    ],
+    "hints": [
+        {
+            "class": "DockerRequirement",
+            "dockerPull": "ghcr.io/stjude/rnaindel:latest"
+        }
+    ]
+}
