@@ -188,7 +188,7 @@ def read_support_features(valn, downsample_threshold):
     alt_fw_rv = valn.count_alleles(fwrv=True)[1]
     is_bidirectional = all(alt_fw_rv)
 
-    return ref_cnt, alt_cnt, orig_ref_cnt, orig_alt_cnt, is_bidirectional
+    return int(ref_cnt), int(alt_cnt), int(orig_ref_cnt), int(orig_alt_cnt), is_bidirectional
 
 
 def sequence_features(target_indel, valn, contig):
