@@ -2,6 +2,8 @@
 import sys
 import argparse
 import analysis as ra
+from version import __version__
+
 
 def main():
     Commands()
@@ -14,13 +16,13 @@ class Commands(object):
             usage="""rnaindel <subcommand> [<args>]
 
 subcommands are:
-    analysis              Predict somatic indels from tumor RNA-Seq data
-    featureCalculation               Calculate and report features for training""",
+    PredictSomaticIndels            Predict somatic indels from tumor RNA-Seq data
+    CalculateFeatures               Calculate and report features for training""",
         )
 
         parser.add_argument(
             "subcommand",
-            help="analysis, featureCalculation",
+            help="PredictSomaticIndels, CalculateFeatures",
         )
 
         args = parser.parse_args(sys.argv[1:2])
@@ -29,12 +31,12 @@ subcommands are:
             sys.exit("Error: invalid subcommand")
 
         getattr(self, args.subcommand)()
+         
+    def PredictSomaticIndels(self):
+        ra.analyze("PredictSomaticIndels", version=__version__)
 
-    def analysis(self):
-        ra.analyze("analysis")
-
-    def featureCalculation(self):
-        ra.analyze("featureCalculation")
+    def CalculateFeatures(self):
+        ra.analyze("CalculateFeatures")
 
 
 
