@@ -1,4 +1,5 @@
 import re
+import os
 import sys
 import numpy as np
 
@@ -19,13 +20,27 @@ def validate_int_inputs(val, preset=None):
         sys.exit("Error: the input must be a positive integer.")
     elif 0 <= val <= 255 and preset == "mapq":
         sys.exit("Error: the MAPQ value must be an integer between 0 and 255.")
-   
+
     return val
+
+
+def validate_file_input(file_path):
+    if os.path.isfile(file_path):
+        return file_path
+    else:
+        sys.exit("Error: {} not found.".format(file_path))
+
+
+def validate_dir_input(dir_path):
+    if os.path.isdir(dir_path):
+        return dir_path
+    else:
+        sys.exit("Error: {} not found.".format(dir_path))
 
 
 def adjust_start_pos(aligned_segment, is_for_ref):
     start = aligned_segment.reference_start + 1  # to 1-based
-    
+
     if is_for_ref:
         return start
     else:
@@ -37,7 +52,10 @@ def adjust_start_pos(aligned_segment, is_for_ref):
 
 def get_ref_seq(aligned_segment, target_indel, cigar_string, cigar_list):
 
-    aln_start, aln_end = aligned_segment.reference_start + 1, aligned_segment.reference_end
+    aln_start, aln_end = (
+        aligned_segment.reference_start + 1,
+        aligned_segment.reference_end,
+    )
     chrom, reference = target_indel.chrom, target_indel.reference
 
     current_pos = aln_start - 1
@@ -113,7 +131,7 @@ def split(aligned_segment, target_indel, is_for_ref):
     diff = target_pos - string_pos
     idx = int(j + diff)
 
-    lt = data[: idx]
-    rt = data[idx :]
+    lt = data[:idx]
+    rt = data[idx:]
 
     return lt, rt

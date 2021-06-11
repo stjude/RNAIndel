@@ -126,6 +126,7 @@ def info_fields():
         '##INFO=<ID=coding_sequence_length,Number=1,Type=Float,Description="Coding sequence length. Median value if multiple isoforms exist.">',
         '##INFO=<ID=GERMLINE_DB,Number=0,Type=Flag,Description="This indel is in the (default or user-provided) germline database.">',
         '##INFO=<ID=RECLASSIFIED,Number=0,Type=Flag,Description="This indel is reclassified from the initial prediction.">',
+        '##INFO=<ID=OUTLYING,Number=0,Type=Flag,Description="This homopolymer indel is outlying from artifact homoplymer indels of the same kind.">',
     ]
 
     return h
@@ -231,6 +232,9 @@ def generate_info_str(row):
 
     if row["reclassified"] != "-":
         info_str += "RECLASSIFIED"
+
+        if "outlier" in row["reclassified"]:
+            info_str += ";OUTLYING"
 
     return info_str.rstrip(";")
 

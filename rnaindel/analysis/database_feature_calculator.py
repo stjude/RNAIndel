@@ -22,7 +22,10 @@ def _wrapper(row, dbsnp, clinvar, cosmic):
     variant = row["indel"]
 
     dbsnp_annotation = dbsnp_annot(variant, dbsnp)
-    clin_annotation = clinvar_annot(variant, clinvar)
+    try:
+        clin_annotation = clinvar_annot(variant, clinvar)
+    except:
+        clin_annotation = -1, 0
 
     # dbSNP ID
     rs_id = dbsnp_annotation[0]
@@ -127,15 +130,18 @@ def get_allele_freq(vcf_info, preset):
     freq_str = str(vcf_info.get(preset, "-1.0,-1.0"))
 
     freq = -1
-    if preset == "non_cancer_AF":
-        freq = max([float(freq) for freq in freq_str.split(",")])
-    elif preset in ["CAF", "TOPMED"]:
-         major_freq = float(freq_str.split(",")[0])
-         if major_freq < 0:
-             return major_freq
-         else:
-             return 1.0 - major_freq
-    elif preset in ["AF_ESP", "AF_EXAC", "AF_TGP"]:
-        freq = max([float(freq) for freq in freq_str.split(",")])
+    try:
+        if preset == "non_cancer_AF":
+            freq = max([float(freq) for freq in freq_str.split(",")])
+        elif preset in ["CAF", "TOPMED"]:
+            major_freq = float(freq_str.split(",")[0])
+            if major_freq < 0:
+                return major_freq
+            else:
+                return 1.0 - major_freq
+        elif preset in ["AF_ESP", "AF_EXAC", "AF_TGP"]:
+            freq = max([float(freq) for freq in freq_str.split(",")])
+    except:
+        pass
 
     return freq

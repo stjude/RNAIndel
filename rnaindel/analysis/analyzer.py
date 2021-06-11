@@ -1,17 +1,17 @@
 import os
 import sys
+import pathlib
 import tempfile
 import argparse
 from functools import partial
 
 from defaultcaller.defaultcaller import callindel
-from .utils import validate_int_inputs
-
 
 from .preprocessor import preprocess
 from .classifier import classify
 from .postprocessor import postprocess
 from .vcf_writer import write_vcf
+from .utils import validate_int_inputs, validate_file_input, validate_dir_input
 
 
 def analyze(subcommand, version=None):
@@ -29,14 +29,15 @@ def analyze(subcommand, version=None):
         callindel(bam, fasta, tmp_dir, args.heap_memory, args.region, n_processes)
 
         df = preprocess(tmp_dir, fasta, bam, data_dir, mapq, n_processes)
+        if len(df) == 0:
+            write_vcf(df, version, args)
+            sys.exit(0)
 
     df = classify(df, "{}/models".format(data_dir), n_processes)
 
-    df = postprocess(df, data_dir)
+    df = postprocess(df, data_dir, args.perform_outlier_analysis)
    
     write_vcf(df, version, args)
-
-    #df.to_csv(args.output_vcf, sep="\t", index=False)
 
 
 def get_args(subcommand):
@@ -48,6 +49,7 @@ def get_args(subcommand):
         "--bam",
         metavar="FILE",
         required=True,
+        type=validate_file_input,
         help="input tumor RNA-Seq BAM file (must be STAR-mapped).",
     )
 
@@ -56,6 +58,7 @@ def get_args(subcommand):
         "--reference",
         metavar="FILE",
         required=True,
+        type=validate_file_input,
         help="reference genome FASTA file.",
     )
 
@@ -64,6 +67,7 @@ def get_args(subcommand):
         "--data-dir",
         metavar="DIR",
         required=True,
+        type=validate_dir_input,
         help="data directory contains databases and models",
     )
 
@@ -104,6 +108,14 @@ def get_args(subcommand):
             default=None,
             help="specify region for target analysis: chrN:start-stop (default: None)",
         )
+
+        parser.add_argument(
+            "--skip-homopolyer-outlier-analysis",
+            dest="perform_outlier_analysis",
+            action="store_false",
+            help="skip oulier analysis to rescue somatic homopolyer indels (experimental feature)",
+        )
+        parser.set_defaults(perform_outlier_analysis=True)
     else:
         parser.add_argument(
             "-o",
@@ -114,3 +126,4 @@ def get_args(subcommand):
         )
 
     return parser.parse_args(sys.argv[2:])
+

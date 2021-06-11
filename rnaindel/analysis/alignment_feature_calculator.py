@@ -87,7 +87,7 @@ def _wrapper(row, bam, mapq, downsample_threshold):
 
     res = make_indel_alignment(variant, bam, downsample_threshold)
     if res:
-        #try:
+        try:
     #    if res:
             valn, contig = res[0], res[1]
 
@@ -111,8 +111,9 @@ def _wrapper(row, bam, mapq, downsample_threshold):
                 equivalent_exists,
                 is_multiallelic,
             ) = mapping_features(variant, valn, bam, mapq)
-        #except:
-        #    print(variant.pos, variant.chrom, variant.ref, variant.alt)
+        except:
+            pass
+            #print(variant.pos, variant.chrom, variant.ref, variant.alt)
 
     return (
         n_repeats,
@@ -164,9 +165,9 @@ def indel_type_features(variant):
     return indel_size, is_ins, is_at_ins, is_at_del, is_gc_ins, is_gc_del
 
 
-def make_indel_alignment(variant, bam, downsample_threshold):
+def make_indel_alignment(variant, bam, downsample_threshold=1500):
     
-    valn = VariantAlignment(variant, bam, base_quality_threshold=10, downsample_threshold=downsample_threshold)
+    valn = VariantAlignment(variant, bam, downsample_threshold=downsample_threshold)
     
     contig = valn.get_contig()
     if contig:
@@ -175,7 +176,7 @@ def make_indel_alignment(variant, bam, downsample_threshold):
         return None
 
 
-def read_support_features(valn, downsample_threshold):
+def read_support_features(valn, downsample_threshold=1500):
     
     orig_ref_cnt, orig_alt_cnt = valn.count_alleles(by_fragment=True)
     cov = orig_ref_cnt + orig_alt_cnt
@@ -258,7 +259,7 @@ def sequence_features(target_indel, valn, contig):
 
     # dissimilarity
     dissim = dissimilarity(lt_seq, indel_seq, rt_seq)
-
+    
     # indel complexity
     cplx_var = valn.phase(how="complex")
     if not cplx_var.is_non_complex_indel():

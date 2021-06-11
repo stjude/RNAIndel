@@ -16,12 +16,20 @@ CANONICALS = [str(i) for i in range(1, 23)] + ["X", "Y"]
 
 
 def preprocess(
-    tmp_dir, fasta_file, bam_file, data_dir, mapq, num_of_processes, from_default_caller=True
+    tmp_dir,
+    fasta_file,
+    bam_file,
+    data_dir,
+    mapq,
+    num_of_processes,
+    from_default_caller=True,
 ):
     if num_of_processes == 1:
-        callset = os.path.join(tmp_dir, "outfile.txt")
-        df = calculate_features(callset, fasta_file, bam_file, data_dir, mapq, from_default_caller)
 
+        callset = os.path.join(tmp_dir, "outfile.txt")
+        df = calculate_features(
+            callset, fasta_file, bam_file, data_dir, mapq, from_default_caller
+        )
     else:
         callsets_by_chrom = [
             os.path.join(tmp_dir, "chr{}.txt".format(chrom)) for chrom in CANONICALS
@@ -39,30 +47,34 @@ def preprocess(
             ),
             callsets_by_chrom,
         )
-        
+
         df = pd.concat(dfs)
-    
+
     return df
 
 
-def calculate_features(callset, fasta_file, bam_file, data_dir, mapq, from_default_caller):
+def calculate_features(
+    callset, fasta_file, bam_file, data_dir, mapq, from_default_caller
+):
 
     path_to_coding_gene_db = "{}/refgene/refCodingExon.bed.gz".format(data_dir)
     path_to_proteindb = "{}/protein/proteinConservedDomains.txt".format(data_dir)
     path_to_dbsnp = "{}/dbsnp/dbsnp.indel.vcf.gz".format(data_dir)
     path_to_clinvar = "{}/clinvar/clinvar.indel.vcf.gz".format(data_dir)
     path_to_cosmic = "{}/cosmic/CosmicCodingMuts.indel.vcf.gz".format(data_dir)
-    
+
     df = filter_non_coding_indels(
         callset, fasta_file, path_to_coding_gene_db, from_default_caller
     )
-    
+
     if len(df) > 0:
         df = transcript_features(df, path_to_proteindb)
         df = alignment_features(df, bam_file, mapq)
-        df = database_features(df, path_to_dbsnp, path_to_clinvar, path_to_cosmic)
+        
+        if len(df) > 0:
+            return database_features(df, path_to_dbsnp, path_to_clinvar, path_to_cosmic)
 
-        return df
+    return make_empty_df()
 
 
 def filter_non_coding_indels(
@@ -155,3 +167,57 @@ def is_canonical_indel(record):
         chrom_name = record["CHROM"].replace("chr", "")
 
     is_canonical = chrom_name in CANONICALS
+
+
+def make_empty_df():
+    header = [
+        "indel",
+        "chrom",
+        "pos",
+        "ref",
+        "alt",
+        "annotation",
+        "cds_length",
+        "indel_location",
+        "is_inframe",
+        "is_splice",
+        "is_truncating",
+        "is_nmd_insensitive",
+        "is_in_cdd",
+        "gene_symbol",
+        "ipg",
+        "repeat",
+        "lc",
+        "local_lc",
+        "gc",
+        "local_gc",
+        "strength",
+        "local_strength",
+        "dissimilarity",
+        "indel_complexity",
+        "indel_size",
+        "is_ins",
+        "is_at_ins",
+        "is_at_del",
+        "is_gc_ins",
+        "is_gc_del",
+        "ref_count",
+        "alt_count",
+        "orig_ref_cnt",
+        "orig_alt_cnt",
+        "is_bidirectional",
+        "is_uniq_mapped",
+        "uniq_mapping_rate",
+        "is_near_boundary",
+        "equivalence_exists",
+        "is_multiallelic",
+        "dbsnp",
+        "pop_freq",
+        "is_common",
+        "is_on_db",
+        "is_pathogenic",
+        "cosmic_cnt",
+    ]
+
+    return pd.DataFrame(columns=header)
+

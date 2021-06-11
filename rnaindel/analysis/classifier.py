@@ -1,11 +1,4 @@
 #!/usr/bin/env python3
-"""7th step of analysis
-
-Make prediction for single nucleotide indels (sni) 
-and multi_nucleotide indels (mni) indels
-
-'indel_classifier' is the main routine of this module
-"""
 
 import os
 import gzip
