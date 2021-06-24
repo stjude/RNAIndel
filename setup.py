@@ -14,7 +14,7 @@ setup(
     license="Apache License 2.0",
     install_requires=[
         "pandas >= 0.23.0",
-        "scikit-learn >= 0.22",
+        "scikit-learn == 0.22.0",
         "indelpost >= 0.0.4", 
     ],
     python_requires=">=3.6",
