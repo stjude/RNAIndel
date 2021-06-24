@@ -1,11 +1,10 @@
 import os
 import sys
-import pathlib
 import tempfile
 import argparse
 from functools import partial
 
-from defaultcaller.defaultcaller import callindel
+from rnaindel.defaultcaller.defaultcaller import callindel
 
 from .preprocessor import preprocess
 from .classifier import classify
@@ -97,7 +96,7 @@ def get_args(subcommand):
         help="STAR mapping quality MAPQ for unique mappers (default: 255)",
     )
 
-    if subcommand == "PredictSomaticIndels":
+    if subcommand == "PredictIndels":
         parser.add_argument(
             "-o", "--output-vcf", metavar="FILE", required=True, help="output VCF file"
         )

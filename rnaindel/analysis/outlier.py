@@ -3,7 +3,7 @@ import gzip
 import warnings
 import pandas as pd
 
-warnings.filterwarnings("ignore")
+warnings.simplefilter("ignore")
 import pickle
 
 def outlier_analysis(df, model_dir):

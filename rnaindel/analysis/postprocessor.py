@@ -2,6 +2,7 @@ import os
 import pysam
 from .outlier import outlier_analysis
 
+
 def postprocess(df, data_dir, perform_outlier_analysis):
     path_to_cosmic = "{}/cosmic/CosmicCodingMuts.indel.vcf.gz".format(data_dir)
     path_to_non_somatic = "{}/non_somatic/non_somatic.vcf.gz".format(data_dir)
@@ -12,7 +13,7 @@ def postprocess(df, data_dir, perform_outlier_analysis):
     df["filter"], df["reclassified"], df["predicted_class"] = zip(
         *df.apply(_wrapper, non_somatic_db=non_somatic, cosmic=cosmic, axis=1)
     )
-    
+
     df["is_rescurable_homopolymer"] = df.apply(is_rescurable_homopolymer, axis=1)
 
     if perform_outlier_analysis:
@@ -39,19 +40,17 @@ def is_rescurable_homopolymer(row):
 
     if row["reclassified"] != "-":
         return False
+
+    if row["predicted_class"] == "somatic":
+        return False
     
-    if (
-        row["indel_size"] == 1
-        and row["repeat"] >= 5
-        and row["prob_s"] >= 0.2
-    ):
+    if row["indel_size"] == 1 and row["repeat"] >= 5 and row["prob_s"] >= 0.2:
         vaf = row["alt_count"] / (row["ref_count"] + row["alt_count"])
 
         if (vaf > 0.3 and row["alt_count"] > 7) or vaf > 0.6:
             return True
 
     return False
-
 
 
 def filter_str(row, non_somatic_db, mapping_thresh):
@@ -95,24 +94,9 @@ def filter_by_mappability(row, mapping_thresh):
         return ""
 
 
-
-
 def reclassify_by_knowledge(row, cosmic):
-    #if row["is_common"]:
-    #    return False
-    
-    # high_quality homopolymer with cosmic cnt
-    #cosmic_cnts = row["cosmic_cnt"]
-    #if (
-    #    row["indel_size"] == 1
-    #    and row["repeat"] >= 6
-    #    and row["prob_s"] >= 0.2
-    #    and cosmic_cnts
-    #):
-    #    vaf = row["alt_count"] / (row["ref_count"] + row["alt_count"])
-
-    #    if vaf > 0.3 and row["alt_count"] > 7:
-    #        return True
+    if row["is_common"]:
+        return False
 
     # known pathogenic event with high cosmic count
     cosmic_cnts = row["cosmic_cnt"]
