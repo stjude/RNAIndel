@@ -10,80 +10,87 @@ from .feature_selector import selector
 from .parameter_tuner import tuner
 from .model_updater import updater
 from .result_reporter import reporter
-
+from .homopolyer_trainer import train_homolopolymer
 
 def train():
 
     subcommand = "Train"
     args = get_args(subcommand)
 
-    df = input_validator(args.training_data, args.indel_class)
-
-    # downsampling
-    artifact_ratio, ds_f_beta, ds_precision = downsampler(
-        df,
-        args.k_fold,
-        args.indel_class,
-        args.ds_beta,
-        args.process_num,
-        args.downsample_ratio,
-    )
-
-    # feature_selection
-    selected_features, fs_f_beta, fs_precision = selector(
-        df,
-        args.k_fold,
-        args.indel_class,
-        artifact_ratio,
-        args.fs_beta,
-        args.process_num,
-        args.feature_names,
-    )
-
-    # parameter tuning
-    feature_lst = selected_features.split(";")
-    max_features, pt_f_beta, pt_precision = tuner(
-        df,
-        args.k_fold,
-        args.indel_class,
-        artifact_ratio,
-        feature_lst,
-        args.pt_beta,
-        args.process_num,
-        args.auto_param,
-    )
-
-    # update models
-    
+    indel_class = args.indel_class
     data_dir = args.data_dir.rstrip("/")
-    model_dir = "{}/models".format(data_dir)
-    updater(df, args.indel_class, artifact_ratio, feature_lst, max_features, model_dir)
 
-    # make report
-    reporter(
-        args.indel_class,
-        args.ds_beta,
-        ds_f_beta,
-        ds_precision,
-        artifact_ratio,
-        args.fs_beta,
-        fs_f_beta,
-        fs_precision,
-        selected_features,
-        args.pt_beta,
-        pt_f_beta,
-        pt_precision,
-        max_features,
-        args.log_dir,
-    )
+    df = input_validator(args.training_data, indel_class)
+    
+    if indel_class in ["s", "m"]:
 
-    msg = (
-        "single-nucleotide indels"
-        if args.indel_class == "s"
-        else "multi-nucleotide indels"
-    )
+        # downsampling
+        artifact_ratio, ds_f_beta, ds_precision = downsampler(
+            df,
+            args.k_fold,
+            args.indel_class,
+            args.ds_beta,
+            args.process_num,
+            args.downsample_ratio,
+        )
 
-    print("rnaindel training for " + msg + " completed successfully.", file=sys.stdout)
+        # feature_selection
+        selected_features, fs_f_beta, fs_precision = selector(
+            df,
+            args.k_fold,
+            args.indel_class,
+            artifact_ratio,
+            args.fs_beta,
+            args.process_num,
+            args.feature_names,
+        )
+
+        # parameter tuning
+        feature_lst = selected_features.split(";")
+        max_features, pt_f_beta, pt_precision = tuner(
+            df,
+            args.k_fold,
+            args.indel_class,
+            artifact_ratio,
+            feature_lst,
+            args.pt_beta,
+            args.process_num,
+            args.auto_param,
+        )
+
+        # update models
+        model_dir = "{}/models".format(data_dir)
+        updater(df, args.indel_class, artifact_ratio, feature_lst, max_features, model_dir)
+
+        # make report
+        reporter(
+            args.indel_class,
+            args.ds_beta,
+            ds_f_beta,
+            ds_precision,
+            artifact_ratio,
+            args.fs_beta,
+            fs_f_beta,
+            fs_precision,
+            selected_features,
+            args.pt_beta,
+            pt_f_beta,
+            pt_precision,
+            max_features,
+            args.log_dir,
+        )
+
+        msg = (
+            "single-nucleotide indels"
+            if args.indel_class == "s"
+            else "multi-nucleotide indels"
+        )
+
+        print("rnaindel training for " + msg + " completed successfully.", file=sys.stdout)
+    
+    else:
+        model_dir = "{}/outliers".format(data_dir)
+        train_homolopolymer(df, model_dir)
 
 
 def get_args(subcommand):
@@ -207,9 +214,9 @@ def validate_dir_input(dir_path):
 
 
 def validate_indel_class(val):
-    if val != "s" and val != "m":
+    if val not in ["s", "m", "h"]:
         sys.exit(
-            "Error: indel class must be s for single-nucleotide indels (1-nt) or m for multi-nucleotide indels (>1-nt) indels"
+            "Error: indel class must be s for single-nucleotide indels (1-nt) or m for multi-nucleotide indels (>1-nt) indels or h for homopolyer"
         )
 
     return val

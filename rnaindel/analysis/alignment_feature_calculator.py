@@ -45,6 +45,7 @@ def alignment_features(df, bam, mapq, downsample_threshold=1000):
         df["is_near_boundary"],
         df["equivalence_exists"],
         df["is_multiallelic"],
+        df["cplx_variant"]
     ) = zip(*df.apply(_wrapper, bam=bam, mapq=mapq, downsample_threshold=downsample_threshold, axis=1))
 
     df = df[df["alt_count"] > 1]
@@ -101,6 +102,7 @@ def _wrapper(row, bam, mapq, downsample_threshold):
                 loc_strength,
                 dissim,
                 indel_complexity,
+                cplx_variant,
             ) = sequence_features(variant, valn, contig)
             ref_cnt, alt_cnt, orig_ref_cnt, orig_alt_cnt, is_bidirectional = read_support_features(valn, downsample_threshold)
 
@@ -141,6 +143,7 @@ def _wrapper(row, bam, mapq, downsample_threshold):
         is_near_exon_boundaray,
         equivalent_exists,
         is_multiallelic,
+        cplx_variant,
     )
 
 
@@ -284,6 +287,7 @@ def sequence_features(target_indel, valn, contig):
         loc_strength,
         dissim,
         indel_complexity,
+        cplx_var
     )
 
 

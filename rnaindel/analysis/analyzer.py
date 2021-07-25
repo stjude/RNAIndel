@@ -21,21 +21,23 @@ def analyze(subcommand, version=None):
     fasta = args.reference
     data_dir = args.data_dir.rstrip("/")
     mapq = args.uniq_mapq
-    
-    n_processes = 1 if args.region else args.process_num
+    region = args.region
+    external_vcf = args.vcf_file
+
+    n_processes = 1 if region else args.process_num
 
     with tempfile.TemporaryDirectory() as tmp_dir:
-        callindel(bam, fasta, tmp_dir, args.heap_memory, args.region, n_processes)
+        callindel(bam, fasta, tmp_dir, args.heap_memory, region, n_processes)
 
-        df = preprocess(tmp_dir, fasta, bam, data_dir, mapq, n_processes)
+        df = preprocess(tmp_dir, fasta, bam, data_dir, mapq, n_processes, region, external_vcf)
         if len(df) == 0:
             write_vcf(df, version, args)
             sys.exit(0)
 
     df = classify(df, "{}/models".format(data_dir), n_processes)
 
-    df = postprocess(df, data_dir, args.perform_outlier_analysis)
-   
+    df = postprocess(df, data_dir, args.perform_outlier_analysis, args.pon)
+
     write_vcf(df, version, args)
 
 
@@ -51,6 +53,11 @@ def get_args(subcommand):
         type=validate_file_input,
         help="input tumor RNA-Seq BAM file (must be STAR-mapped).",
     )
+
+    if subcommand == "PredictIndels":
+        parser.add_argument(
+            "-o", "--output-vcf", metavar="FILE", required=True, help="output VCF file"
+        )
 
     parser.add_argument(
         "-r",
@@ -71,11 +78,12 @@ def get_args(subcommand):
     )
 
     parser.add_argument(
-        "-m",
-        "--heap-memory",
-        metavar="STR",
-        default="6000m",
-        help="maximum heap space (default: 6000m)",
+        "-v",
+        "--vcf-file",
+        metavar="FILE",
+        default=None,
+        type=validate_file_input,
+        help="VCF file from external caller. Index file needed.",
     )
 
     parser.add_argument(
@@ -96,11 +104,24 @@ def get_args(subcommand):
         help="STAR mapping quality MAPQ for unique mappers (default: 255)",
     )
 
-    if subcommand == "PredictIndels":
-        parser.add_argument(
-            "-o", "--output-vcf", metavar="FILE", required=True, help="output VCF file"
-        )
+    parser.add_argument(
+        "-m",
+        "--heap-memory",
+        metavar="STR",
+        default="6000m",
+        help="maximum heap space (default: 6000m)",
+    )
 
+    if subcommand == "PredictIndels":
+       
+        parser.add_argument(
+            "--pon",
+            metavar="FILE",
+            default=None,
+            type=validate_file_input,
+            help="User defined panel of normals to refine somatic predictions. Supply as VCF (index needed)",
+        )
+          
         parser.add_argument(
             "--region",
             metavar="STR",
@@ -114,7 +135,9 @@ def get_args(subcommand):
             action="store_false",
             help="skip oulier analysis to rescue somatic homopolyer indels (experimental feature)",
         )
+
         parser.set_defaults(perform_outlier_analysis=True)
+
     else:
         parser.add_argument(
             "-o",
@@ -125,4 +148,3 @@ def get_args(subcommand):
         )
 
     return parser.parse_args(sys.argv[2:])
-

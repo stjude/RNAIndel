@@ -7,10 +7,12 @@ from multiprocessing import Pool
 
 from indelpost import Variant, VariantAlignment
 
+from .callset_formatter import format_callset
 from .coding_indel import annotate_coding_info
 from .transcript_feature_calculator import transcript_features
 from .alignment_feature_calculator import alignment_features
 from .database_feature_calculator import database_features
+
 
 CANONICALS = [str(i) for i in range(1, 23)] + ["X", "Y"]
 
@@ -22,18 +24,18 @@ def preprocess(
     data_dir,
     mapq,
     num_of_processes,
-    from_default_caller=True,
+    region,
+    external_vcf,
 ):
     if num_of_processes == 1:
 
-        callset = os.path.join(tmp_dir, "outfile.txt")
+        callset = format_callset(tmp_dir, external_vcf, region)
         df = calculate_features(
-            callset, fasta_file, bam_file, data_dir, mapq, from_default_caller
+            callset, fasta_file, bam_file, data_dir, mapq, external_vcf
         )
     else:
-        callsets_by_chrom = [
-            os.path.join(tmp_dir, "chr{}.txt".format(chrom)) for chrom in CANONICALS
-        ]
+        callsets_by_chrom = format_callset(tmp_dir, external_vcf, region)
+
         pool = Pool(num_of_processes)
 
         dfs = pool.map(
@@ -43,7 +45,7 @@ def preprocess(
                 bam_file=bam_file,
                 data_dir=data_dir,
                 mapq=mapq,
-                from_default_caller=from_default_caller,
+                external_vcf=external_vcf,
             ),
             callsets_by_chrom,
         )
@@ -54,7 +56,7 @@ def preprocess(
 
 
 def calculate_features(
-    callset, fasta_file, bam_file, data_dir, mapq, from_default_caller
+    callset, fasta_file, bam_file, data_dir, mapq, external_vcf
 ):
 
     path_to_coding_gene_db = "{}/refgene/refCodingExon.bed.gz".format(data_dir)
@@ -64,7 +66,7 @@ def calculate_features(
     path_to_cosmic = "{}/cosmic/CosmicCodingMuts.indel.vcf.gz".format(data_dir)
 
     df = filter_non_coding_indels(
-        callset, fasta_file, path_to_coding_gene_db, from_default_caller
+        callset, fasta_file, path_to_coding_gene_db, external_vcf
     )
 
     if len(df) > 0:
@@ -78,33 +80,55 @@ def calculate_features(
 
 
 def filter_non_coding_indels(
-    callset, fasta_file, path_to_coding_gene_db, from_default_caller
+    callset, fasta_file, path_to_coding_gene_db, external_vcf
 ):
+    
     reference = pysam.FastaFile(fasta_file)
     coding_gene_db = pysam.TabixFile(path_to_coding_gene_db)
 
     coding_indels = []
-    if from_default_caller:
-
-        # check if chromosome name is "chr"-prefixed
-        is_prefixed = reference.references[0].startswith("chr")
-
-        f = open(callset)
+    is_prefixed = reference.references[0].startswith("chr")
+    with open(callset) as f:
         records = csv.DictReader(f, delimiter="\t")
         for record in records:
-            indel = bambino2variant(record, reference, is_prefixed)
-            update_coding_indels(coding_indels, indel, coding_gene_db)
-        f.close()
+            indel, origin = bambino2variant(record, reference, is_prefixed)
+            update_coding_indels(coding_indels, indel, origin, coding_gene_db)
+    
+    if coding_indels: 
+        df = pd.DataFrame(coding_indels)
+    
+        if external_vcf:
+            dfg = df.groupby(["chrom", "pos", "ref", "alt"])
+            df = dfg.apply(summarize_caller_origin)
 
-    return pd.DataFrame(coding_indels)
+        df = df.drop_duplicates(subset=["chrom", "pos", "ref", "alt", "origin"])
+        return df
+    else:
+        header = ["empty"]
+        return pd.DataFrame(columns=header)
 
 
-def update_coding_indels(coding_indels, indel, coding_gene_db):
-    if indel:
-        coding_annotations = annotate_coding_info(indel, coding_gene_db)
-        if coding_annotations:
-            d = {"indel": indel, "coding_indel_isoforms": coding_annotations}
-            coding_indels.append(d)
+def update_coding_indels(coding_indels, indel, origin, coding_gene_db):
+    #if indel:
+    #    coding_annotations = annotate_coding_info(indel, coding_gene_db)
+    #    if coding_annotations:
+    #        d = {"indel": indel, "coding_indel_isoforms": coding_annotations}
+    #        coding_indels.append(d)
+
+    coding_annotations = annotate_coding_info(indel, coding_gene_db)
+    if coding_annotations:
+        d = {"indel": indel, "chrom": indel.chrom, "pos": indel.pos, "ref": indel.ref, "alt": indel.alt, "coding_indel_isoforms": coding_annotations, "origin": origin}
+        coding_indels.append(d)
+
+
+def summarize_caller_origin(df_groupedby_indel):
+    origins = set(df_groupedby_indel["origin"].to_list())
+    
+    if len(origins) > 1:
+        df_groupedby_indel["origin"] = "both"
+    
+    return df_groupedby_indel
+    
 
 
 def bambino2variant(record, reference, is_prefixed):
@@ -120,20 +144,25 @@ def bambino2variant(record, reference, is_prefixed):
     alt = record["Alternative_Allele"]
     var_type = record["Type"]
 
-    if var_type == "SNP":
-        return None
+    #if var_type == "SNP":
+    #    return None
 
-    pos -= 1
-    padding_base = reference.fetch(chrom, pos - 1, pos)
+    #pos -= 1
+    #padding_base = reference.fetch(chrom, pos - 1, pos)
 
-    if var_type == "deletion":
-        alt = padding_base
-        ref = alt + ref
-    else:
-        ref = padding_base
-        alt = ref + alt
+    origin = "external"
+    if var_type in ["deletion", "insertion"]:
+        origin = "built_in"
+        pos -= 1
+        padding_base = reference.fetch(chrom, pos - 1, pos)
+        if var_type == "deletion":
+            alt = padding_base
+            ref = alt + ref
+        else:
+            ref = padding_base
+            alt = ref + alt
 
-    return Variant(chrom, pos, ref, alt, reference).normalize()
+    return Variant(chrom, pos, ref, alt, reference).normalize(), origin
 
 
 def instantiate_vcf_record(chrom, pos, ref, alt, reference, allele_len_thresh=100):
@@ -172,6 +201,7 @@ def is_canonical_indel(record):
 def make_empty_df():
     header = [
         "indel",
+        "origin",
         "chrom",
         "pos",
         "ref",
@@ -211,6 +241,7 @@ def make_empty_df():
         "is_near_boundary",
         "equivalence_exists",
         "is_multiallelic",
+        "cplx_variant",
         "dbsnp",
         "pop_freq",
         "is_common",

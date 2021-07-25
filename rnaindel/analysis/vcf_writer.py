@@ -88,7 +88,7 @@ def filter_fields():
 
 def info_fields():
     h = [
-        '##INFO=<ID=predicted_class,Number=1,Type=String,Description="Either of somatic, germline, artifact.">',
+        '##INFO=<ID=predicted_class,Number=1,Type=String,Description="Either of somatic, germline, or, artifact.">',
         '##INFO=<ID=probabilities,Number=3,Type=Float,Description="Probabality of being somatic, germline, artifact in this order.">',
         '##INFO=<ID=annotation,Number=.,Type=String,Description="Indel annotation formatted as GeneSymbol|RefSeqAccession|CodonPos|VariantEffect. Delimited by comma for multiple isoforms.">',
         '##INFO=<ID=cosmic_cnt,Number=1,Type=Integer,Description="COSMIC count found in COSMICv89.">',
@@ -105,10 +105,10 @@ def info_fields():
         '##INFO=<ID=indel_complexity,Number=1,Type=Integer,Description="Mismatches in cis configuration to indel.">',
         '##INFO=<ID=indel_size,Number=1,Type=Integer,Description="Length of the indel sequence.">',
         '##INFO=<ID=INS,Number=0,Type=Flag,Description="This indel is an insertion.">',
-        '##INFO=<ID=AT_INS,Number=0,Type=Flag,Description="This indel is an "A" or "T" single-insertion.">',
-        '##INFO=<ID=AT_DEL,Number=0,Type=Flag,Description="This indel is an "A" or "T" single-deletion.">',
-        '##INFO=<ID=GC_INS,Number=0,Type=Flag,Description="This indel is an "G" or "C" single-insertion.">',
-        '##INFO=<ID=GC_DEL,Number=0,Type=Flag,Description="This indel is an "G" or "C" single-deletion.">',
+        '##INFO=<ID=AT_INS,Number=0,Type=Flag,Description="This indel is an  A/T single-insertion.">',
+        '##INFO=<ID=AT_DEL,Number=0,Type=Flag,Description="This indel is an  A/T single-deletion.">',
+        '##INFO=<ID=GC_INS,Number=0,Type=Flag,Description="This indel is an  G/C single-insertion.">',
+        '##INFO=<ID=GC_DEL,Number=0,Type=Flag,Description="This indel is an  G/C single-deletion.">',
         '##INFO=<ID=ref_count,Number=1,Type=Integer,Description="Read-fragments representing the reference allele.">',
         '##INFO=<ID=alt_count,Number=1,Type=Integer,Description="Read-fragments representing the indel allele.">',
         '##INFO=<ID=BIDIRECTIONAL,Number=0,Type=Flag,Description="This indel is supported by both forward and reverse reads.">',
@@ -127,6 +127,7 @@ def info_fields():
         '##INFO=<ID=GERMLINE_DB,Number=0,Type=Flag,Description="This indel is in the (default or user-provided) germline database.">',
         '##INFO=<ID=RECLASSIFIED,Number=0,Type=Flag,Description="This indel is reclassified from the initial prediction.">',
         '##INFO=<ID=OUTLYING,Number=0,Type=Flag,Description="This homopolymer indel is outlying from artifact homoplymer indels of the same kind.">',
+        '##INFO=<ID=CALLER,Number=1,Type=String,Description="This indel is called by built_in, external, or, both.">',
     ]
 
     return h
@@ -159,10 +160,10 @@ def get_sample_name(bam):
 
 def parse_row_to_vcf_record(row):
     chrom = str(row["chrom"])
-    pos = str(row["pos"])
+    pos = str(row["cpos"])
     snpid = row["dbsnp"]
-    ref = row["ref"]
-    alt = row["alt"]
+    ref = row["cref"]
+    alt = row["calt"]
     qual = "."
     fltr = row["filter"]
     info_str = generate_info_str(row)
@@ -173,7 +174,7 @@ def parse_row_to_vcf_record(row):
 
 
 def generate_info_str(row):
-    info_str = "predicted_class={};probabilities={},{},{};annotation={};cosmic_count={};".format(
+    info_str = "predicted_class={};probabilities={},{},{};annotation={};cosmic_cnt={};".format(
         row["predicted_class"],
         row["prob_s"],
         row["prob_g"],
@@ -206,7 +207,9 @@ def generate_info_str(row):
     info_str = extend_flag_str(info_str, "GC_INS", row["is_gc_ins"])
     info_str = extend_flag_str(info_str, "GC_DEL", row["is_gc_del"])
 
-    info_str += "ref_count={};alt_count={};".format(int(row["ref_count"]), int(row["alt_count"]))
+    info_str += "ref_count={};alt_count={};".format(
+        int(row["ref_count"]), int(row["alt_count"])
+    )
 
     info_str = extend_flag_str(info_str, "BIDIRECTIONAL", row["is_bidirectional"])
     info_str = extend_flag_str(info_str, "UNIQ_MAPPED", row["is_uniq_mapped"])
@@ -231,10 +234,12 @@ def generate_info_str(row):
     info_str = extend_flag_str(info_str, "GERMLINE_DB", row["is_on_db"])
 
     if row["reclassified"] != "-":
-        info_str += "RECLASSIFIED"
+        info_str += "RECLASSIFIED;"
 
         if "outlier" in row["reclassified"]:
-            info_str += ";OUTLYING"
+            info_str += "OUTLYING;"
+
+    info_str += "CALLER={};".format(row["origin"])
 
     return info_str.rstrip(";")
 
