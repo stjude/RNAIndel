@@ -1,6 +1,3 @@
-# Data directory
-data_dir*
-fasta
 
 # Byte-compiled / optimized / DLL files
 data_dir
