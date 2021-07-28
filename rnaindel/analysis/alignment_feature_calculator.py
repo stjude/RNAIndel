@@ -84,7 +84,8 @@ def _wrapper(row, bam, mapq, downsample_threshold):
         is_near_exon_boundaray,
         equivalent_exists,
         is_multiallelic,
-    ) = (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
+        cplx_variant
+    ) = (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, variant)
 
     res = make_indel_alignment(variant, bam, downsample_threshold)
     if res:

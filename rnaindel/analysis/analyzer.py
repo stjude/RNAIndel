@@ -29,7 +29,9 @@ def analyze(subcommand, version=None):
     with tempfile.TemporaryDirectory() as tmp_dir:
         callindel(bam, fasta, tmp_dir, args.heap_memory, region, n_processes)
 
-        df = preprocess(tmp_dir, fasta, bam, data_dir, mapq, n_processes, region, external_vcf)
+        df = preprocess(
+            tmp_dir, fasta, bam, data_dir, mapq, n_processes, region, external_vcf, args.pass_only
+        )
         if len(df) == 0:
             write_vcf(df, version, args)
             sys.exit(0)
@@ -113,7 +115,7 @@ def get_args(subcommand):
     )
 
     if subcommand == "PredictIndels":
-       
+
         parser.add_argument(
             "--pon",
             metavar="FILE",
@@ -121,13 +123,22 @@ def get_args(subcommand):
             type=validate_file_input,
             help="User defined panel of normals to refine somatic predictions. Supply as VCF (index needed)",
         )
-          
+
         parser.add_argument(
             "--region",
             metavar="STR",
             default=None,
             help="specify region for target analysis: chrN:start-stop (default: None)",
         )
+
+        parser.add_argument(
+            "--include-all-external-calls",
+            dest="pass_only",
+            action="store_false",
+            help="use all calls in external VCF (at default, use calls with PASS in FILTER)",
+        )
+
+        parser.set_defaults(pass_only=True)
 
         parser.add_argument(
             "--skip-homopolyer-outlier-analysis",

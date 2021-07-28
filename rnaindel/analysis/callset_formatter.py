@@ -5,16 +5,20 @@ import pandas as pd
 CANONICALS = [str(i) for i in range(1, 23)] + ["X", "Y"]
 
 
-def format_callset(tmp_dir, external_vcf, region):
+def format_callset(tmp_dir, external_vcf, pass_only, region):
     allchroms = get_outfile(tmp_dir)
     if allchroms:
-        append_external_indels(allchroms, external_vcf, which_chrom=0, region=region)
+        append_external_indels(
+            allchroms, external_vcf, pass_only, which_chrom=0, region=region
+        )
         return allchroms
 
     by_chroms = get_chrom_files(tmp_dir)
     available_chroms = []
     for each_chrom in by_chroms:
-        append_external_indels(each_chrom[0], external_vcf, which_chrom=each_chrom[1])
+        append_external_indels(
+            each_chrom[0], external_vcf, pass_only, which_chrom=each_chrom[1]
+        )
         available_chroms.append(each_chrom[0])
 
     return available_chroms
@@ -35,7 +39,7 @@ def get_chrom_files(tmp_dir):
     )
 
 
-def append_external_indels(filepath, external_vcf, which_chrom, region=None):
+def append_external_indels(filepath, external_vcf, pass_only, which_chrom, region=None):
 
     if os.stat(filepath).st_size == 0:
         df1 = supply_empty_df()
@@ -75,7 +79,7 @@ def append_external_indels(filepath, external_vcf, which_chrom, region=None):
 
         data_lst = []
         for record in records:
-            update_data(data_lst, record)
+            update_data(data_lst, record, pass_only)
 
         if data_lst:
             df2 = pd.DataFrame(data_lst)
@@ -95,7 +99,10 @@ def is_chr_prefixed_vcf(external_vcf):
     return list(external_vcf.header.contigs)[0].startswith("chr")
 
 
-def update_data(data_lst, record, max_indel_len=50):
+def update_data(data_lst, record, pass_only, max_indel_len=50):
+    if pass_only and str(record.filter) != "PASS":
+        return None
+
     d = {}
     d["Chr"] = "chr" + record.chrom.replace("chr", "")
     d["Pos"] = record.pos

@@ -11,10 +11,6 @@ def transcript_features(df, proteindb):
     domain_dict = make_conserved_domain_dict(proteindb)
 
     (
-        df["chrom"],
-        df["pos"],
-        df["ref"],
-        df["alt"],
         df["annotation"],
         df["cds_length"],
         df["indel_location"],
@@ -38,8 +34,6 @@ def _wrapper(row, domain_dict):
 
     coding_indel_isoforms = row["coding_indel_isoforms"]
 
-    idl = row["indel"]
-    chrom, pos, ref, alt = idl.chrom, idl.pos, idl.ref, idl.alt
     annotations = get_annot_str(coding_indel_isoforms)
     cds_length = get_median_cds_length(coding_indel_isoforms)
     indel_location = get_median_indel_location(coding_indel_isoforms)
@@ -53,10 +47,6 @@ def _wrapper(row, domain_dict):
     gene_symbol = get_gene_symbol(coding_indel_isoforms)
 
     return (
-        chrom,
-        pos,
-        ref,
-        alt,
         annotations,
         cds_length,
         indel_location,

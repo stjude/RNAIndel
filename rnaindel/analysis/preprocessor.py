@@ -26,15 +26,16 @@ def preprocess(
     num_of_processes,
     region,
     external_vcf,
+    pass_only
 ):
     if num_of_processes == 1:
 
-        callset = format_callset(tmp_dir, external_vcf, region)
+        callset = format_callset(tmp_dir, external_vcf, pass_only, region)
         df = calculate_features(
             callset, fasta_file, bam_file, data_dir, mapq, external_vcf
         )
     else:
-        callsets_by_chrom = format_callset(tmp_dir, external_vcf, region)
+        callsets_by_chrom = format_callset(tmp_dir, external_vcf, pass_only, region)
 
         pool = Pool(num_of_processes)
 
@@ -109,11 +110,6 @@ def filter_non_coding_indels(
 
 
 def update_coding_indels(coding_indels, indel, origin, coding_gene_db):
-    #if indel:
-    #    coding_annotations = annotate_coding_info(indel, coding_gene_db)
-    #    if coding_annotations:
-    #        d = {"indel": indel, "coding_indel_isoforms": coding_annotations}
-    #        coding_indels.append(d)
 
     coding_annotations = annotate_coding_info(indel, coding_gene_db)
     if coding_annotations:
@@ -143,12 +139,6 @@ def bambino2variant(record, reference, is_prefixed):
     ref = record["Chr_Allele"]
     alt = record["Alternative_Allele"]
     var_type = record["Type"]
-
-    #if var_type == "SNP":
-    #    return None
-
-    #pos -= 1
-    #padding_base = reference.fetch(chrom, pos - 1, pos)
 
     origin = "external"
     if var_type in ["deletion", "insertion"]:
