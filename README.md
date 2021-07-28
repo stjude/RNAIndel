@@ -29,12 +29,12 @@ indel realignment may prevent desired behavior (RNAIndel internally realigns ind
 
 #### Standard calling
 ```
-rnaindel PredictIndels -i example.bam -o output.vcf -r reference.fa -d data_dir_grch38 -p 8 (default 1) 
+rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -p 8 (default 1) 
 ```
 
 #### Ensemble calling 
 ```
-rnaindel PredictIndels -i example.bam -o output.vcf -r reference.fa -d data_dir_grch38 -v from_my_caller.vcf.gz -p 8 (default 1)
+rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v mutect2.vcf.gz -p 8 (default 1)
 ```
 
 
