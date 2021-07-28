@@ -23,7 +23,7 @@ rnaindel subcommand [subcommand-specific options]
 #### Input BAM file
 RNAIndel expects [STAR](https://academic.oup.com/bioinformatics/article/29/1/15/272537) 2-pass mapped BAM file with sorted by coordinate 
 and [MarkDuplicates](https://broadinstitute.github.io/picard/command-line-overview.html#MarkDuplicates). Further preprocessing such as 
-indel realignment may prevent desired behavior (RNAIndel internally realigns indels using [indelPost](https://github.com/stjude/indelPost)).
+indel realignment may prevent desired behavior.
 
 #### Standard calling
 This mode uses the built-in caller to analyze simple and complex indels.
