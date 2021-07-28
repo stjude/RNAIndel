@@ -34,7 +34,7 @@ rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -p 8 (de
 
 #### Ensemble calling 
 ```
-rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v mutect2.vcf.gz -p 8 (default 1)
+rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v mutect2.vcf.gz -p 8
 ```
 
 
