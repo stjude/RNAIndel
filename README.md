@@ -10,10 +10,10 @@
 
 ## Usage
 RNAIndel has 4 subcommands:
-* ```PredictIndels``` Analyze RNA-Seq data for indel discovery
-* ```CalculateFeatures``` Calculate features for training
-* ```Train``` Train models with user's dataset
-* ```CountOccurrence``` Annotate over-represented somatic predictions
+* ```PredictIndels``` analyze RNA-Seq data for indel discovery
+* ```CalculateFeatures``` calculate features for training
+* ```Train``` train models with user's dataset
+* ```CountOccurrence``` annotate over-represented somatic predictions
 
 Subcommands are invoked:
 ```
@@ -25,7 +25,7 @@ rnaindel subcommand [subcommand-specific options]
 #### Input BAM file
 RNAIndel expects [STAR](https://academic.oup.com/bioinformatics/article/29/1/15/272537) 2-pass mapped BAM file with sorted by coordinate 
 and [MarkDuplicates](https://broadinstitute.github.io/picard/command-line-overview.html#MarkDuplicates). Further preprocessing such as 
-indel realignment may prevent desired behavior (RNAIndel internally realigns indels to correct allele count).
+indel realignment may prevent desired behavior (RNAIndel internally realigns indels using [indelPost](https://github.com/stjude/indelPost)).
 
 #### Standard calling
 ```
