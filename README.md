@@ -5,7 +5,7 @@
 * faster analysis (typically < 20 min with 8 cores)
 * somatic complex indel calling in RNA-Seq
 * ensemble calling with your own caller (e.g., MuTect2)  
- 
+* improved sensitivity for homopolymer indels 
 
 
 ## Usage
@@ -28,14 +28,17 @@ and [MarkDuplicates](https://broadinstitute.github.io/picard/command-line-overvi
 indel realignment may prevent desired behavior (RNAIndel internally realigns indels using [indelPost](https://github.com/stjude/indelPost)).
 
 #### Standard calling
+This mode uses the built-in caller to analyze simple and complex indels.
 ```
 rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -p 8 (default 1) 
 ```
 
 #### Ensemble calling 
+Indels in the exernal VCF (supplied by -v) are integrated to the callset by the built-in caller to boost performance.  
 ```
 rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v mutect2.vcf.gz -p 8
 ```
+#### Walkthrough 
 
 
 This version needs [indelPost](https://github.com/stjude/indelPost).
