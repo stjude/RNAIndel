@@ -2,10 +2,40 @@
 
 [RNAIndel](https://doi.org/10.1093/bioinformatics/btz753) calls coding indels from tumor RNA-Seq data and predicts them as somatic, germline, and artifactual. Key features of version 3 include:
 
-* faster analysis (typically < 20 min)
+* faster analysis (typically < 20 min with 8 cores)
 * somatic complex indel calling in RNA-Seq
 * ensemble calling with your own caller (e.g., MuTect2)  
  
+
+
+## Usage
+RNAIndel has 4 subcommands:
+* ```PredictIndels``` Analyze RNA-Seq data for indel discovery
+* ```CalculateFeatures``` Calculate features for training
+* ```Train``` Train models with user's dataset
+* ```CountOccurrence``` Annotate over-represented somatic predictions
+
+Subcommands are invoked:
+```
+rnaindel subcommand [subcommand-specific options]
+```
+
+### Discover somatic indels
+
+#### Input BAM file
+RNAIndel expects [STAR](https://academic.oup.com/bioinformatics/article/29/1/15/272537) 2-pass mapped BAM file with sorted by coordinate 
+and [MarkDuplicates](https://broadinstitute.github.io/picard/command-line-overview.html#MarkDuplicates). Further preprocessing such as 
+indel realignment may prevent desired behavior (RNAIndel internally realigns indels to correct allele count).
+
+#### Standard calling
+```
+rnaindel PredictIndels -i example.bam -o output.vcf -r reference.fa -d data_dir_grch38 -p 8 (default 1) 
+```
+
+#### Ensemble calling 
+```
+rnaindel PredictIndels -i example.bam -o output.vcf -r reference.fa -d data_dir_grch38 -v from_my_caller.vcf.gz -p 8 (default 1)
+```
 
 
 This version needs [indelPost](https://github.com/stjude/indelPost).
