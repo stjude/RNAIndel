@@ -1,7 +1,6 @@
 # RNAIndel
 
-[RNAIndel](https://doi.org/10.1093/bioinformatics/btz753) calls coding indels from tumor RNA-Seq data and  
-predicts them as somatic, germline, and artifactual. Key features of version 3 include:
+[RNAIndel](https://doi.org/10.1093/bioinformatics/btz753) calls coding indels from tumor RNA-Seq data and predicts them as somatic, germline, and artifactual. Key features of version 3 include:
 
 * faster analysis (typically < 20 min)
 * somatic complex indel calling in RNA-Seq
