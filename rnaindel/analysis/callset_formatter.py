@@ -100,8 +100,15 @@ def is_chr_prefixed_vcf(external_vcf):
 
 
 def update_data(data_lst, record, pass_only, max_indel_len=50):
-    if pass_only and str(record.filter) != "PASS":
-        return None
+ 
+    if pass_only:
+        try:
+            if record.filter.__getitem__("PASS").record:
+                pass
+        except:
+            return None
+    else:
+        pass
 
     d = {}
     d["Chr"] = "chr" + record.chrom.replace("chr", "")
