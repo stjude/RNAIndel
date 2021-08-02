@@ -40,7 +40,22 @@ Indels in the exernal VCF (supplied by -v) are integrated to the callset by the 
 ```
 rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v gatk.vcf.gz -p 8
 ```
-#### Walkthrough 
+#### Options
+* ```-i``` input [STAR](https://academic.oup.com/bioinformatics/article/29/1/15/272537)-mapped BAM file (required)
+* ```-o``` output VCF file (required)
+* ```-r``` reference genome FASTA file (required)
+* ```-d``` [data directory](#setup) contains trained models and databases (required)
+* ```-v``` VCF file from user's caller (default: None)
+* ```-p``` number of cores (default: 1)
+* <details>
+    <summary>other options (click to open)</summary><p>
+        
+    * ```-q``` STAR mapping quality MAPQ for unique mappers (default: 255)
+    * ```-m``` maximum heap space (default: 6000m)
+    * ```--region``` target genomic region. specify by chrN:start-stop (default: None)
+    * ```--exclude-softclipped-alignments``` softclipped indels will not be used for analysis if added (default: False)
+
+</p></details>
 
 
 This version needs [indelPost](https://github.com/stjude/indelPost).

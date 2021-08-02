@@ -21,5 +21,5 @@ rnaindel PredictIndels -i ./sampledataset/sample.bam \ # do not use sample.gatk.
                        -v ./sampledataset/sample.gatk.vcf.gz \
 ```
 
-The output VCF reports the expressed coding indels called from the 2 callers. Each indel is annoated in INFO field for prdicted class (somatic, germline, artifact) and by which caller is detected (built-in, external, both). Also, 
+The output VCF reports the expressed coding indels called from the 2 methods. Each indel is annoated in INFO field for prdicted class (somatic, germline, artifact) and by which caller is detected (built-in, external, both). Also, 
 
