@@ -10,6 +10,9 @@ New implementation with [indelpost](https://github.com/stjude/indelPost), an ind
 * ensemble calling with your own caller (e.g., GATK HaplotypeCaller/MuTect2)  
 * improved sensitivity for homopolymer indels by error-profile outlier analysis  
 
+## Quick Start
+aaa
+
 ## Usage
 RNAIndel has 4 subcommands:
 * ```PredictIndels``` analyze RNA-Seq data for indel discovery
@@ -36,7 +39,8 @@ rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -p 8 (de
 ```
 
 #### Ensemble calling 
-Indels in the exernal VCF (supplied by -v) are integrated to the callset by the built-in caller to boost performance. See [demo](./docs/walkthrough/README.md)
+Indels in the exernal VCF (supplied by -v) are integrated to the callset by the built-in caller to boost performance.<br> 
+See [demo](./docs/walkthrough/README.md)
 ```
 rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v gatk.vcf.gz -p 8
 ```
@@ -59,6 +63,12 @@ rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v gatk.
 
 </p></details>
 
+### Train RNAIndel
+
+### Annotate over-represented putative somatic indels
+
+## Citation
+aaa
 
 This version needs [indelPost](https://github.com/stjude/indelPost).
 Please install this first.
