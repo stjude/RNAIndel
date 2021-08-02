@@ -8,7 +8,7 @@ New implementation with [indelpost](https://github.com/stjude/indelPost), an ind
 * faster analysis (typically < 20 min with 8 cores)
 * somatic complex indel calling in RNA-Seq
 * ensemble calling with your own caller (e.g., GATK HaplotypeCaller/MuTect2)  
-* improved sensitivity for homopolymer indels  
+* improved sensitivity for homopolymer indels by error-profile outlier analysis  
 
 ## Usage
 RNAIndel has 4 subcommands:
@@ -36,7 +36,7 @@ rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -p 8 (de
 ```
 
 #### Ensemble calling 
-Indels in the exernal VCF (supplied by -v) are integrated to the callset by the built-in caller to boost performance.  
+Indels in the exernal VCF (supplied by -v) are integrated to the callset by the built-in caller to boost performance. See [demo](./docs/walkthrough/README.md)
 ```
 rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v gatk.vcf.gz -p 8
 ```
@@ -53,7 +53,9 @@ rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v gatk.
     * ```-q``` STAR mapping quality MAPQ for unique mappers (default: 255)
     * ```-m``` maximum heap space (default: 6000m)
     * ```--region``` target genomic region. specify by chrN:start-stop (default: None)
-    * ```--exclude-softclipped-alignments``` softclipped indels will not be used for analysis if added (default: False)
+    * ```--pon``` user's defined list of non-somatic calls such as PanelOfNormals. Supply as .vcf.gz with index (default: None)
+    * ```--include-all-external-calls``` set to include all indels in VCF file supplied by -v. (default: False. Use only calls with PASS in FILTER) 
+    * ```--skip-homopolyer-outlier-analysis``` no outlier analysis for homopolymer indels (repeat > 4) performed if set. (default: False)  
 
 </p></details>
 

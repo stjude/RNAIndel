@@ -85,7 +85,7 @@ def get_args(subcommand):
         metavar="FILE",
         default=None,
         type=validate_file_input,
-        help="VCF file from external caller. Index file needed.",
+        help="VCF file from external caller. Supply as vcf.gz + index.",
     )
 
     parser.add_argument(
@@ -121,7 +121,7 @@ def get_args(subcommand):
             metavar="FILE",
             default=None,
             type=validate_file_input,
-            help="User defined panel of normals to refine somatic predictions. Supply as VCF (index needed)",
+            help="User defined panel of normals to refine somatic predictions. Supply as vcf.gz + index",
         )
 
         parser.add_argument(
