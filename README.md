@@ -4,9 +4,10 @@
 
 
 ## What's new in Version 3:
+New implementation with [indelpost](https://github.com/stjude/indelPost), an indel realigner/phaser. 
 * faster analysis (typically < 20 min with 8 cores)
 * somatic complex indel calling in RNA-Seq
-* ensemble calling with your own caller (e.g., MuTect2)  
+* ensemble calling with your own caller (e.g., GATK HaplotypeCaller/MuTect2)  
 * improved sensitivity for homopolymer indels  
 
 ## Usage
@@ -37,7 +38,7 @@ rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -p 8 (de
 #### Ensemble calling 
 Indels in the exernal VCF (supplied by -v) are integrated to the callset by the built-in caller to boost performance.  
 ```
-rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v mutect2.vcf.gz -p 8
+rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v gatk.vcf.gz -p 8
 ```
 #### Walkthrough 
 
