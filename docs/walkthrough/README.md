@@ -1,4 +1,4 @@
-## Walking through with sample dataset
+## Analyzing sample dataset
 Using reads around the *PTEN* tumor suppresor gene locus (chr10:87,863,113-87,971,930 on GRCh38), the sample dataset was prepared by [GATK Best Practice for RNA-Seq](https://gatk.broadinstitute.org/hc/en-us/articles/360035531192-RNAseq-short-variant-discovery-SNPs-Indels-). The dataset contains the BAM and VCF files (not FASTQ)<br>
 
 
@@ -23,10 +23,11 @@ rnaindel PredictIndels -i ./sampledataset/sample.bam \ # do not use sample.gatk.
                        -v ./sampledataset/sample.gatk.vcf.gz \
 ```
 
-The output VCF reports the expressed coding indels called from the 2 methods. Each indel is annoated in INFO field for prdicted class (somatic, germline, artifact) and by which caller it was detected (built-in, external, both). In this example, indels predicted as somatic are:
+The output [VCF](test.vcf) reports the expressed coding indels called from the 2 methods. Each indel is annoated in INFO field for prdicted class (somatic, germline, artifact) and by which caller it was detected (built-in, external, both). In this example, indels predicted as somatic are:
 ```
-chr10   87957917    AC   GGCCCATGG  CALLER=both
-chr10   87957955    C    CCTGGGTT   CALLER=both
+CHROM   POS         REF  ALT        INFO
+chr10   87957917    AC   GGCCCATGG  predicted_class=somatic;...;CALLER=both
+chr10   87957955    C    CCTGGGTT   predicted_class=somatic;...;CALLER=both
 ```
 These *PTEN* indels are called by the built-in and GATK HaplotypeCaller. The first indel is reported as a complex indel AC>GGCCCATGG. 
 
