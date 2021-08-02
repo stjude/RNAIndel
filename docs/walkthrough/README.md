@@ -2,7 +2,7 @@
 The sample RNA-Seq dataset was prepared using reads around the *PTEN* tumor suppresor gene locus (chr10:87,863,113-87,971,930 on GRCh38). As shown below, variants were called by [GATK Best Practice for RNA-Seq](https://gatk.broadinstitute.org/hc/en-us/articles/360035531192-RNAseq-short-variant-discovery-SNPs-Indels-).<br>
 
 
-![alt text](files.jpg?raw=true)
+![Screenshot](files.jpg)
 
 
 
