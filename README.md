@@ -45,7 +45,7 @@ rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v gatk.
 * ```-o``` output VCF file (required)
 * ```-r``` reference genome FASTA file (required)
 * ```-d``` [data directory](#setup) contains trained models and databases (required)
-* ```-v``` VCF file from user's caller (default: None)
+* ```-v``` VCF file (must be .vcf.gz + index) from user's caller. (default: None)
 * ```-p``` number of cores (default: 1)
 * <details>
     <summary>other options (click to open)</summary><p>
