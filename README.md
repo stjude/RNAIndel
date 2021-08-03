@@ -11,7 +11,34 @@ New implementation with [indelpost](https://github.com/stjude/indelPost), an ind
 * improved sensitivity for homopolymer indels by error-profile outlier analysis  
 
 ## Quick Start
-aaa
+### PyPI
+RNAIndel depends on [python>=3.6.0](https://www.python.org/downloads/) and [java>=1.8.0](https://www.java.com/en/download/).<br> 
+Installing via the pip command will install the following packages:
+* [indelpost>=0.0.4](https://github.com/stjude/indelPost)
+* [pandas>=0.23.0](https://pandas.pydata.org/)
+* [scikit-learn>=0.22.0](http://scikit-learn.org/stable/install.html#)
+
+```
+> pip install rnaindel
+```
+
+Test the installation.
+```
+> rnaindel -h
+usage: rnaindel <subcommand> [<args>]
+
+subcommands are:
+    PredictIndels             Predict somatic/germline/artifact indels from tumor RNA-Seq data
+    CalculateFeatures         Calculate and report features for training
+    Train                     Perform model training
+    CountOccurrence           Count occurrence within cohort to filter false somatic predictions
+positional arguments:
+  subcommand  PredictIndels, CalculateFeatures, Train, CountOccurrence
+
+optional arguments:
+  -h, --help  show this help message and exit
+  --version   show program's version number and exit
+```
 
 ## Usage
 RNAIndel has 4 subcommands:
@@ -22,7 +49,7 @@ RNAIndel has 4 subcommands:
 
 Subcommands are invoked:
 ```
-rnaindel subcommand [subcommand-specific options]
+> rnaindel subcommand [subcommand-specific options]
 ```
 
 ### Discover somatic indels
@@ -35,14 +62,14 @@ indel realignment may prevent desired behavior.
 #### Standard calling
 This mode uses the built-in caller to analyze simple and complex indels.
 ```
-rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -p 8 (default 1) 
+> rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -p 8 (default 1) 
 ```
 
 #### Ensemble calling 
 Indels in the exernal VCF (supplied by -v) are integrated to the callset by the built-in caller to boost performance.<br> 
 See [demo](./docs/walkthrough/README.md)
 ```
-rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v gatk.vcf.gz -p 8
+> rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v gatk.vcf.gz -p 8
 ```
 #### Options
 * ```-i``` input [STAR](https://academic.oup.com/bioinformatics/article/29/1/15/272537)-mapped BAM file (required)
