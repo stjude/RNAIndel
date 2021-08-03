@@ -112,7 +112,7 @@ def get_args(subcommand):
         metavar="STR",
         required=True,
         type=validate_indel_class,
-        help="indel class to be trained: s for single-nucleotide indel or m for multi-nucleotide indels",
+        help="indel class to be trained: s for single-nucleotide indels, m for multi-nucleotide indels, h for homopolymer indels",
     )
 
     parser.add_argument(

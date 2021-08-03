@@ -15,6 +15,10 @@ New implementation with [indelpost](https://github.com/stjude/indelPost), an ind
 RNAIndel depends on [python>=3.6.0](https://www.python.org/downloads/) and [java>=1.8.0](https://www.java.com/en/download/).<br> 
 Installing via the pip command will install the following packages:
 * [indelpost>=0.0.4](https://github.com/stjude/indelPost)
+* [pysam>=0.15.0](https://github.com/pysam-developers)
+* [cython>=0.29.12](https://cython.org/)
+* [numpy>=1.16.0](https://numpy.org/)
+* [ssw-py==0.2.6](https://github.com/Wyss/ssw-py)
 * [pandas>=0.23.0](https://pandas.pydata.org/)
 * [scikit-learn>=0.22.0](http://scikit-learn.org/stable/install.html#)
 
@@ -98,7 +102,12 @@ See [demo](./docs/walkthrough/README.md)
 </p></details>
 
 ### Train RNAIndel
+Users can [train](./docs/training) RNAIndel with their own training set. 
 
 ### Annotate over-represented putative somatic indels
+Check [occurrence](./docs/filtering) to filter probable false positives.
 
 ## Citation
+Published in [Bioinformatics](https://doi.org/10.1093/bioinformatics/btz753)
+
+
