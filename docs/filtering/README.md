@@ -1,7 +1,7 @@
-# Indel filtration 
+## Recurrent somatic indels
 Except for a few known hotspots, true somatic indels rarely recurr.   
 
-### Recurrent somatic indels
+### Ocurrence annotation
 When multiple RNAIndel output VCF files are generated from the same cohort, occurrence with in the cohort is annotated in INFO field. 
 
 ```

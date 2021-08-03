@@ -3,7 +3,7 @@
 [RNAIndel](https://doi.org/10.1093/bioinformatics/btz753) calls coding indels from tumor RNA-Seq data and predicts them as somatic, germline, and artifactual. 
 
 
-## What's new in Version 3(Aug.2021)
+## What's new in Version 3
 New implementation with [indelpost](https://github.com/stjude/indelPost), an indel realigner/phaser. 
 * faster analysis (typically < 20 min with 8 cores)
 * somatic complex indel calling in RNA-Seq
@@ -78,7 +78,7 @@ This mode uses the built-in caller to analyze simple and complex indels.
 
 #### Ensemble calling 
 Indels in the exernal VCF (supplied by -v) are integrated to the callset by the built-in caller to boost performance.<br> 
-See [demo](./docs/walkthrough/README.md)
+See [demo](./docs/walkthrough/README.md).
 ```
 > rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v gatk.vcf.gz -p 8
 ```
@@ -109,5 +109,3 @@ Check [occurrence](./docs/filtering) to filter probable false positives.
 
 ## Citation
 Published in [Bioinformatics](https://doi.org/10.1093/bioinformatics/btz753)
-
-

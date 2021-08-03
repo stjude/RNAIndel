@@ -1,8 +1,7 @@
-# Train RNAIndel
-RNAIndel trains the model using your training set.
+## Train RNAIndel
+Train the RNAIndel model using your training set.
 
 ### Step 1 (feature calculation)
-
 Features are calculated for each indel and reported in a tab-delimited file.<br>
 Suppose we have N samples. For i-th sample:
 ```
