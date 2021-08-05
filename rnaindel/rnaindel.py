@@ -55,6 +55,5 @@ subcommands are:
     def CountOccurrence(self):
         oc.count()
 
-
 if __name__ == "__main__":
     sys.exit(main())
