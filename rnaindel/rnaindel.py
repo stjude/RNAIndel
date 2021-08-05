@@ -7,6 +7,7 @@ import rnaindel.occurrence as oc
 
 from .version import __version__
 
+
 def main():
     Commands()
 
@@ -34,20 +35,20 @@ subcommands are:
             action="version",
             version="%(prog)s {version}".format(version=__version__),
         )
-       
+
         args = parser.parse_args(sys.argv[1:2])
-        
+
         if not hasattr(self, args.subcommand):
             sys.exit("Error: invalid subcommand")
 
         getattr(self, args.subcommand)()
-         
+
     def PredictIndels(self):
         ra.analyze("PredictIndels", version=__version__)
 
     def CalculateFeatures(self):
         ra.analyze("CalculateFeatures")
-    
+
     def Train(self):
         tr.train()
 
