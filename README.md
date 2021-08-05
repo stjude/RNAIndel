@@ -6,7 +6,7 @@
 
 ## What's new in Version 3
 New implementation with [indelpost](https://github.com/stjude/indelPost), an indel realigner/phaser. 
-* [faster analysis](#resource usage)(typically < 20 min with 8 cores)
+* [faster analysis](#benchmarking)(typically < 20 min with 8 cores)
 * somatic complex indel calling in RNA-Seq
 * ensemble calling with your own caller (e.g., GATK HaplotypeCaller/MuTect2)  
 * improved sensitivity for homopolymer indels by error-profile outlier analysis  
@@ -107,7 +107,7 @@ See [demo](./docs/walkthrough/README.md).
 
 </p></details>
 
-#### Resource usage
+#### Benchmarking
 Using tumor RNA-Seq samples([SJC-DS-1003](https://platform.stjude.cloud/data/cohorts#), n=77), 
 the time and memory consumption was benchmarked for ensemble calling with 8 cores (i.e., -p 8) 
 on a server with 32-core AMD EPYC 7542 CPU @2.90 GHz.
