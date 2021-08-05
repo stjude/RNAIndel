@@ -30,7 +30,15 @@ def analyze(subcommand, version=None):
         callindel(bam, fasta, tmp_dir, args.heap_memory, region, n_processes)
 
         df = preprocess(
-            tmp_dir, fasta, bam, data_dir, mapq, n_processes, region, external_vcf, args.pass_only
+            tmp_dir,
+            fasta,
+            bam,
+            data_dir,
+            mapq,
+            n_processes,
+            region,
+            external_vcf,
+            args.pass_only,
         )
         if len(df) == 0:
             write_vcf(df, version, args)

@@ -45,8 +45,16 @@ def alignment_features(df, bam, mapq, downsample_threshold=1000):
         df["is_near_boundary"],
         df["equivalence_exists"],
         df["is_multiallelic"],
-        df["cplx_variant"]
-    ) = zip(*df.apply(_wrapper, bam=bam, mapq=mapq, downsample_threshold=downsample_threshold, axis=1))
+        df["cplx_variant"],
+    ) = zip(
+        *df.apply(
+            _wrapper,
+            bam=bam,
+            mapq=mapq,
+            downsample_threshold=downsample_threshold,
+            axis=1,
+        )
+    )
 
     df = df[df["alt_count"] > 1]
 
@@ -84,13 +92,33 @@ def _wrapper(row, bam, mapq, downsample_threshold):
         is_near_exon_boundaray,
         equivalent_exists,
         is_multiallelic,
-        cplx_variant
-    ) = (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, variant)
+        cplx_variant,
+    ) = (
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        variant,
+    )
 
     res = make_indel_alignment(variant, bam, downsample_threshold)
     if res:
         try:
-    #    if res:
             valn, contig = res[0], res[1]
 
             (
@@ -105,7 +133,13 @@ def _wrapper(row, bam, mapq, downsample_threshold):
                 indel_complexity,
                 cplx_variant,
             ) = sequence_features(variant, valn, contig)
-            ref_cnt, alt_cnt, orig_ref_cnt, orig_alt_cnt, is_bidirectional = read_support_features(valn, downsample_threshold)
+            (
+                ref_cnt,
+                alt_cnt,
+                orig_ref_cnt,
+                orig_alt_cnt,
+                is_bidirectional,
+            ) = read_support_features(valn, downsample_threshold)
 
             (
                 is_uniq_mapped,
@@ -116,7 +150,6 @@ def _wrapper(row, bam, mapq, downsample_threshold):
             ) = mapping_features(variant, valn, bam, mapq)
         except:
             pass
-            #print(variant.pos, variant.chrom, variant.ref, variant.alt)
 
     return (
         n_repeats,
@@ -170,9 +203,9 @@ def indel_type_features(variant):
 
 
 def make_indel_alignment(variant, bam, downsample_threshold=1500):
-    
+
     valn = VariantAlignment(variant, bam, downsample_threshold=downsample_threshold)
-    
+
     contig = valn.get_contig()
     if contig:
         return valn, contig
@@ -181,19 +214,28 @@ def make_indel_alignment(variant, bam, downsample_threshold=1500):
 
 
 def read_support_features(valn, downsample_threshold=1500):
-    
+
     orig_ref_cnt, orig_alt_cnt = valn.count_alleles(by_fragment=True)
     cov = orig_ref_cnt + orig_alt_cnt
 
     if cov > downsample_threshold:
-        ref_cnt, alt_cnt = orig_ref_cnt * downsample_threshold / cov, orig_alt_cnt * downsample_threshold / cov 
+        ref_cnt, alt_cnt = (
+            orig_ref_cnt * downsample_threshold / cov,
+            orig_alt_cnt * downsample_threshold / cov,
+        )
     else:
         ref_cnt, alt_cnt = orig_ref_cnt, orig_alt_cnt
 
     alt_fw_rv = valn.count_alleles(fwrv=True)[1]
     is_bidirectional = all(alt_fw_rv)
 
-    return int(ref_cnt), int(alt_cnt), int(orig_ref_cnt), int(orig_alt_cnt), is_bidirectional
+    return (
+        int(ref_cnt),
+        int(alt_cnt),
+        int(orig_ref_cnt),
+        int(orig_alt_cnt),
+        is_bidirectional,
+    )
 
 
 def sequence_features(target_indel, valn, contig):
@@ -230,7 +272,7 @@ def sequence_features(target_indel, valn, contig):
 
     if "N" in rt_local:
         rt_local = rt_ref[:local]
-    
+
     # linguistic complexity
     lt_lc = linguistic_complexity(lt_regional)
     rt_lc = linguistic_complexity(rt_regional)
@@ -263,11 +305,11 @@ def sequence_features(target_indel, valn, contig):
 
     # dissimilarity
     dissim = dissimilarity(lt_seq, indel_seq, rt_seq)
-    
+
     # indel complexity
     cplx_var = valn.phase(how="complex")
     if not cplx_var.is_non_complex_indel():
-        
+
         lt_len = min(len(lt_seq), len(lt_ref), local)
         rt_len = min(len(rt_seq), len(rt_ref), local)
 
@@ -288,7 +330,7 @@ def sequence_features(target_indel, valn, contig):
         loc_strength,
         dissim,
         indel_complexity,
-        cplx_var
+        cplx_var,
     )
 
 
@@ -333,12 +375,11 @@ def mapping_features(target_indel, valn, bam, mapq):
         if most_common([read.mapping_quality for read in target_reads]) == uniq_map
         else 0
     )
-    
+
     # uniq_mapping_rate
     covering_reads = valn.fetch_reads(how="covering")
     n_uniq_reads = sum([read.mapping_quality == uniq_map for read in covering_reads])
     uniq_mapping_rate = n_uniq_reads / (len(covering_reads) + 0.0001)
-
 
     # near exon
     is_near_exon_boundaray = (
@@ -364,7 +405,13 @@ def mapping_features(target_indel, valn, bam, mapq):
     ]
     is_multiallelic = 1 if len(non_target_indels_at_target_pos) > 0 else 0
 
-    return is_uniq_mapped, uniq_mapping_rate, is_near_exon_boundaray, equivalent_exists, is_multiallelic
+    return (
+        is_uniq_mapped,
+        uniq_mapping_rate,
+        is_near_exon_boundaray,
+        equivalent_exists,
+        is_multiallelic,
+    )
 
 
 def get_star_uniq_mapq(bam):

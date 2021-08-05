@@ -100,7 +100,7 @@ def is_chr_prefixed_vcf(external_vcf):
 
 
 def update_data(data_lst, record, pass_only, max_indel_len=50):
- 
+
     if pass_only:
         try:
             if record.filter.__getitem__("PASS").record:

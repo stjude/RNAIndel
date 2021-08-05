@@ -26,7 +26,7 @@ def preprocess(
     num_of_processes,
     region,
     external_vcf,
-    pass_only
+    pass_only,
 ):
     if num_of_processes == 1:
 
@@ -56,10 +56,7 @@ def preprocess(
     return df
 
 
-def calculate_features(
-    callset, fasta_file, bam_file, data_dir, mapq, external_vcf
-):
-
+def calculate_features(callset, fasta_file, bam_file, data_dir, mapq, external_vcf):
     path_to_coding_gene_db = "{}/refgene/refCodingExon.bed.gz".format(data_dir)
     path_to_proteindb = "{}/protein/proteinConservedDomains.txt".format(data_dir)
     path_to_dbsnp = "{}/dbsnp/dbsnp.indel.vcf.gz".format(data_dir)
@@ -73,17 +70,15 @@ def calculate_features(
     if len(df) > 0:
         df = transcript_features(df, path_to_proteindb)
         df = alignment_features(df, bam_file, mapq)
-        
+
         if len(df) > 0:
             return database_features(df, path_to_dbsnp, path_to_clinvar, path_to_cosmic)
 
     return make_empty_df()
 
 
-def filter_non_coding_indels(
-    callset, fasta_file, path_to_coding_gene_db, external_vcf
-):
-    
+def filter_non_coding_indels(callset, fasta_file, path_to_coding_gene_db, external_vcf):
+
     reference = pysam.FastaFile(fasta_file)
     coding_gene_db = pysam.TabixFile(path_to_coding_gene_db)
 
@@ -94,10 +89,10 @@ def filter_non_coding_indels(
         for record in records:
             indel, origin = bambino2variant(record, reference, is_prefixed)
             update_coding_indels(coding_indels, indel, origin, coding_gene_db)
-    
-    if coding_indels: 
+
+    if coding_indels:
         df = pd.DataFrame(coding_indels)
-    
+
         if external_vcf:
             dfg = df.groupby(["chrom", "pos", "ref", "alt"])
             df = dfg.apply(summarize_caller_origin)
@@ -113,24 +108,31 @@ def update_coding_indels(coding_indels, indel, origin, coding_gene_db):
 
     coding_annotations = annotate_coding_info(indel, coding_gene_db)
     if coding_annotations:
-        d = {"indel": indel, "chrom": indel.chrom, "pos": indel.pos, "ref": indel.ref, "alt": indel.alt, "coding_indel_isoforms": coding_annotations, "origin": origin}
+        d = {
+            "indel": indel,
+            "chrom": indel.chrom,
+            "pos": indel.pos,
+            "ref": indel.ref,
+            "alt": indel.alt,
+            "coding_indel_isoforms": coding_annotations,
+            "origin": origin,
+        }
         coding_indels.append(d)
 
 
 def summarize_caller_origin(df_groupedby_indel):
     origins = set(df_groupedby_indel["origin"].to_list())
-    
+
     if len(origins) > 1:
         df_groupedby_indel["origin"] = "both"
-    
+
     return df_groupedby_indel
-    
 
 
 def bambino2variant(record, reference, is_prefixed):
     chrom = record["Chr"].replace("chr", "")
 
-    if not chrom.replace("chr", "") in CANONICALS:
+    if not chrom in CANONICALS:
         return None
 
     chrom = "chr" + chrom if is_prefixed else chrom
@@ -153,39 +155,6 @@ def bambino2variant(record, reference, is_prefixed):
             alt = ref + alt
 
     return Variant(chrom, pos, ref, alt, reference).normalize(), origin
-
-
-def instantiate_vcf_record(chrom, pos, ref, alt, reference, allele_len_thresh=100):
-    if len(ref) == len(alt):
-        return None
-
-    if not chrom.replace("chr", "") in CANONICALS:
-        return None
-
-    if len(ref) > allele_len_thresh or len(alt) > allele_len_thresh:
-        return None
-
-    return Variant(chrom, pos, ref, alt, reference).normalize()
-
-
-def is_canonical_indel(record):
-    is_indel = len(record["REF"]) != len(record["ALT"])
-
-    chrom_name = record["CHROM"].replace("chr", "")
-
-    is_canonical = chrom_name in CANONICALS
-
-    if is_default:
-        var_type = record["Type"]
-        is_indel = (var_type == "insertion") or (var_type == "deletion")
-
-        chrom_name = record["Chr"].replace("chr", "")
-    else:
-        is_indel = len(record["REF"]) != len(record["ALT"])
-
-        chrom_name = record["CHROM"].replace("chr", "")
-
-    is_canonical = chrom_name in CANONICALS
 
 
 def make_empty_df():
@@ -241,4 +210,3 @@ def make_empty_df():
     ]
 
     return pd.DataFrame(columns=header)
-

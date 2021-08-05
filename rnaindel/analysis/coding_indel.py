@@ -27,6 +27,9 @@ def annotate_coding_info(indel, coding_gene_db):
     indel_type_db = 1 if indel_type == "I" else 0  # conversion for coding_gene_db style
     pos = pos + 1  # conversion for bambino style
     margin = 11  # allow a margin of 11bp for splice region
+    
+    chrom = chrom if chrom.startswith("chr") else "chr" + chrom
+    
     try:
         candidate_genes = coding_gene_db.fetch(chrom, pos - margin, pos + margin)
     except:
