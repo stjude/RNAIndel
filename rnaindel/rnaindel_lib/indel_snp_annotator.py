@@ -14,7 +14,7 @@ from .indel_vcf_preprocessor import parse_vcf_line
 from .indel_vcf_preprocessor import count_padding_bases
 
 
-def indel_snp_annotator(df, genome, dbsnp, clinvar, germline_db, chr_prefixed):
+def indel_snp_annotator(df, genome, dbsnp, clinvar, cosmic, germline_db, chr_prefixed):
     """Annotates indels with dbSNP and ClinVar info
 
     Args:
@@ -34,6 +34,7 @@ def indel_snp_annotator(df, genome, dbsnp, clinvar, germline_db, chr_prefixed):
         genome=genome,
         dbsnp=dbsnp,
         clinvar=clinvar,
+        cosmic=cosmic, 
         germline_db=germline_db,
         chr_prefixed=chr_prefixed,
         germline_db_chr_prefixed=germline_db_chr_prefixed,
@@ -47,6 +48,8 @@ def indel_snp_annotator(df, genome, dbsnp, clinvar, germline_db, chr_prefixed):
     # df['with_germline_reports'] = df.apply(lambda x: x['db'].with_germline_reports(), axis=1)
     df["clin_info"] = df.apply(lambda x: x["db"].report_clnvr_info(), axis=1)
     df["is_on_db"] = df.apply(negate_dbsnp_annotation_if_pathogenic, axis=1)
+    
+    df["cosmic_cnt"] = df.apply(lambda x: x["db"].report_cosmic_cnt(), axis=1)
 
     # override dbSNP-membership annotation if user's germline db is provided
     if germline_db:
@@ -60,7 +63,7 @@ def indel_snp_annotator(df, genome, dbsnp, clinvar, germline_db, chr_prefixed):
     return df
 
 
-def database_annotation(row, genome, dbsnp, clinvar, germline_db, chr_prefixed, germline_db_chr_prefixed):
+def database_annotation(row, genome, dbsnp, clinvar, cosmic, germline_db, chr_prefixed, germline_db_chr_prefixed):
     """Check dbSNP and ClinVar membership by equivalence and annotate.
 
     Args:
@@ -94,6 +97,9 @@ def database_annotation(row, genome, dbsnp, clinvar, germline_db, chr_prefixed, 
         chr_prefixed,
         vcf_chr_prefixed=False,
         preset="clinvar",
+    )
+    report = annotate_indel_on_db(
+        idl, report, cosmic, genome, chr_prefixed, vcf_chr_prefixed=False, preset="cosmic"
     )
     if germline_db:
         report = annotate_indel_on_db(
@@ -141,6 +147,9 @@ def annotate_indel_on_db(
                         idl_report.add_clnvr_freq(clnvr_freq(record))
                         # idl_report.add_clnvr_origin(clnvr_origin(record))
                         idl_report.add_clnvr_info(cln_info(record))
+                    elif preset == "cosmic":
+                        cosmic = int(str(record).split("\t")[7].split("CNT=")[1])
+                        idl_report.add_cosmic_cnt(cosmic)
                     else:
                         idl_report.add_germline_id(record[2])
 

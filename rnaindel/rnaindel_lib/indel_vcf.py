@@ -199,6 +199,11 @@ class IndelVcfReport(object):
         anno_lst = ["|".join(anno.split("|")[:-1]) for anno in self.ANNO.split(",")]
         anno = "ANNO=" + ",".join(anno_lst)
 
+        if not self.COSMIC_CNT:
+            cosmic_cnt = "COSMIC_CNT=0"
+        else:
+            cosmic_cnt = "COSMIC_CNT=" + str(int(self.COSMIC_CNT))
+        
         if not self.MAXMAF or self.MAXMAF == -1:
             maxmaf = ""
         else:
@@ -284,12 +289,12 @@ class IndelVcfReport(object):
             gcd = ""
 
         if not self.REFC:
-            refc = ""
+            refc = "REFC=0"
         else:
             refc = "REFC=" + str(int(self.REFC))
 
         if not self.ALTC:
-            altc = ""
+            altc = "ALTC=0"
         else:
             altc = "ALTC=" + str(int(self.ALTC))
         
@@ -365,6 +370,7 @@ class IndelVcfReport(object):
             pred,
             prob,
             anno,
+            cosmic_cnt,
             maxmaf,
             common,
             clin,
@@ -410,6 +416,7 @@ class IndelVcfReport(object):
         self.PRED = INFO["PRED"]
         self.PROB = INFO["PROB"]
         self.ANNO = INFO["ANNO"]
+        self.COSMIC_CNT = INFO["COSMIC_CNT"]
         self.MAXMAF = INFO["MAXMAF"]
         self.COMMON = INFO["COMMON"]
         self.CLIN = INFO["CLIN"]

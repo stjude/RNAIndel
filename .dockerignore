@@ -1,0 +1,11 @@
+.git/
+docs/
+sample_data/
+.github/
+README.md
+Dockerfile
+.gitignore
+gh-pages 
+gh-pages.pub
+mkdocs.yml
+rabix/

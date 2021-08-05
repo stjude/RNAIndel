@@ -199,6 +199,7 @@ def vcf_template(alignments, fasta, info_dict, format_dict, model_dir, version):
         "PRED",
         "PROB",
         "ANNO",
+        "COSMIC_CNT",
         "MAXMAF",
         "COMMON",
         "CLIN",
@@ -388,6 +389,12 @@ def define_info_dict():
             "Description": "Indel annotation formatted as "
             "GeneSymbol|RefSeqAccession|CodonPos|IndelEffect"
             "Delimited by comma for multiple isoforms",
+        },
+        "COSMIC_CNT": {
+             "COLUMN": ["cosmic_cnt"],
+             "Number": "1",
+             "Type": "Integer",
+             "Description": "COSMIC count in v89",
         },
         "MAXMAF": {
             "COLUMN": ["max_maf"],

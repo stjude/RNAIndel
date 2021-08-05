@@ -1,0 +1,13 @@
+site_name: "RNAIndel - St. Jude"
+repo_url: "https://github.com/stjude/RNAIndel"
+
+site_description: "RNAIndel calls small coding indels from tumor RNA-Seq data and classifies them as somatic, germline, and artifactual."
+site_author: "St. Jude Cloud"
+copyright: "© 2020 St. Jude Children's Research Hospital"
+
+nav:
+  - "Home": "index.md"
+  - "Filtering": "filtering/README.md"
+  - "Training": "training/README.md"
+
+theme: cosmo
