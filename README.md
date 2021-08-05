@@ -101,6 +101,16 @@ See [demo](./docs/walkthrough/README.md).
 
 </p></details>
 
+#### Resouce usage
+Using tumor RNA-Seq samples([SJC-DS-1003](https://platform.stjude.cloud/data/cohorts#), n=77), 
+the run time (wall) and the max memory usage was benchmarked for ensemble calling with 8 cores (i.e., -p 8) 
+on a server with 32-core AMD EPYC 7542 CPU @2.90 GHz.
+
+|       | Run time (wall) | Max memory | 
+|------ | -------------   | ---------- |     
+|median | 374 sec         | 18.6 GB    |
+|max    | 1388 sec        | 23.5 GB    |
+
 ### Train RNAIndel
 Users can [train](./docs/training) RNAIndel with their own training set. 
 
