@@ -10,13 +10,7 @@ from .model_selection import report_result
 
 
 def downsampler(
-    df,
-    k,
-    indel_class,
-    beta,
-    num_of_processes,
-    downsample_ratio,
-    max_features="auto",
+    df, k, indel_class, beta, num_of_processes, downsample_ratio, max_features="auto",
 ):
     """Optimize downsampling ratio optimizing F beta: somatic:germline:artifact = 1:1:x
 
@@ -41,13 +35,13 @@ def downsampler(
 
     # somatic:germline:artifact = 1:1:x for 1 <= x <= 20
     result_dict_lst = []
-    
+
     search_range = (
         range(downsample_ratio, downsample_ratio + 1)
         if downsample_ratio
         else range(1, 21)
     )
-    
+
     for x in search_range:
         # k-fold CrossValidation
         stats = perform_k_fold_cv(

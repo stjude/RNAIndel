@@ -74,7 +74,7 @@ def update_coverage_info(df, indel_class, model_dir):
     fr = open(coveragefile, "r")
     data = [line.rstrip() for line in fr.readlines()]
     fr.close()
-    
+
     fw = open(coveragefile, "w")
     for line in data:
         if line.startswith(indel_class):
@@ -82,11 +82,11 @@ def update_coverage_info(df, indel_class, model_dir):
                 df = df[df["indel_size"] == 1]
             else:
                 df = df[df["indel_size"] > 1]
-            df["cov"] =  df.apply(lambda x: (x["ref_count"] + x["alt_count"]), axis=1)
-            coverage_quantile = int(df["cov"].quantile(.9))
+            df["cov"] = df.apply(lambda x: (x["ref_count"] + x["alt_count"]), axis=1)
+            coverage_quantile = int(df["cov"].quantile(0.9))
             class_to_be_updated = line.split("\t")[0]
             newline = class_to_be_updated + "\t" + str(coverage_quantile)
             fw.write(newline + "\n")
         else:
             fw.write(line + "\n")
-    fw.close()        
+    fw.close()

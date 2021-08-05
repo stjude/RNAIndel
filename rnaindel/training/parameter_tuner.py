@@ -10,14 +10,7 @@ from sklearn.model_selection import ParameterGrid
 
 
 def tuner(
-    df,
-    k,
-    indel_class,
-    artifact_ratio,
-    features,
-    beta,
-    num_of_processes,
-    auto_param,
+    df, k, indel_class, artifact_ratio, features, beta, num_of_processes, auto_param,
 ):
     """Optimize the maximum number of features considered in sklearn random forest model
 

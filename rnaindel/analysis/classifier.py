@@ -11,6 +11,7 @@ from multiprocessing import Pool
 
 warnings.filterwarnings("ignore")
 
+
 def classify(df, model_dir, num_of_processes):
     """ Makes prediction
     Args:
@@ -44,7 +45,7 @@ def calculate_proba(df, model_dir, num_of_processes):
 
     sni_features = feature_dict["single_nucleotide_indels"]
     mni_features = feature_dict["multi_nucleotide_indels"]
-    
+
     # to keep the original row order
     df["order"] = df.index
     df_sni, df_mni = split_by_indel_size(df)
@@ -76,7 +77,7 @@ def calculate_proba(df, model_dir, num_of_processes):
         dfp_mni = pd.DataFrame(data=mni_proba)
         dfp_mni.columns = header
     else:
-        dfp_mni= pd.DataFrame(columns=header)
+        dfp_mni = pd.DataFrame(columns=header)
 
     df_mni = pd.concat([df_mni, dfp_mni], axis=1)
 
@@ -112,12 +113,15 @@ def make_feature_dict(model_dir):
         model_dir (str): path to data directory where "features.txt" is located.
     Returns:
         feature_dict (dict): {indel_class : [feture names]}
-    """ 
+    """
     features = os.path.join(model_dir, "features.txt")
     f = open(features)
-    feature_dict = {line.split("\t")[0]: line.rstrip().split("\t")[1].split(";") for line in f}
+    feature_dict = {
+        line.split("\t")[0]: line.rstrip().split("\t")[1].split(";") for line in f
+    }
     f.close()
     return feature_dict
+
 
 def predict(model, data, features):
     """ Calculate prediction probabaility

@@ -58,7 +58,7 @@ def alignment_features(df, bam, mapq, downsample_threshold=1000):
 
     df = df[df["alt_count"] > 1]
 
-    return df
+    return df.reset_index(drop=True)
 
 
 def _wrapper(row, bam, mapq, downsample_threshold):
@@ -347,8 +347,7 @@ def infer_del_seq_from_data(non_target_reads, target_deletion):
         lt_seq, rt_seq = split(non_target_read, target_deletion, is_for_ref=False)
         if len(rt_seq) > del_len:
             inferred = rt_seq[:del_len]
-            if inferred != del_seq:
-                non_ref_del_seq.append(inferred)
+            non_ref_del_seq.append(inferred)
 
     if non_ref_del_seq:
         return most_common(non_ref_del_seq)

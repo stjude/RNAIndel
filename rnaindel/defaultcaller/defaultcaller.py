@@ -6,8 +6,9 @@ from multiprocessing import Pool
 
 CANONICALS = [str(i) for i in range(1, 23)] + ["X", "Y"]
 
+
 def callindel(bam, fasta, tmp_dir, heap_memory, region, num_of_processes):
-     
+
     # Add Bambino home dir to CLASSPATH
     bambino_home = os.path.dirname(os.path.realpath(__file__))
     try:
@@ -29,40 +30,47 @@ def callindel(bam, fasta, tmp_dir, heap_memory, region, num_of_processes):
             heap_memory, fasta, bam
         )
     )
-    
+
     if region:
-        
+
         outfile = os.path.join(tmp_dir, "outfile.txt")
 
-        tmp = region.split(":") 
+        tmp = region.split(":")
         chrom = tmp[0]
         tmp2 = tmp[1].split("-")
         start, stop = tmp2[0], tmp2[1]
-        cmd_str = base_cmd_str + " -chr {} -start {} -end {} -of {}".format(chrom, start, stop, outfile)
-       
+        cmd_str = base_cmd_str + " -chr {} -start {} -end {} -of {}".format(
+            chrom, start, stop, outfile
+        )
+
         stdout, stderr, return_code = run_shell_command(cmd_str)
 
     else:
         if num_of_processes > 1:
-            cmds_by_chrom = [base_cmd_str + " -chr {} -of {}".format(chrom, os.path.join(tmp_dir, "chr{}.txt").format(chrom)) for chrom in CANONICALS]
+            cmds_by_chrom = [
+                base_cmd_str
+                + " -chr {} -of {}".format(
+                    chrom, os.path.join(tmp_dir, "chr{}.txt").format(chrom)
+                )
+                for chrom in CANONICALS
+            ]
             pool = Pool(num_of_processes)
-            
+
             caller_returns = pool.map(run_shell_command, cmds_by_chrom)
         else:
-            
+
             outfile = os.path.join(tmp_dir, "outfile.txt")
 
             cmd_str = base_cmd_str + " -of {}".format(outfile)
             stdout, stderr, return_code = run_shell_command(cmd_str)
-            
-            #check_caller_return(stdout, stderr, return_code)
 
+            # check_caller_return(stdout, stderr, return_code)
 
-    #if return_code != 0 or not os.path.isfile(output_file):
+    # if return_code != 0 or not os.path.isfile(output_file):
     #    print("Failed while calling indels.", file=sys.stderr)
     #    print(stderr, file=sys.stderr)
     #    sys.exit(return_code)
-    #else:
+    # else:
     #    if os.stat(output_file).st_size == 0:
     #        print(
     #            "No variants called. Check if the input reference FASTA file is the same file used for mapping.",
@@ -93,8 +101,8 @@ def run_shell_command(command_string):
     return stdout, stderr, return_code
 
 
-#def check_caller_return(stdout, stderr, return_code):
-#   
+# def check_caller_return(stdout, stderr, return_code):
+#
 #   if return_code != 0 :
 #       print("Failed while calling indels.", file=sys.stderr)
 #       print(stderr, file=sys.stderr)
@@ -111,9 +119,7 @@ def run_shell_command(command_string):
 #
 
 
-
 def check_file(file_path, file_name):
     if not os.path.isfile(file_path):
         sys.exit("Error: {} Not Found.".format(file_name))
     return file_path
-

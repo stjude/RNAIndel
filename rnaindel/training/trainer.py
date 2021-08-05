@@ -12,6 +12,7 @@ from .model_updater import updater
 from .result_reporter import reporter
 from .homopolyer_trainer import train_homolopolymer
 
+
 def train():
 
     subcommand = "Train"
@@ -21,7 +22,7 @@ def train():
     data_dir = args.data_dir.rstrip("/")
 
     df = input_validator(args.training_data, indel_class)
-    
+
     if indel_class in ["s", "m"]:
 
         # downsampling
@@ -60,7 +61,9 @@ def train():
 
         # update models
         model_dir = "{}/models".format(data_dir)
-        updater(df, args.indel_class, artifact_ratio, feature_lst, max_features, model_dir)
+        updater(
+            df, args.indel_class, artifact_ratio, feature_lst, max_features, model_dir
+        )
 
         # make report
         reporter(
@@ -86,8 +89,10 @@ def train():
             else "multi-nucleotide indels"
         )
 
-        print("rnaindel training for " + msg + " completed successfully.", file=sys.stdout)
-    
+        print(
+            "rnaindel training for " + msg + " completed successfully.", file=sys.stdout
+        )
+
     else:
         model_dir = "{}/outliers".format(data_dir)
         train_homolopolymer(df, model_dir)
