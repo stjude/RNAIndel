@@ -6,7 +6,7 @@
 
 ## What's new in Version 3
 New implementation with [indelpost](https://github.com/stjude/indelPost), an indel realigner/phaser. 
-* [faster analysis](#benchmarking)(typically < 20 min with 8 cores)
+* [faster analysis](#benchmarking) (typically < 20 min with 8 cores)
 * somatic complex indel calling in RNA-Seq
 * ensemble calling with your own caller (e.g., GATK HaplotypeCaller/MuTect2)  
 * improved sensitivity for homopolymer indels by error-profile outlier analysis  
