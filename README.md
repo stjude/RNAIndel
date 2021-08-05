@@ -45,10 +45,15 @@ optional arguments:
 ```
 
 ### DataPackage
-Download data package.
+Download data package (version 3 is not compatible with the previous data package). 
 ```
+#GRCh38
 curl -LO http://ftp.stjude.org/pub/software/RNAIndel/data_dir_grch38.v3.tar.gz
 tar -zxf data_dir_grch38.v3.tar.gz
+
+#GRCh37
+curl -LO http://ftp.stjude.org/pub/software/RNAIndel/data_dir_grch37.v3.tar.gz
+tar -zxf data_dir_grch37.v3.tar.gz
 ```
 
 ## Usage
@@ -103,7 +108,7 @@ See [demo](./docs/walkthrough/README.md).
 
 #### Resouce usage
 Using tumor RNA-Seq samples([SJC-DS-1003](https://platform.stjude.cloud/data/cohorts#), n=77), 
-the run time (wall) and the max memory usage was benchmarked for ensemble calling with 8 cores (i.e., -p 8) 
+the time and memory consumption was benchmarked for ensemble calling with 8 cores (i.e., -p 8) 
 on a server with 32-core AMD EPYC 7542 CPU @2.90 GHz.
 
 |       | Run time (wall) | Max memory | 
