@@ -1,40 +1,16 @@
-# Train RNAIndel
-RNAIndel trains the model using your training set.
+## Train RNAIndel
+Train the RNAIndel model using your training set.
 
 ### Step 1 (feature calculation)
 Features are calculated for each indel and reported in a tab-delimited file.<br>
-
-By default, RNAIndel calculates features based on a call set by the built-in caller. 
+Suppose we have N samples. For i-th sample:
 ```
-rnaindel feature -i BAM -o OUTPUT_TAB -r REFERENCE -d DATA_DIR [other options]
+rnaindel CalculateFeatures  -i sample.i.bam \
+                            -o sample.i.tab \
+                            -r reference.fa \
+                            -d ./data_dir_grch38\
+                            [-v sample.i.external.vcf.gz]
 ```
-To calculate for your caller's call set, specify the input VCF from your caller with ```-v```.
-```
-rnaindel feature -i BAM -v INPUT_VCF -o OUTPUT_TAB -r REFERENCE -d DATA_DIR [other options]
-```
-To use your germline indel database for training, specify the database with ```-g```. <br>
-The database is expected to be a bgzip-compressed VCF file with no missing values in the ID field.
-```
-rnaindel feature -i BAM -o OUTPUT_TAB -r REFERENCE -d DATA_DIR -g YOUR_DB [other options]
-```
-
-#### Options
-* ```-i``` input [STAR](https://academic.oup.com/bioinformatics/article/29/1/15/272537)-mapped BAM file (required)
-* ```-o``` output tab-delimited file (required)
-* ```-r``` reference genome (GRCh37 or 38) FASTA file (required)
-* ```-d``` [data directory](../../README.md/#setup) contains trained models and databases (required)
-* ```-v``` VCF file from user's caller (default: None)
-* ```-g``` user-provided germline indel database in tabixed VCF format (default: None)
-* <details>
-    <summary>other options (click to open)</summary><p>
-    
-    * ```-q``` STAR mapping quality MAPQ for unique mappers (default: 255)
-    * ```-p``` number of cores (default: 1)
-    * ```-m``` maximum heap space (default: 6000m)
-    * ```-l``` direcotry to store log files (default: current)
-    * ```--exclude-softclipped-alignments``` softclipped indels will not be used for analysis if used (default: False)
-
-</p></details>
 
 ### Step 2 (annotation)
 The output tab-delimited file has \"truth\" column. Users annotate each indel by filling the column.
@@ -47,7 +23,7 @@ Repeat Step 1 and 2 for N samples.
 <br>
 
 ### Step 3 (update models)
-Users concatenate the annotated files. Here, assuming the files are named \"sample.i.tab\" (i = 1,...,N), 
+Concateate the annotated files .  
 ```
 head -1 sample.1.tab > training_set.tab           # keep the header line
 ```
@@ -57,12 +33,12 @@ tail -n +2 -q sample.*.tab > training_set.tab     # concatenate files without he
 The concatenated file is used as a training set to update the models.
 Specify the indel class to be trained by ```-c```. 
 ```
-rnaindel training -t TRAINING_SET -d DATA_DIR -c INDEL_CLASS [other options]
+rnaindel Train -t training_set.tab -d ./data_dir_grch38 -c indel_class_to_train [other options]
 ```
 #### Options
 * ```-t``` training set with annotation (required)
 * ```-d``` [data directory](../../README.md/#setup) contains trained models and databases (required) 
-* ```-c``` indel class to be trained. "s" for single-nucleotide indel and "m" for multi-nucleotide indel (required)
+* ```-c``` indel class to be trained. "s" for single-nucleotide indel, "m" for multi-nucleotide indel, "h" for homopolymer indel(required)
 * <details>
     <summary>other options (click to open)</summary><p>
     
