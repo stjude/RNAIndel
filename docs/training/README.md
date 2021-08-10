@@ -23,7 +23,7 @@ Repeat Step 1 and 2 for N samples.
 <br>
 
 ### Step 3 (update models)
-Concateate the annotated files .  
+Concatenate the annotated files.
 ```
 head -1 sample.1.tab > training_set.tab           # keep the header line
 ```
