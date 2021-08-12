@@ -1,3 +1,0 @@
-/path/to/rnaindel_output_1.vcf
-/path/to/rnaindel_output_2.vcf
-/path/to/rnaindel_output_3.vcf
