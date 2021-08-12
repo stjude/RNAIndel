@@ -13,7 +13,8 @@ ADD . .
 
 ENV PYTHONWARNINGS="ignore"
 RUN python3 -m pip install . && rm -rf /tmp/*
+COPY rnaindel/RNAIndel.sh /usr/local/bin/RNAIndel.sh
 
 WORKDIR /data
-ENTRYPOINT ["rnaindel"]
+ENTRYPOINT ["RNAIndel.sh"]
 CMD ["-h"]
