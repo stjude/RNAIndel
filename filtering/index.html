@@ -81,7 +81,7 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-level="1"><a href="#indel-filtration" class="nav-link">Indel filtration</a>
+            <li class="nav-item" data-level="2"><a href="#recurrent-somatic-indels" class="nav-link">Recurrent somatic indels</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -90,50 +90,16 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<h1 id="indel-filtration">Indel filtration</h1>
-<p>RNAIndel can compile a filtering panel and apply it to filter artifact and germline indels predicted as somatic.   </p>
-<h3 id="step-1-indel-calling-on-normal-samples">Step 1 (indel calling on normal samples)</h3>
-<p>Generate VCF files from normal RNA-Seq samples. Such samples may be matched or publicly available normal RNA-Seq data with similar technical specifications.
-VCFs may be from your caller or RNAIndel:</p>
-<pre><code>rnaindel analysis -i NORMAL_i_BAM -r REFERENCE -d DATA_DIR -o NORMAL_i_VCF   (for i = 1,...,N)
-</code></pre>
-<h3 id="step-2-panel-compilation">Step 2 (panel compilation)</h3>
-<p>RNAIndel compiles a non-somatic indel panel using common non-COSMIC indels found in matched or public normal samples.</p>
-<pre><code>rnaindel nonsomatic --vcf-list FILE --count INT -o NONSOMATIC_VCF -r REFERENCE -d DATA_DIR
+<h2 id="recurrent-somatic-indels">Recurrent somatic indels</h2>
+<p>Except for a few known hotspots, true somatic indels rarely recurr.   </p>
+<h3 id="ocurrence-annotation">Ocurrence annotation</h3>
+<p>When multiple RNAIndel output VCF files are generated from the same cohort, occurrence with in the cohort is annotated in INFO field. </p>
+<pre><code>rnaindel CountOccurrence --vcf-list vcf_paths.txt -r reference.fa
 </code></pre>
 <h4 id="options">Options</h4>
 <ul>
-<li><code>--vcf-list</code> file containing paths to normal VCF files (<a href="../../sample_data/inputs/normals.txt">example</a>) (required)</li>
-<li><code>--count</code> indel occurrence count to be defined as common in the input set of VCF files (required)</li>
-<li><code>-o</code> output non-somatic VCF file (required)</li>
+<li><code>--vcf-list</code> file containing paths to RNAIndel output VCF files (path/line) (required)</li>
 <li><code>-r</code> reference genome FASTA file (required)</li>
-<li><code>-d</code> <a href="../../README.md/#setup">data directory</a> contains the <a href="https://cancer.sanger.ac.uk/cosmic">COSMIC</a> database (required)</li>
-</ul>
-<h3 id="step-3-reclassification">Step 3 (reclassification)</h3>
-<p>Putative somatic indels found in the non-somatic panel will be reclassifed based on the prediction probability assigned by RNAIndel.</p>
-<pre><code>rnaindel reclassification -i RNAIndel_OUTPUT_VCF -o RECLASSIFIED_VCF -r REFERENCE -n NON_SOMATIC_VCF.gz 
-</code></pre>
-<h4 id="options_1">Options</h4>
-<ul>
-<li><code>-i</code> RNAIndel output VCF file to be reclassified (required).</li>
-<li><code>-o</code> reclassifed VCF file (required)</li>
-<li><code>-r</code> reference genome FASTA file (required)</li>
-<li><code>-n</code> non-somatic indel panel in bgzip-compressed VCF file (required)</li>
-</ul>
-<h3 id="example-panel">Example panel</h3>
-<p>Panels compiled from 100 blood RNA samples of healthy volunteers (<a href="https://www.ncbi.nlm.nih.gov/bioproject/PRJNA553703">PRJNA553703</a>) are <a href="http://ftp.stjude.org/pub/software/RNAIndel/normal_panel">available</a>. <br><br></p>
-<h3 id="recurrent-non-cosmic-indel-annotation">Recurrent non-COSMIC indel annotation</h3>
-<p>When multiple RNAIndel output VCF files are available as in the case of cohort studies, 
-RNAIndel annotates indels recurring in the samples that are not present in the 
-<a href="https://cancer.sanger.ac.uk/cosmic">COSMIC</a> database. Such recurrent indels are possibly common artifacual/germline indels rather 
-than somatic hotspots. Annotation is made in INFO field. </p>
-<pre><code>rnaindel recurrence --vcf-list FILE -r REFERENCE -d DATADIR --out-dir
-</code></pre>
-<h4 id="options_2">Options</h4>
-<ul>
-<li><code>--vcf-list</code> file containing paths to RNAIndel output VCF files (<a href="../../sample_data/inputs/rnaindel_vcfs.txt">example</a>) (required)</li>
-<li><code>-r</code> reference genome FASTA file (required)</li>
-<li><code>-d</code> <a href="../../README.md/#setup">data directory</a> contains the COSMIC database (required)</li>
 <li><code>--out-dir</code> output directory for annotated VCF file. The input file dir is used if not specified. <br>
 &nbsp;   &nbsp;   &nbsp;   &nbsp;  &nbsp;  &nbsp;  &nbsp;  &nbsp;  &nbsp;  &nbsp; (file name will not be changed after annotation)</li>
 </ul></div>

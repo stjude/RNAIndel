@@ -81,6 +81,11 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
         <ul class="nav flex-column">
             
+            <li class="nav-item" data-level="2"><a href="#whats-new-in-version-3" class="nav-link">What's new in Version 3</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
             <li class="nav-item" data-level="2"><a href="#quick-start" class="nav-link">Quick Start</a>
               <ul class="nav flex-column">
               </ul>
@@ -96,7 +101,7 @@
               </ul>
             </li>
             
-            <li class="nav-item" data-level="2"><a href="#limitations" class="nav-link">Limitations</a>
+            <li class="nav-item" data-level="2"><a href="#citation" class="nav-link">Citation</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -145,7 +150,7 @@
 
 
   <p align="center">
-   RNAIndel calls small coding indels from tumor RNA-Seq data and classifies them as somatic, germline, and artifactual.  You can also use RNAIndel as a postprocessor to classify indels called by your own caller. RNAIndel supports GRCh38 and 37. <br> 
+   RNAIndel calls coding indels from tumor RNA-Seq data and classifies them as somatic, germline, and artifactual. RNAIndel supports GRCh38 and 37. <br> 
    <br />
    <a href="https://stjude.github.io/RNAIndel/"><strong>Explore the docs »</strong></a>
    <br />
@@ -161,9 +166,14 @@
   </p>
 </p>
 
-<hr />
+<h2 id="whats-new-in-version-3">What's new in Version 3</h2>
+<p>New implementation with <a href="https://github.com/stjude/indelPost">indelpost</a>, an indel realigner/phaser. 
+* <a href="#benchmarking">faster analysis</a> (typically &lt; 20 min with 8 cores)
+* somatic complex indel calling in RNA-Seq
+* ensemble calling with your own caller (e.g., GATK HaplotypeCaller/MuTect2)<br />
+* improved sensitivity for homopolymer indels by error-profile outlier analysis  </p>
 <h2 id="quick-start">Quick Start</h2>
-<p>RNAIndel can be executed via Docker or ran locally, downloadable via PyPI.</p>
+<p>RNAIndel can be executed via Docker or run locally, downloadable via PyPI.</p>
 <h3 id="docker">Docker</h3>
 <p>We publish our latest docker builds on GitHub.  You can run the latest code base by running the following command</p>
 <pre><code>&gt; docker run --rm -v ${pwd}:/data ghcr.io/stjude/rnaindel:latest
@@ -173,120 +183,124 @@
 </code></pre>
 <p>Note: if its the first time you are executing the <code>docker run</code> command, you will see the output of docker downloading the image</p>
 <h3 id="pypi">PyPI</h3>
-<p>Installing RNAIndel via the pip command will install the dependencies except for Java.  </p>
-<h4 id="dependencies">Dependencies</h4>
-<ul>
-<li><a href="https://www.python.org/downloads/">python&gt;=3.6.0</a><ul>
-<li><a href="https://pandas.pydata.org/">pandas&gt;=0.23.0</a> </li>
-<li><a href="http://scikit-learn.org/stable/install.html#">scikit-learn&gt;=0.20.0</a></li>
-<li><a href="https://pysam.readthedocs.io/en/latest/index.html">pysam&gt;=0.13.0</a></li>
-</ul>
-</li>
-<li><a href="https://www.java.com/en/download/">java&gt;=1.8.0</a> </li>
-</ul>
+<p>RNAIndel depends on <a href="https://www.python.org/downloads/">python&gt;=3.6.0</a> and <a href="https://www.java.com/en/download/">java&gt;=1.8.0</a>.<br> 
+Installing via the pip command will install the following packages:
+* <a href="https://github.com/stjude/indelPost">indelpost&gt;=0.0.4</a>
+* <a href="https://github.com/pysam-developers">pysam&gt;=0.15.0</a>
+* <a href="https://cython.org/">cython&gt;=0.29.12</a>
+* <a href="https://numpy.org/">numpy&gt;=1.16.0</a>
+* <a href="https://github.com/Wyss/ssw-py">ssw-py==0.2.6</a>
+* <a href="https://pandas.pydata.org/">pandas&gt;=0.23.0</a>
+* <a href="http://scikit-learn.org/stable/install.html#">scikit-learn&gt;=0.22.0</a></p>
 <pre><code>&gt; pip install rnaindel
 </code></pre>
 <p>Test the installation.</p>
-<pre><code>&gt; rnaindel
+<pre><code>&gt; rnaindel -h
 usage: rnaindel &lt;subcommand&gt; [&lt;args&gt;]
 
 subcommands are:
-    analysis              Predict somatic indels from tumor RNA-Seq data
-    feature               Calculate and report features for training
-    nonsomatic            Compile non-somatic indel panel
-    reclassification      Reclassify false positives by non-somatic panel
-    recurrence            Annotate false positives by recurrence
-    training              Train models
-
+    PredictIndels             Predict somatic/germline/artifact indels from tumor RNA-Seq data
+    CalculateFeatures         Calculate and report features for training
+    Train                     Perform model training
+    CountOccurrence           Count occurrence within cohort to filter false somatic predictions
 positional arguments:
-  subcommand  analysis, feature, nonsomatic, reclassification, recurrence,
-              training
+  subcommand  PredictIndels, CalculateFeatures, Train, CountOccurrence
 
 optional arguments:
   -h, --help  show this help message and exit
   --version   show program's version number and exit
 </code></pre>
-<p>You can download data package (GRCh38, GRCh37) and unpack it in a convenient directory on your system. </p>
-<pre><code># GRCh38
-&gt; curl -LO http://ftp.stjude.org/pub/software/RNAIndel/data_dir_38.tar.gz
-&gt; tar -xzf data_dir_38.tar.gz
-# GRCh37
-&gt; curl -LO http://ftp.stjude.org/pub/software/RNAIndel/data_dir_37.tar.gz
-&gt; tar -xzf data_dir_37.tar.gz
-</code></pre>
-<p>Test it out!</p>
-<pre><code>❯ rnaindel analysis -i ./sample_data/inputs/sample.bam \
-                      -o output.vcf \
-                      -r ./sample_data/inputs/chr10.fa \
-                      -d ./data_dir_38
-indel calling completed successfully.
-rnaindel analysis completed successfully.
+<h3 id="datapackage">DataPackage</h3>
+<p>Download data package (version 3 is not compatible with the previous data package). </p>
+<pre><code>#GRCh38
+curl -LO http://ftp.stjude.org/pub/software/RNAIndel/data_dir_grch38.v3.tar.gz
+tar -zxf data_dir_grch38.v3.tar.gz
+
+#GRCh37
+curl -LO http://ftp.stjude.org/pub/software/RNAIndel/data_dir_grch37.v3.tar.gz
+tar -zxf data_dir_grch37.v3.tar.gz
 </code></pre>
 <h2 id="usage">Usage</h2>
-<p>RNAIndel has 6 subcommands: <br />
-<em> <code>analysis</code> analyze RNA-Seq data for indel discovery <br />
-</em> <code>feature</code> calculate features for training <br />
-<em> <code>nonsomatic</code> make a non-somatic indel panel  <br />
-</em> <code>reclassification</code> reclassify false positives by non-somatic panel  <br />
-<em> <code>recurrence</code> annotate false positives by recurrence <br />
-</em> <code>training</code> train and update the models   </p>
+<p>RNAIndel has 4 subcommands:
+* <code>PredictIndels</code> analyze RNA-Seq data for indel discovery
+* <code>CalculateFeatures</code> calculate features for training
+* <code>Train</code> train models with user's dataset
+* <code>CountOccurrence</code> annotate over-represented somatic predictions</p>
 <p>Subcommands are invoked:</p>
-<pre><code>rnaindel subcommand [subcommand-specific options]
+<pre><code>&gt; rnaindel subcommand [subcommand-specific options]
 </code></pre>
-<h3 id="discover-somatic-indels-demo">Discover somatic indels (<a href="./sample_data">demo</a>)</h3>
+<h3 id="discover-somatic-indels">Discover somatic indels</h3>
 <h4 id="input-bam-file">Input BAM file</h4>
 <p>RNAIndel expects <a href="https://academic.oup.com/bioinformatics/article/29/1/15/272537">STAR</a> 2-pass mapped BAM file with sorted by coordinate 
 and <a href="https://broadinstitute.github.io/picard/command-line-overview.html#MarkDuplicates">MarkDuplicates</a>. Further preprocessing such as 
-indel realignment may prevent desired behavior (RNAIndel internally realigns indels to correct allele count).  </p>
-<h4 id="use-the-built-in-caller">Use the built-in caller</h4>
-<p>RNAIndel calls indels by the <a href="https://academic.oup.com/bioinformatics/article/27/6/865/236751">built-in caller</a>, which is optimized 
-for RNA-Seq indel calling, and classifies detected indels as somatic, germline, and artifactual. </p>
-<pre><code>rnaindel analysis -i BAM -o OUTPUT_VCF -r REFERENCE -d DATA_DIR [other options]
+indel realignment may prevent desired behavior.</p>
+<h4 id="standard-calling">Standard calling</h4>
+<p>This mode uses the built-in caller to analyze simple and complex indels.</p>
+<pre><code>&gt; rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -p 8 (default 1) 
 </code></pre>
-<h4 id="use-your-caller">Use your caller</h4>
-<p>RNAIndel can be used as a postprocessor for indel calls generated by your caller such as 
-<a href="https://software.broadinstitute.org/gatk/documentation/tooldocs/4.0.8.0/org_broadinstitute_hellbender_tools_walkers_haplotypecaller_HaplotypeCaller.php">GATK-HaplotypeCaller</a>, 
-<a href="https://software.broadinstitute.org/gatk/documentation/tooldocs/4.0.8.0/org_broadinstitute_hellbender_tools_walkers_mutect_Mutect2.php">Mutect2</a>
-and <a href="https://github.com/ekg/freebayes">freebayes</a>. Specify the input VCF file with <code>-v</code>.</p>
-<pre><code>rnaindel analysis -i BAM -v INPUT_VCF -o OUTPUT_VCF -r REFERENCE -d DATA_DIR [other options]
+<h4 id="ensemble-calling">Ensemble calling</h4>
+<p>Indels in the exernal VCF (supplied by -v) are integrated to the callset by the built-in caller to boost performance.<br> 
+See <a href="./docs/walkthrough/README.md">demo</a>.</p>
+<pre><code>&gt; rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v gatk.vcf.gz -p 8
 </code></pre>
 <h4 id="options">Options</h4>
 <ul>
 <li><code>-i</code> input <a href="https://academic.oup.com/bioinformatics/article/29/1/15/272537">STAR</a>-mapped BAM file (required)</li>
 <li><code>-o</code> output VCF file (required)</li>
 <li><code>-r</code> reference genome FASTA file (required)</li>
-<li><code>-d</code> <a href="#setup">data directory</a> contains trained models and databases (required)</li>
-<li><code>-v</code> VCF file from user's caller (default: None)</li>
+<li><code>-d</code> <a href="#datapackage">data directory</a> contains trained models and databases (required)</li>
+<li><code>-v</code> VCF file (must be .vcf.gz + index) from user's caller. (default: None)</li>
+<li><code>-p</code> number of cores (default: 1)</li>
 <li>
 <p><details>
     <summary>other options (click to open)</summary><p></p>
 <ul>
 <li><code>-q</code> STAR mapping quality MAPQ for unique mappers (default: 255)</li>
-<li><code>-p</code> number of cores (default: 1)</li>
 <li><code>-m</code> maximum heap space (default: 6000m)</li>
-<li><code>-l</code> directory to store log files (default: current)</li>
-<li><code>-n</code> user-defined panel of non-somatic indels in tabixed VCF format (default: built-in reviewed indel set)</li>
-<li><code>-g</code> user-provided germline indel database in tabixed VCF format (default: built-in database in data dir) <br>
-&nbsp;   &nbsp;   &nbsp;   &nbsp;use only if the model is trained with the user-provided database (<a href="./docs/training">more</a>).      </li>
 <li><code>--region</code> target genomic region. specify by chrN:start-stop (default: None)</li>
-<li><code>--exclude-softclipped-alignments</code> softclipped indels will not be used for analysis if added (default: False)</li>
+<li><code>--pon</code> user's defined list of non-somatic calls such as PanelOfNormals. Supply as .vcf.gz with index (default: None)</li>
+<li><code>--include-all-external-calls</code> set to include all indels in VCF file supplied by -v. (default: False. Use only calls with PASS in FILTER) </li>
+<li><code>--skip-homopolyer-outlier-analysis</code> no outlier analysis for homopolymer indels (repeat &gt; 4) performed if set. (default: False)  </li>
 </ul>
 </li>
 </ul>
 <p></p></details></p>
+<h4 id="benchmarking">Benchmarking</h4>
+<p>Using pediatric tumor RNA-Seq samples (<a href="https://platform.stjude.cloud/data/cohorts#">SJC-DS-1003</a>, n=77), 
+the time and memory consumption was benchmarked for ensemble calling with 8 cores (i.e., -p 8) 
+on a server with 32-core AMD EPYC 7542 CPU @2.90 GHz.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Run time (wall)</th>
+<th>Max memory</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>median</td>
+<td>374 sec</td>
+<td>18.6 GB</td>
+</tr>
+<tr>
+<td>max</td>
+<td>1388 sec</td>
+<td>23.5 GB</td>
+</tr>
+</tbody>
+</table>
 <h3 id="train-rnaindel">Train RNAIndel</h3>
 <p>Users can <a href="./docs/training">train</a> RNAIndel with their own training set. </p>
-<h3 id="filter-false-positives">Filter false positives</h3>
-<p>RNAIndel supports <a href="./docs/filtering">custom filtering</a> to refine the predicted results.</p>
+<h3 id="annotate-over-represented-putative-somatic-indels">Annotate over-represented putative somatic indels</h3>
+<p>Check <a href="./docs/filtering">occurrence</a> to filter probable false positives.</p>
 <h2 id="contact">Contact</h2>
 <ul>
 <li>kohei.hagiwara[AT]stjude.org <br />
 Please let me know what your experience with RNAIndel was like (even bad comments are welcome)!</li>
 </ul>
-<h2 id="limitations">Limitations</h2>
-<ol>
-<li>RNAIndel does not perform well for samples with microsatellite instability such as colon adenocarcinoma hypermutated subtype. </li>
-</ol></div>
+<h2 id="citation">Citation</h2>
+<p>Published in <a href="https://doi.org/10.1093/bioinformatics/btz753">Bioinformatics</a></p></div>
             </div>
         </div>
 
@@ -368,5 +382,5 @@ Please let me know what your experience with RNAIndel was like (even bad comment
 
 <!--
 MkDocs version : 1.2.2
-Build Date UTC : 2021-08-12 14:43:01.781922+00:00
+Build Date UTC : 2021-08-12 14:46:58.603900+00:00
 -->

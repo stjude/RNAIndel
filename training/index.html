@@ -81,7 +81,7 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-level="1"><a href="#train-rnaindel" class="nav-link">Train RNAIndel</a>
+            <li class="nav-item" data-level="2"><a href="#train-rnaindel" class="nav-link">Train RNAIndel</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -90,41 +90,17 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<h1 id="train-rnaindel">Train RNAIndel</h1>
-<p>RNAIndel trains the model using your training set.</p>
+<h2 id="train-rnaindel">Train RNAIndel</h2>
+<p>Train the RNAIndel model using your training set.</p>
 <h3 id="step-1-feature-calculation">Step 1 (feature calculation)</h3>
-<p>Features are calculated for each indel and reported in a tab-delimited file.<br></p>
-<p>By default, RNAIndel calculates features based on a call set by the built-in caller. </p>
-<pre><code>rnaindel feature -i BAM -o OUTPUT_TAB -r REFERENCE -d DATA_DIR [other options]
+<p>Features are calculated for each indel and reported in a tab-delimited file.<br>
+Suppose we have N samples. For i-th sample:</p>
+<pre><code>rnaindel CalculateFeatures  -i sample.i.bam \
+                            -o sample.i.tab \
+                            -r reference.fa \
+                            -d ./data_dir_grch38\
+                            [-v sample.i.external.vcf.gz]
 </code></pre>
-<p>To calculate for your caller's call set, specify the input VCF from your caller with <code>-v</code>.</p>
-<pre><code>rnaindel feature -i BAM -v INPUT_VCF -o OUTPUT_TAB -r REFERENCE -d DATA_DIR [other options]
-</code></pre>
-<p>To use your germline indel database for training, specify the database with <code>-g</code>. <br>
-The database is expected to be a bgzip-compressed VCF file with no missing values in the ID field.</p>
-<pre><code>rnaindel feature -i BAM -o OUTPUT_TAB -r REFERENCE -d DATA_DIR -g YOUR_DB [other options]
-</code></pre>
-<h4 id="options">Options</h4>
-<ul>
-<li><code>-i</code> input <a href="https://academic.oup.com/bioinformatics/article/29/1/15/272537">STAR</a>-mapped BAM file (required)</li>
-<li><code>-o</code> output tab-delimited file (required)</li>
-<li><code>-r</code> reference genome (GRCh37 or 38) FASTA file (required)</li>
-<li><code>-d</code> <a href="../../README.md/#setup">data directory</a> contains trained models and databases (required)</li>
-<li><code>-v</code> VCF file from user's caller (default: None)</li>
-<li><code>-g</code> user-provided germline indel database in tabixed VCF format (default: None)</li>
-<li>
-<p><details>
-    <summary>other options (click to open)</summary><p></p>
-<ul>
-<li><code>-q</code> STAR mapping quality MAPQ for unique mappers (default: 255)</li>
-<li><code>-p</code> number of cores (default: 1)</li>
-<li><code>-m</code> maximum heap space (default: 6000m)</li>
-<li><code>-l</code> direcotry to store log files (default: current)</li>
-<li><code>--exclude-softclipped-alignments</code> softclipped indels will not be used for analysis if used (default: False)</li>
-</ul>
-</li>
-</ul>
-<p></p></details></p>
 <h3 id="step-2-annotation">Step 2 (annotation)</h3>
 <p>The output tab-delimited file has \"truth\" column. Users annotate each indel by filling the column.
 Possible values are:</p>
@@ -134,20 +110,20 @@ Possible values are:</p>
 Repeat Step 1 and 2 for N samples.
 <br></p>
 <h3 id="step-3-update-models">Step 3 (update models)</h3>
-<p>Users concatenate the annotated files. Here, assuming the files are named \"sample.i.tab\" (i = 1,...,N), </p>
+<p>Concatenate the annotated files.</p>
 <pre><code>head -1 sample.1.tab &gt; training_set.tab           # keep the header line
 </code></pre>
 <pre><code>tail -n +2 -q sample.*.tab &gt; training_set.tab     # concatenate files without header
 </code></pre>
 <p>The concatenated file is used as a training set to update the models.
 Specify the indel class to be trained by <code>-c</code>. </p>
-<pre><code>rnaindel training -t TRAINING_SET -d DATA_DIR -c INDEL_CLASS [other options]
+<pre><code>rnaindel Train -t training_set.tab -d ./data_dir_grch38 -c indel_class_to_train [other options]
 </code></pre>
-<h4 id="options_1">Options</h4>
+<h4 id="options">Options</h4>
 <ul>
 <li><code>-t</code> training set with annotation (required)</li>
 <li><code>-d</code> <a href="../../README.md/#setup">data directory</a> contains trained models and databases (required) </li>
-<li><code>-c</code> indel class to be trained. "s" for single-nucleotide indel and "m" for multi-nucleotide indel (required)</li>
+<li><code>-c</code> indel class to be trained. "s" for single-nucleotide indel, "m" for multi-nucleotide indel, "h" for homopolymer indel(required)</li>
 <li>
 <p><details>
     <summary>other options (click to open)</summary><p></p>
