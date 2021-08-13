@@ -12,7 +12,7 @@ jobs:
         uses: jordan-rash/cgc-go@v0.1.4
         with:
           file_location: "cgc/rnaindel.cwl"
-          shortid: "stjude/rnaindel"
+          shortid: "stjude/rnaindel/rnaindel"
         env: 
           CGC_TOKEN: ${{ secrets.CGC_TOKEN }}
     
