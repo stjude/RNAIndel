@@ -89,7 +89,7 @@
         },
         {
             "class": "DockerRequirement",
-            "dockerPull": "cgc-images.sbgenomics.com/stjude/rnaindel2:latest"
+            "dockerPull": "cgc-images.sbgenomics.com/stjude/rnaindel:latest"
         }
     ],
     "sbg:links": [
