@@ -4,9 +4,7 @@
     "$namespaces": {
         "sbg": "https://sevenbridges.com"
     },
-    "baseCommand": [
-        "rnaindel"
-    ],
+    "baseCommand": [],
     "inputs": [
         {
             "id": "subcommand",
@@ -32,9 +30,18 @@
             "inputBinding": {
                 "prefix": "-i",
                 "shellQuote": false,
-                "position": 0
+                "position": 1
             },
-            "doc": "STAR-mapped BAM file to analyze"
+            "doc": "STAR-mapped BAM file to analyze",
+            "sbg:fileTypes": "BAM",
+            "secondaryFiles": [
+                {
+                    "pattern": ".bai?"
+                },
+                {
+                    "pattern": "$(self.nameroot).bai?"
+                }
+            ]
         },
         {
             "loadListing": "deep_listing",
@@ -43,7 +50,7 @@
             "inputBinding": {
                 "prefix": "-d",
                 "shellQuote": false,
-                "position": 0
+                "position": 2
             },
             "doc": "Data directory containing trained models and databases. Can be obtained from http://ftp.stjude.org/pub/software/RNAIndel/data_dir_grch38.v3.tar.gz (GRCh38) or http://ftp.stjude.org/pub/software/RNAIndel/data_dir_grch37.v3.tar.gz (GRCh37)"
         },
@@ -53,19 +60,16 @@
             "inputBinding": {
                 "prefix": "-r",
                 "shellQuote": false,
-                "position": 0
+                "position": 3
             },
-            "doc": "Reference genome in FASTA format"
-        },
-        {
-            "id": "output",
-            "type": "File",
-            "inputBinding": {
-                "prefix": "-o",
-                "shellQuote": false,
-                "position": 0
-            },
-            "doc": "Output VCF file name"
+            "doc": "Reference genome in FASTA format",
+            "sbg:fileTypes": "FA",
+            "secondaryFiles": [
+                {
+                    "pattern": ".fai",
+                    "required": true
+                }
+            ]
         },
         {
             "id": "p",
@@ -73,13 +77,31 @@
             "inputBinding": {
                 "prefix": "-p",
                 "shellQuote": false,
-                "position": 0
+                "position": 5
+            },
+            "label": "number of cores",
+            "default": 8
+        }
+    ],
+    "outputs": [
+        {
+            "id": "predicted_indels",
+            "type": "File",
+            "outputBinding": {
+                "glob": "*.vcf"
             }
         }
     ],
-    "outputs": [],
     "doc": "# Description\n\nRNAIndel calls coding indels from tumor RNA-Seq data and classifies them as somatic, germline, and artifactual. RNAIndel supports GRCh38 and 37.\n\n## Inputs\n* **BAM** - STAR-mapped BAM file\n* **Fasta** - Reference genome in FASTA format\n* **Reference** - Trained data models and databases. Can be obtained from http://ftp.stjude.org/pub/software/RNAIndel/data_dir_grch38.v3.tar.gz (GRCh38) or http://ftp.stjude.org/pub/software/RNAIndel/data_dir_grch37.v3.tar.gz (GRCh37)\n\n## Outputs\n* **Indel callset** - RNAIndel called indels",
     "label": "rnaindel2",
+    "arguments": [
+        {
+            "prefix": "-o",
+            "shellQuote": false,
+            "position": 5,
+            "valueFrom": "$(inputs.input.nameroot).vcf"
+        }
+    ],
     "requirements": [
         {
             "class": "ShellCommandRequirement"
@@ -90,6 +112,9 @@
         {
             "class": "DockerRequirement",
             "dockerPull": "cgc-images.sbgenomics.com/stjude/rnaindel:latest"
+        },
+        {
+            "class": "InlineJavascriptRequirement"
         }
     ],
     "sbg:links": [
@@ -101,5 +126,8 @@
             "id": "https://doi.org/10.1093/bioinformatics/btz753",
             "label": "Publication"
         }
-    ]
+    ],
+    "sbg:appVersion": [
+        "v1.2"
+    ],
 }
