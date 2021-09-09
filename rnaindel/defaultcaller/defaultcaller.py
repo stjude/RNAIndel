@@ -63,7 +63,7 @@ def callindel(bam, fasta, tmp_dir, heap_memory, region, num_of_processes):
 
             cmd_str = base_cmd_str + " -of {}".format(outfile)
             stdout, stderr, return_code = run_shell_command(cmd_str)
-
+            
             # check_caller_return(stdout, stderr, return_code)
 
     # if return_code != 0 or not os.path.isfile(output_file):
@@ -97,6 +97,11 @@ def run_shell_command(command_string):
     stderr = proc.stderr.decode("utf-8")
 
     return_code = proc.returncode
+    
+    if return_code != 0:
+        print("Failed while calling indels.", file=sys.stderr)
+        print(stderr, file=sys.stderr)
+        sys.exit(return_code)
 
     return stdout, stderr, return_code
 
