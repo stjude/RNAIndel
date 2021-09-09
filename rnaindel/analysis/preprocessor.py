@@ -87,8 +87,11 @@ def filter_non_coding_indels(callset, fasta_file, path_to_coding_gene_db, extern
     with open(callset) as f:
         records = csv.DictReader(f, delimiter="\t")
         for record in records:
-            indel, origin = bambino2variant(record, reference, is_prefixed)
-            update_coding_indels(coding_indels, indel, origin, coding_gene_db)
+            try:
+                indel, origin = bambino2variant(record, reference, is_prefixed)
+                update_coding_indels(coding_indels, indel, origin, coding_gene_db)
+            except:
+                pass
 
     if coding_indels:
         df = pd.DataFrame(coding_indels)
