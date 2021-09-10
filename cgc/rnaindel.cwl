@@ -110,11 +110,22 @@
             "class": "LoadListingRequirement"
         },
         {
+            "class": "ResourceRequirement",
+            "ramMin": 80000,
+            "coresMin": 8
+        },
+        {
             "class": "DockerRequirement",
             "dockerPull": "cgc-images.sbgenomics.com/stjude/rnaindel:latest"
         },
         {
             "class": "InlineJavascriptRequirement"
+        }
+    ],
+    "hints": [
+        {
+            "class": "sbg:AWSInstanceType",
+            "value": "r4.4xlarge;ebs-gp2;1024"
         }
     ],
     "sbg:links": [
