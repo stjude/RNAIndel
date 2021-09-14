@@ -204,7 +204,9 @@ def indel_type_features(variant):
 
 def make_indel_alignment(variant, bam, downsample_threshold=1500):
 
-    valn = VariantAlignment(variant, bam, downsample_threshold=downsample_threshold)
+    valn = VariantAlignment(
+        variant, bam, downsample_threshold=downsample_threshold, exclude_duplicates=True
+    )
 
     contig = valn.get_contig()
     if contig:
@@ -215,7 +217,9 @@ def make_indel_alignment(variant, bam, downsample_threshold=1500):
 
 def read_support_features(valn, downsample_threshold=1500):
 
-    orig_ref_cnt, orig_alt_cnt = valn.count_alleles(by_fragment=True)
+    orig_ref_cnt, orig_alt_cnt = valn.count_alleles(
+        by_fragment=True, estimated_count=False
+    )
     cov = orig_ref_cnt + orig_alt_cnt
 
     if cov > downsample_threshold:
@@ -226,7 +230,7 @@ def read_support_features(valn, downsample_threshold=1500):
     else:
         ref_cnt, alt_cnt = orig_ref_cnt, orig_alt_cnt
 
-    alt_fw_rv = valn.count_alleles(fwrv=True)[1]
+    alt_fw_rv = valn.count_alleles(fwrv=True, estimated_count=False)[1]
     is_bidirectional = all(alt_fw_rv)
 
     return (
@@ -249,7 +253,9 @@ def sequence_features(target_indel, valn, contig):
     # repeat
     if target_indel.is_del:
         non_target_reads = valn.fetch_reads(how="non_target")
-        indel_seq = infer_del_seq_from_data(non_target_reads, target_indel)
+        indel_seq = infer_del_seq_from_data(
+            non_target_reads, target_indel, lt_seq, rt_seq
+        )
         indel_type = 0
     else:
         indel_seq = contig_seq_tuple[1]
@@ -334,25 +340,40 @@ def sequence_features(target_indel, valn, contig):
     )
 
 
-def infer_del_seq_from_data(non_target_reads, target_deletion):
+def infer_del_seq_from_data(
+    non_target_reads, target_deletion, lt_contig_seq, rt_contig_seq
+):
+    del_seq = target_deletion.indel_seq
+    del_len = len(del_seq)
+
     if len(non_target_reads) > 20:
         random.seed(123)
         non_target_reads = random.sample(non_target_reads, 20)
 
+    n_non_target = len(non_target_reads)
+    if not n_non_target:
+        return del_seq
+
     non_ref_del_seq = []
 
-    del_seq = target_deletion.indel_seq
-    del_len = len(del_seq)
     for non_target_read in non_target_reads:
         lt_seq, rt_seq = split(non_target_read, target_deletion, is_for_ref=False)
         if len(rt_seq) > del_len:
             inferred = rt_seq[:del_len]
-            non_ref_del_seq.append(inferred)
+            if inferred != del_seq:
+                try:
+                    if inferred in [lt_contig_seq[-del_len:], rt_contig_seq[:del_len]]:
+                        non_ref_del_seq.append(inferred)
+                except:
+                    pass
 
     if non_ref_del_seq:
-        return most_common(non_ref_del_seq)
-    else:
-        return del_seq
+        candidate = most_common(non_ref_del_seq)
+        candidate_cnt = non_ref_del_seq.count(candidate)
+        if candidate_cnt > 1 and candidate_cnt / n_non_target > 0.2:
+            return candidate
+
+    return del_seq
 
 
 def mapping_features(target_indel, valn, bam, mapq):

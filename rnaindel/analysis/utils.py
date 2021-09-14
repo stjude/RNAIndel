@@ -16,9 +16,10 @@ def flatten_list_of_list(lst_of_lst):
 
 def validate_int_inputs(val, preset=None):
     val = int(val)
+    
     if val <= 0 and not preset:
         sys.exit("Error: the input must be a positive integer.")
-    elif 0 <= val <= 255 and preset == "mapq":
+    elif (val < 0 or 255 < val) and preset == "mapq":
         sys.exit("Error: the MAPQ value must be an integer between 0 and 255.")
 
     return val
