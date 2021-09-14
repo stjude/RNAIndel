@@ -1,7 +1,9 @@
 {
     "class": "CommandLineTool",
-    "cwlVersion": "v1.1",
-    "id": "rnaindel",
+    "cwlVersion": "v1.2",
+    "$namespaces": {
+        "sbg": "https://sevenbridges.com"
+    },
     "baseCommand": [],
     "inputs": [
         {
@@ -9,29 +11,28 @@
             "type": {
                 "type": "enum",
                 "symbols": [
-                    "analysis",
-                    "feature",
-                    "nonsomatic",
-                    "reclassification",
-                    "recurrence",
-                    "training"
+                    "PredictIndels",
+                    "CalculateFeatures",
+                    "Train",
+                    "CountOccurrence"
                 ],
                 "name": "subcommand"
             },
             "inputBinding": {
                 "shellQuote": false,
                 "position": 0
-            }
+            },
+            "default": "PredictIndels"
         },
         {
-            "id": "input_bam",
+            "id": "input",
             "type": "File",
             "inputBinding": {
                 "prefix": "-i",
                 "shellQuote": false,
                 "position": 1
             },
-            "label": "Input BAM file",
+            "doc": "STAR-mapped BAM file to analyze",
             "sbg:fileTypes": "BAM",
             "secondaryFiles": [
                 {
@@ -43,124 +44,62 @@
             ]
         },
         {
-            "id": "fasta",
+            "loadListing": "deep_listing",
+            "id": "data_dir",
+            "type": "Directory",
+            "inputBinding": {
+                "prefix": "-d",
+                "shellQuote": false,
+                "position": 2
+            },
+            "doc": "Data directory containing trained models and databases. Can be obtained from http://ftp.stjude.org/pub/software/RNAIndel/data_dir_grch38.v3.tar.gz (GRCh38) or http://ftp.stjude.org/pub/software/RNAIndel/data_dir_grch37.v3.tar.gz (GRCh37)"
+        },
+        {
+            "id": "refdata",
             "type": "File",
             "inputBinding": {
                 "prefix": "-r",
                 "shellQuote": false,
                 "position": 3
             },
-            "label": "Input FASTA",
+            "doc": "Reference genome in FASTA format",
             "sbg:fileTypes": "FA",
             "secondaryFiles": [
                 {
-                    "pattern": ".fai"
+                    "pattern": ".fai",
+                    "required": true
                 }
             ]
         },
         {
-            "loadListing": "deep_listing",
-            "id": "data",
-            "type": "Directory",
-            "inputBinding": {
-                "prefix": "-d",
-                "shellQuote": false,
-                "position": 4
-            },
-            "label": "Data Directory"
-        },
-        {
-            "id": "user_caller_vcf",
-            "type": "File?",
-            "inputBinding": {
-                "prefix": "-v",
-                "shellQuote": false,
-                "position": 10
-            },
-            "sbg:fileTypes": "VCF"
-        },
-        {
-            "id": "star_mapping",
-            "type": "int?",
-            "inputBinding": {
-                "prefix": "-q",
-                "shellQuote": false,
-                "position": 10
-            }
-        },
-        {
-            "id": "num_cores",
+            "id": "p",
             "type": "int?",
             "inputBinding": {
                 "prefix": "-p",
                 "shellQuote": false,
-                "position": 10
-            }
-        },
-        {
-            "id": "max_heap_space",
-            "type": "string?",
-            "inputBinding": {
-                "prefix": "-m",
-                "shellQuote": false,
-                "position": 10
-            }
-        },
-        {
-            "id": "log_directory",
-            "type": "string?",
-            "inputBinding": {
-                "prefix": "-l",
-                "shellQuote": false,
-                "position": 10
-            }
-        },
-        {
-            "id": "nonsomatic_indels_vcf",
-            "type": "File?",
-            "inputBinding": {
-                "prefix": "-n",
-                "shellQuote": false,
-                "position": 10
+                "position": 5
             },
-            "sbg:fileTypes": "VCF"
-        },
-        {
-            "id": "germline_indels_vcf",
-            "type": "File?",
-            "inputBinding": {
-                "prefix": "-g",
-                "shellQuote": false,
-                "position": 10
-            },
-            "sbg:fileTypes": "VCF"
-        },
-        {
-            "id": "input",
-            "type": "string?",
-            "inputBinding": {
-                "prefix": "--region",
-                "shellQuote": false,
-                "position": 10
-            }
+            "label": "number of cores",
+            "default": 8
         }
     ],
     "outputs": [
         {
-            "id": "#output_file",
+            "id": "predicted_indels",
             "type": "File",
             "outputBinding": {
                 "glob": "*.vcf"
             }
         }
     ],
-    "label": "rnaindel",
+    "doc": "# Description\n\nRNAIndel calls coding indels from tumor RNA-Seq data and classifies them as somatic, germline, and artifactual. RNAIndel supports GRCh38 and 37.\n\n## Inputs\n* **BAM** - STAR-mapped BAM file\n* **Fasta** - Reference genome in FASTA format\n* **Reference** - Trained data models and databases. Can be obtained from http://ftp.stjude.org/pub/software/RNAIndel/data_dir_grch38.v3.tar.gz (GRCh38) or http://ftp.stjude.org/pub/software/RNAIndel/data_dir_grch37.v3.tar.gz (GRCh37)\n\n## Outputs\n* **Indel callset** - RNAIndel called indels",
+    "label": "rnaindel2",
     "arguments": [
         {
             "prefix": "-o",
             "shellQuote": false,
-            "position": 101,
-            "valueFrom": "$(inputs.input_bam.nameroot).vcf"
+            "position": 5,
+            "valueFrom": "$(inputs.input.nameroot).vcf"
         }
     ],
     "requirements": [
@@ -171,13 +110,35 @@
             "class": "LoadListingRequirement"
         },
         {
+            "class": "ResourceRequirement",
+            "ramMin": 80000,
+            "coresMin": 8
+        },
+        {
+            "class": "DockerRequirement",
+            "dockerPull": "cgc-images.sbgenomics.com/stjude/rnaindel:latest"
+        },
+        {
             "class": "InlineJavascriptRequirement"
         }
     ],
     "hints": [
         {
-            "class": "DockerRequirement",
-            "dockerPull": "ghcr.io/stjude/rnaindel:latest"
+            "class": "sbg:AWSInstanceType",
+            "value": "r4.4xlarge;ebs-gp2;1024"
         }
-    ]
+    ],
+    "sbg:links": [
+        {
+            "id": "https://github.com/stjude/RNAIndel",
+            "label": "Source Code"
+        },
+        {
+            "id": "https://doi.org/10.1093/bioinformatics/btz753",
+            "label": "Publication"
+        }
+    ],
+    "sbg:appVersion": [
+        "v1.2"
+    ],
 }
