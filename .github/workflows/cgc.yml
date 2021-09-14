@@ -8,6 +8,15 @@ jobs:
     name: "Deploy"
     steps:
       - uses: actions/checkout@v2
+      - name: Set the docker tag from Repo Tag
+        id: set_dockertag
+        env:
+          IMAGE: cgc-images.sbgenomics.com/stjude/rnaindel
+          VERSION_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          jq --arg image "${{ env.IMAGE }}:${{ env.VERSION_TAG }}" '(.requirements | .[] | select(.class == ("DockerRequirement")) | .dockerPull) |= $image' cgc/rnaindel.cwl > cgc/rnaindel.cwl.new
+          mv cgc/rnaindel.cwl.new cgc/rnaindel.cwl
+          cat cgc/rnaindel.cwl
       - id: cgcdeploy
         uses: jordan-rash/cgc-go@v0.1.4
         with:
