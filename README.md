@@ -88,6 +88,7 @@ Installing via the pip command will install the following packages:
 * [scikit-learn>=0.22.0](http://scikit-learn.org/stable/install.html#)
 
 ```
+> pip install indelpost --no-binary indelpost --no-build-isolation  
 > pip install rnaindel
 ```
 
