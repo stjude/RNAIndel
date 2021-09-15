@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import shlex
 import subprocess
@@ -8,6 +9,8 @@ CANONICALS = [str(i) for i in range(1, 23)] + ["X", "Y"]
 
 
 def callindel(bam, fasta, tmp_dir, heap_memory, region, num_of_processes):
+
+    check_java_version()
 
     # Add Bambino home dir to CLASSPATH
     bambino_home = os.path.dirname(os.path.realpath(__file__))
@@ -63,7 +66,7 @@ def callindel(bam, fasta, tmp_dir, heap_memory, region, num_of_processes):
 
             cmd_str = base_cmd_str + " -of {}".format(outfile)
             stdout, stderr, return_code = run_shell_command(cmd_str)
-            
+
             # check_caller_return(stdout, stderr, return_code)
 
     # if return_code != 0 or not os.path.isfile(output_file):
@@ -79,6 +82,31 @@ def callindel(bam, fasta, tmp_dir, heap_memory, region, num_of_processes):
     #        sys.exit(1)
     #    else:
     #        print("indel calling completed successfully.", file=sys.stdout)
+
+
+def check_java_version():
+    pattern = '"(\d+\.{0,1}\d+).*"'
+
+    version = subprocess.check_output(
+        ["java", "-version"], stderr=subprocess.STDOUT
+    ).decode("utf-8")
+    java_ver_lst = re.search(pattern, version).groups()[0].split(".")
+
+    if java_ver_lst:
+        if java_ver_lst[0] == "1":
+            if int(java_ver_lst[1]) < 8:
+                print("Java {} detected.".format(".".join(java_ver_lst)))
+                print(
+                    "RNAIndel requires Java 8 or higher. Please upgrade Java version."
+                )
+                sys.exit(1)
+
+        elif int(java_ver_lst[0]) >= 9:
+            pass
+        else:
+            print("Failed to check Java version. Continue anyway...")
+    else:
+        print("Failed to check Java version. Continue anyway...")
 
 
 def run_shell_command(command_string):
@@ -97,11 +125,6 @@ def run_shell_command(command_string):
     stderr = proc.stderr.decode("utf-8")
 
     return_code = proc.returncode
-    
-    if return_code != 0:
-        print("Failed while calling indels.", file=sys.stderr)
-        print(stderr, file=sys.stderr)
-        sys.exit(return_code)
 
     return stdout, stderr, return_code
 
