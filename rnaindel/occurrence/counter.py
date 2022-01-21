@@ -83,7 +83,7 @@ def make_indel_from_vcf_line(line, genome):
     indels = [
         Variant(chrom, pos, ref, alt, genome)
         for alt in alts
-        if Variant(chrom, pos, ref, alt, genome).variant_type == "S"
+        if Variant(chrom, pos, ref, alt, genome).variant_type != "S"
     ]
 
     if indels:
