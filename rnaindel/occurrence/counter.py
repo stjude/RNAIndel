@@ -83,7 +83,7 @@ def make_indel_from_vcf_line(line, genome):
     indels = [
         Variant(chrom, pos, ref, alt, genome)
         for alt in alts
-        if Variant(chrom, pos, ref, alt, genome).is_indel
+        if Variant(chrom, pos, ref, alt, genome).variant_type == "S"
     ]
 
     if indels:
@@ -110,9 +110,11 @@ def annotate_vcf_with_recurrence(vcf, genome, occurrence_dict, outdir):
         if line.startswith("#"):
             pass
         elif "predicted_class=somatic" in line:
-            putative_somatic = make_indel_from_vcf_line(line, genome)[0]
-            occurrence = occurrence_dict[putative_somatic]
-            new_vcf.append(append_recurrence(line, occurrence) + "\n")
+            indels = make_indel_from_vcf_line(line, genome)
+            if indels
+                putative_somatic = indels[0]
+                occurrence = occurrence_dict[putative_somatic]
+                new_vcf.append(append_recurrence(line, occurrence) + "\n")
         else:
             new_vcf.append(line)
     fi.close()
