@@ -83,7 +83,7 @@ def make_indel_from_vcf_line(line, genome):
     indels = [
         Variant(chrom, pos, ref, alt, genome)
         for alt in alts
-        if Variant(chrom, pos, ref, alt, genome).is_indel
+        if Variant(chrom, pos, ref, alt, genome).variant_type != "S"
     ]
 
     if indels:
@@ -110,9 +110,11 @@ def annotate_vcf_with_recurrence(vcf, genome, occurrence_dict, outdir):
         if line.startswith("#"):
             pass
         elif "predicted_class=somatic" in line:
-            putative_somatic = make_indel_from_vcf_line(line, genome)[0]
-            occurrence = occurrence_dict[putative_somatic]
-            new_vcf.append(append_recurrence(line, occurrence) + "\n")
+            indels = make_indel_from_vcf_line(line, genome)
+            if indels:
+                putative_somatic = indels[0]
+                occurrence = occurrence_dict[putative_somatic]
+                new_vcf.append(append_recurrence(line, occurrence) + "\n")
         else:
             new_vcf.append(line)
     fi.close()
@@ -130,7 +132,11 @@ def edit_header(vcf):
     header_lines = [line for line in open(vcf) if line.startswith("##")]
     new_header_line = '##INFO=<ID=occurrence,Number=1,Type=Integer,Description="Occurrence count in the input VCF files. Only counted for indels predicted as somatic">\n'
     bottom = [line for line in open(vcf) if line.startswith("#CHROM")]
-    return header_lines + [new_header_line] + bottom
+
+    if new_header_line not in header_lines:
+        return header_lines + [new_header_line] + bottom
+    else:
+        return header_lines + bottom
 
 
 def append_recurrence(line, occurrence):
