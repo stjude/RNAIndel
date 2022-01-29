@@ -86,7 +86,7 @@ def dbsnp_annot(variant, db):
 
         return ids, max_freq, dbsnp_common, is_common_in_non_cancer_pop
     else:
-        return "", -1, [], False
+        return ".", -1, [], False
 
 
 def clinvar_annot(variant, db):
