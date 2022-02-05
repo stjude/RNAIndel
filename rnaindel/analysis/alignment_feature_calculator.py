@@ -204,9 +204,12 @@ def indel_type_features(variant):
 
 def make_indel_alignment(variant, bam, downsample_threshold=1500):
 
-    valn = VariantAlignment(
-        variant, bam, downsample_threshold=downsample_threshold, exclude_duplicates=True
-    )
+    try:
+        valn = VariantAlignment(
+            variant, bam, downsample_threshold=downsample_threshold, exclude_duplicates=True
+        )
+    except:
+        return None
 
     contig = valn.get_contig()
     if contig:
