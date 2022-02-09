@@ -10,7 +10,7 @@ from .preprocessor import preprocess
 from .classifier import classify
 from .postprocessor import postprocess
 from .vcf_writer import write_vcf
-from .utils import validate_int_inputs, validate_file_input, validate_dir_input
+from .utils import validate_int_inputs, validate_file_input, validate_dir_input, validate_str_input
 
 
 def analyze(subcommand, version=None):
@@ -119,6 +119,7 @@ def get_args(subcommand):
         "--heap-memory",
         metavar="STR",
         default="6000m",
+        type=validate_str_input,
         help="maximum heap space (default: 6000m)",
     )
 
