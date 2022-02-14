@@ -16,7 +16,7 @@ def flatten_list_of_list(lst_of_lst):
 
 def validate_int_inputs(val, preset=None):
     val = int(val)
-    
+
     if val <= 0 and not preset:
         sys.exit("Error: the input must be a positive integer.")
     elif (val < 0 or 255 < val) and preset == "mapq":
@@ -37,6 +37,17 @@ def validate_dir_input(dir_path):
         return dir_path
     else:
         sys.exit("Error: {} not found.".format(dir_path))
+
+
+def validate_str_input(val):
+    if val.isdigit():
+        sys.exit(
+            "Error: {} is not correctly formatted to speficify max Java heap size. For example, 2g (2048m) to specify 2GB.".format(
+                val
+            )
+        )
+    else:
+        return val
 
 
 def adjust_start_pos(aligned_segment, is_for_ref):

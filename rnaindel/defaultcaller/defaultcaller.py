@@ -47,7 +47,7 @@ def callindel(bam, fasta, tmp_dir, heap_memory, region, num_of_processes):
         )
 
         stdout, stderr, return_code = run_shell_command(cmd_str)
-
+        check_caller_return(stdout, stderr, return_code, outfile)
     else:
         if num_of_processes > 1:
             cmds_by_chrom = [
@@ -57,9 +57,15 @@ def callindel(bam, fasta, tmp_dir, heap_memory, region, num_of_processes):
                 )
                 for chrom in CANONICALS
             ]
+            outfiles = [
+                os.path.join(tmp_dir, "chr{}.txt").format(chrom) for chrom in CANONICALS
+            ]
             pool = Pool(num_of_processes)
 
             caller_returns = pool.map(run_shell_command, cmds_by_chrom)
+            
+            for rets, outfile in zip(caller_returns, outfiles):
+                check_caller_return(rets[0], rets[1], rets[2], outfile)
         else:
 
             outfile = os.path.join(tmp_dir, "outfile.txt")
@@ -67,7 +73,7 @@ def callindel(bam, fasta, tmp_dir, heap_memory, region, num_of_processes):
             cmd_str = base_cmd_str + " -of {}".format(outfile)
             stdout, stderr, return_code = run_shell_command(cmd_str)
 
-            # check_caller_return(stdout, stderr, return_code)
+            check_caller_return(stdout, stderr, return_code, outfile)
 
     # if return_code != 0 or not os.path.isfile(output_file):
     #    print("Failed while calling indels.", file=sys.stderr)
@@ -129,22 +135,27 @@ def run_shell_command(command_string):
     return stdout, stderr, return_code
 
 
-# def check_caller_return(stdout, stderr, return_code):
-#
-#   if return_code != 0 :
-#       print("Failed while calling indels.", file=sys.stderr)
-#       print(stderr, file=sys.stderr)
-#       sys.exit(return_code)
-#   else:
-#       if os.stat(output_file).st_size == 0:
-#           print(
-#               "No variants called. Check if the input reference FASTA file is the same file used for mapping.",
-#               file=sys.stderr,
-#           )
-#           sys.exit(1)
-#       else:
-#           print("indel calling completed successfully.", file=sys.stdout)
-#
+def check_caller_return(stdout, stderr, return_code, outfile):
+
+    if return_code != 0:
+        print("Failed while calling indels.", file=sys.stderr)
+        print(stderr, file=sys.stderr)
+        sys.exit(return_code)
+    else:
+        if not os.path.isfile(outfile):
+            print("Failed while calling indels.")
+            print(stdout, file=sys.stdout)
+            print(stderr, file=sys.stderr)
+            sys.exit(1)
+
+        # if os.statdd(outfile).st_size == 0:
+        #    print(
+        #        "No variants called. Check if the input reference FASTA file is the same file used for mapping.",
+        #        file=sys.stderr,
+        #    )
+        #    sys.exit(1)
+        # else:
+        #    print("indel calling completed successfully.", file=sys.stdout)
 
 
 def check_file(file_path, file_name):

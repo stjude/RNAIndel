@@ -6,6 +6,7 @@ CANONICALS = [str(i) for i in range(1, 23)] + ["X", "Y"]
 
 
 def format_callset(tmp_dir, external_vcf, pass_only, region):
+
     allchroms = get_outfile(tmp_dir)
     if allchroms:
         append_external_indels(
