@@ -87,16 +87,16 @@
 </p>
 
 <p>To download:</p>
-<pre><code>curl -LO http://ftp.stjude.org/pub/software/RNAIndel/sampledataset.v3.tar.gz
-tar -zxf sampledataset.v3.tar.gz
+<pre><code>curl -LO https://zenodo.org/record/6109305/files/sampledataset.tar.gz
+tar -zxf sampledataset.tar.gz
 </code></pre>
 <p>RNAIndel integrates the callset from the built-in caller and that from GAKT (pre-called).<br>
 To do this, input the original BAM file (i.e., sample.bam, not the pre-processed one) and the GATK VCF file:</p>
-<pre><code>rnaindel PredictIndels -i sampledateaset/sample.bam \ # do not use sample.gatk.bam
+<pre><code>rnaindel PredictIndels -i sampledataset/sample.bam \ # do not use sample.gatk.bam
                        -o test.vcf \
-                       -r sampledateaset/chr10.fa \
+                       -r sampledataset/chr10.fa \
                        -d data_dir_grch38 \
-                       -v sampledateaset/sample.gatk.vcf.gz \
+                       -v sampledataset/sample.gatk.vcf.gz \
 </code></pre>
 <p>The output <a href="test.vcf">VCF</a> reports the expressed coding indels called from the 2 methods. Each indel is annoated in INFO field for prdicted class (somatic, germline, artifact) and by which caller it was detected (built-in, external, both). In this example, indels predicted as somatic are:</p>
 <pre><code>CHROM   POS         REF  ALT        INFO
