@@ -114,11 +114,11 @@ optional arguments:
 Download data package (version 3 is not compatible with the previous data package). 
 ```
 #GRCh38
-curl -LO http://ftp.stjude.org/pub/software/RNAIndel/data_dir_grch38.v3.tar.gz
+curl -LO https://zenodo.org/record/6109305/files/data_dir_grch38.tar.gz
 tar -zxf data_dir_grch38.v3.tar.gz
 
 #GRCh37
-curl -LO http://ftp.stjude.org/pub/software/RNAIndel/data_dir_grch37.v3.tar.gz
+curl -LO https://zenodo.org/record/6109305/files/data_dir_grch37.tar.gz
 tar -zxf data_dir_grch37.v3.tar.gz
 ```
 

@@ -9,18 +9,18 @@ Using reads around the *PTEN* tumor suppresor gene locus (chr10:87,863,113-87,97
 
 To download:
 ```
-curl -LO http://ftp.stjude.org/pub/software/RNAIndel/sampledataset.v3.tar.gz
-tar -zxf sampledataset.v3.tar.gz
+curl -LO https://zenodo.org/record/6109305/files/sampledataset.tar.gz
+tar -zxf sampledataset.tar.gz
 ```
 
 RNAIndel integrates the callset from the built-in caller and that from GAKT (pre-called).<br>
 To do this, input the original BAM file (i.e., sample.bam, not the pre-processed one) and the GATK VCF file:
 ```
-rnaindel PredictIndels -i sampledateaset/sample.bam \ # do not use sample.gatk.bam
+rnaindel PredictIndels -i sampledataset/sample.bam \ # do not use sample.gatk.bam
                        -o test.vcf \
-                       -r sampledateaset/chr10.fa \
+                       -r sampledataset/chr10.fa \
                        -d data_dir_grch38 \
-                       -v sampledateaset/sample.gatk.vcf.gz \
+                       -v sampledataset/sample.gatk.vcf.gz \
 ```
 
 The output [VCF](test.vcf) reports the expressed coding indels called from the 2 methods. Each indel is annoated in INFO field for prdicted class (somatic, germline, artifact) and by which caller it was detected (built-in, external, both). In this example, indels predicted as somatic are:
