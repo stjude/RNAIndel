@@ -67,12 +67,12 @@ RNAIndel can be executed via Docker or run locally, downloadable via PyPI.
 ### Docker
 We publish our latest docker builds on GitHub.  You can run the latest code base by running the following command
 ```
-> docker run --rm -v ${pwd}:/data ghcr.io/stjude/rnaindel:latest
+> docker run --rm -v ${PWD}:/data ghcr.io/stjude/rnaindel:latest
 ```
 
 If you want to have a more native feel, you can add an alias to your shell's rc file.
 ```
-> alias rnaindel="docker run --rm -v ${pwd}:/data ghcr.io/stjude/rnaindel:latest"
+> alias rnaindel="docker run --rm -v ${PWD}:/data ghcr.io/stjude/rnaindel:latest"
 ```
 Note: if its the first time you are executing the `docker run` command, you will see the output of docker downloading the image
 
