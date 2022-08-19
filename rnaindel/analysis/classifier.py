@@ -6,8 +6,6 @@ import pickle
 import warnings
 import numpy as np
 import pandas as pd
-from functools import partial
-from multiprocessing import Pool
 
 warnings.filterwarnings("ignore")
 
@@ -50,7 +48,6 @@ def calculate_proba(df, model_dir, num_of_processes):
     df["order"] = df.index
     df_sni, df_mni = split_by_indel_size(df)
 
-    pool = Pool(num_of_processes)
     header = ["prob_a", "prob_g", "prob_s"]
 
     # prediction for 1-nt (sni) indels
@@ -58,8 +55,13 @@ def calculate_proba(df, model_dir, num_of_processes):
         sni_models = [
             os.path.join(model_dir, "sni." + str(i) + ".pkl.gz") for i in range(20)
         ]
-        sni_pred = partial(predict, data=df_sni, features=sni_features)
-        sni_proba = np.average(pool.map(sni_pred, sni_models), axis=0)
+        sni_proba = np.average(
+            [
+                predict(model, data=df_sni, features=sni_features)
+                for model in sni_models
+            ],
+            axis=0,
+        )
         dfp_sni = pd.DataFrame(data=sni_proba)
         dfp_sni.columns = header
     else:
@@ -72,8 +74,13 @@ def calculate_proba(df, model_dir, num_of_processes):
         mni_models = [
             os.path.join(model_dir, "mni." + str(i) + ".pkl.gz") for i in range(20)
         ]
-        mni_pred = partial(predict, data=df_mni, features=mni_features)
-        mni_proba = np.average(pool.map(mni_pred, mni_models), axis=0)
+        mni_proba = np.average(
+            [
+                predict(model, data=df_mni, features=mni_features)
+                for model in mni_models
+            ],
+            axis=0,
+        )
         dfp_mni = pd.DataFrame(data=mni_proba)
         dfp_mni.columns = header
     else:

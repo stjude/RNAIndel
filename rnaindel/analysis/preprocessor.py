@@ -51,6 +51,9 @@ def preprocess(
             callsets_by_chrom,
         )
 
+        pool.close()
+        pool.join()
+
         df = pd.concat(dfs)
 
     return df
