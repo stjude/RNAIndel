@@ -70,7 +70,7 @@ def filter_str(row, non_somatic_db, pon, mapping_thresh):
             filter_by_mappability(row, mapping_thresh),
         ]
         if any(s):
-            return ",".join(s).strip(",")
+            return ";".join(s).strip(";")
         else:
             return "PASS"
     else:
