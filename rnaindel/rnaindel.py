@@ -22,7 +22,7 @@ subcommands are:
     PredictIndels             Predict somatic/germline/artifact indels from tumor RNA-Seq data
     CalculateFeatures         Calculate and report features for training
     Train                     Perform model training
-    CountOccurrence           Count occurrence within cohort to filter false somatic predictions""",
+    CountOccurrence           Find overrepresented somatic predictions within cohort to filter false positives""",
         )
 
         parser.add_argument(
