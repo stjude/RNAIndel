@@ -108,7 +108,7 @@ def get_args(subcommand):
         metavar="INT",
         default=1,
         type=validate_int_inputs,
-        help="number of processes (defaul: 1)",
+        help="number of processes (default: 1)",
     )
 
     parser.add_argument(
