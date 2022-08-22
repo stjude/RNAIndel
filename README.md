@@ -169,6 +169,7 @@ See [demo](./docs/walkthrough/README.md).
     * ```--pon``` user's defined list of non-somatic calls such as PanelOfNormals. Supply as .vcf.gz with index (default: None)
     * ```--include-all-external-calls``` set to include all indels in VCF file supplied by -v. (default: False. Use only calls with PASS in FILTER) 
     * ```--skip-homopolyer-outlier-analysis``` no outlier analysis for homopolymer indels (repeat > 4) performed if set. (default: False)  
+    * ```--safety-mode``` deactivate parallelism at realignment step. may be required to run with -p > 1 on some platforms. (default: False)
 
 </p></details>
 

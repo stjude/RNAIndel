@@ -10,7 +10,12 @@ from .preprocessor import preprocess
 from .classifier import classify
 from .postprocessor import postprocess
 from .vcf_writer import write_vcf
-from .utils import validate_int_inputs, validate_file_input, validate_dir_input, validate_str_input
+from .utils import (
+    validate_int_inputs,
+    validate_file_input,
+    validate_dir_input,
+    validate_str_input,
+)
 
 
 def analyze(subcommand, version=None):
@@ -39,6 +44,7 @@ def analyze(subcommand, version=None):
             region,
             external_vcf,
             args.pass_only,
+            args.safety_mode,
         )
         if len(df) == 0:
             write_vcf(df, version, args)
@@ -158,6 +164,14 @@ def get_args(subcommand):
 
         parser.set_defaults(perform_outlier_analysis=True)
 
+        parser.add_argument(
+            "--safety-mode",
+            dest="safety_mode",
+            action="store_true",
+            help="deactivate parallelism at realignment step (experimental feature)",
+        )
+
+        parser.set_defaults(safety_mode=False)
     else:
         parser.add_argument(
             "-o",
