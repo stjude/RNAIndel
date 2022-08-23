@@ -27,6 +27,7 @@ def preprocess(
     region,
     external_vcf,
     pass_only,
+    safety_mode,
 ):
     if num_of_processes == 1:
 
@@ -37,19 +38,35 @@ def preprocess(
     else:
         callsets_by_chrom = format_callset(tmp_dir, external_vcf, pass_only, region)
 
-        pool = Pool(num_of_processes)
+        if safety_mode:
+            dfs = [
+                calculate_features(
+                    call_set_by_chrom,
+                    fasta_file=fasta_file,
+                    bam_file=bam_file,
+                    data_dir=data_dir,
+                    mapq=mapq,
+                    external_vcf=external_vcf,
+                )
+                for call_set_by_chrom in callsets_by_chrom
+            ]
+        else:
+            pool = Pool(num_of_processes)
 
-        dfs = pool.map(
-            partial(
-                calculate_features,
-                fasta_file=fasta_file,
-                bam_file=bam_file,
-                data_dir=data_dir,
-                mapq=mapq,
-                external_vcf=external_vcf,
-            ),
-            callsets_by_chrom,
-        )
+            dfs = pool.map(
+                partial(
+                    calculate_features,
+                    fasta_file=fasta_file,
+                    bam_file=bam_file,
+                    data_dir=data_dir,
+                    mapq=mapq,
+                    external_vcf=external_vcf,
+                ),
+                callsets_by_chrom,
+            )
+
+            pool.close()
+            pool.join()
 
         df = pd.concat(dfs)
 

@@ -63,7 +63,10 @@ def callindel(bam, fasta, tmp_dir, heap_memory, region, num_of_processes):
             pool = Pool(num_of_processes)
 
             caller_returns = pool.map(run_shell_command, cmds_by_chrom)
-            
+
+            pool.close()
+            pool.join()
+
             for rets, outfile in zip(caller_returns, outfiles):
                 check_caller_return(rets[0], rets[1], rets[2], outfile)
         else:
