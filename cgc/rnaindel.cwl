@@ -86,7 +86,7 @@
             "id": "m",
             "type": "string?",
             "inputBinding": {
-                "prefix": "-p",
+                "prefix": "-m",
                 "shellQuote": false,
                 "position": 6
             },
