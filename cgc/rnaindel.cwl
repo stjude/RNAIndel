@@ -81,6 +81,17 @@
             },
             "label": "number of cores",
             "default": 8
+        },
+        {
+            "id": "m",
+            "type": "string?",
+            "inputBinding": {
+                "prefix": "-m",
+                "shellQuote": false,
+                "position": 6
+            },
+            "label": "Java heap space",
+            "default": "6000m"
         }
     ],
     "outputs": [
