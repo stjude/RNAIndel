@@ -4,13 +4,13 @@ import datetime
 from .classifier import make_feature_dict
 
 
-def write_vcf(df, version, arguments):
+def write_vcf(df, version, arguments, tdna, ndna):
 
     header = (
         header_1(version, arguments.reference)
         + filter_fields()
         + info_fields()
-        + format_fields()
+        + format_fields(tdna, ndna)
         + get_cmd_line(arguments)
         + get_features_used(arguments.data_dir)
         + bottom_header(arguments.bam)
@@ -45,15 +45,30 @@ def get_today():
 
 
 def get_cmd_line(args):
-    cmd = "rnaindel PredictSomaticIndels -i {} -r {} -o {} -d {} -m {} -p {} -q {} --region {}".format(
-        os.path.abspath(args.bam),
-        os.path.abspath(args.reference),
-        os.path.abspath(args.output_vcf),
-        os.path.abspath(args.data_dir),
-        args.heap_memory,
-        args.process_num,
-        args.uniq_mapq,
-        args.region,
+    cmd = (
+        "rnaindel PredictIndels --bam {} --reference {} --output-vcf {} "
+        "--data-dir {} --heap-memory {} --process-num {} "
+        "--uniq-mapq {} --vcf-file {} --tumor-dna {} "
+        "--normal--dna {} --region {} --pon {} "
+        "--include-all-external-calls {} "
+        "--skip-homopolyer-outlier-analysis {} "
+        "--safety-mode {}".format(
+            os.path.abspath(args.bam),
+            os.path.abspath(args.reference),
+            os.path.abspath(args.output_vcf),
+            os.path.abspath(args.data_dir),
+            args.heap_memory,
+            args.process_num,
+            args.uniq_mapq,
+            args.vcf_file,
+            args.tumor_dna,
+            args.normal_dna,
+            args.region,
+            args.pon,
+            (not args.pass_only),
+            (not args.perform_outlier_analysis),
+            (args.safety_mode),
+        )
     )
 
     h = ["##cmdline={}".format(cmd)]
@@ -133,8 +148,21 @@ def info_fields():
     return h
 
 
-def format_fields():
-    h = ['##FORMAT=<ID=AD,Number=2,Type=Integer,Description="Allele depth.">']
+def format_fields(tdna, ndna):
+    h = [
+        '##FORMAT=<ID=AD,Number=2,Type=Integer,Description="Allele depth in RNA-Seq.">'
+    ]
+
+    if tdna:
+        h.append(
+            '##FORMAT=<ID=TUMOR_DNA_AD,Number=2,Type=Integer,Description="Allele depth in Tumor DNA-Seq.">'
+        )
+
+    if ndna:
+        h.append(
+            '##FORMAT=<ID=NORMAL_DNA_AD,Number=2,Type=Integer,Description="Allele depth in Normal DNA-Seq.">'
+        )
+
     return h
 
 
@@ -169,6 +197,14 @@ def parse_row_to_vcf_record(row):
     info_str = generate_info_str(row)
     fmt = "AD"
     sample = "{},{}".format(row["ref_count"], row["alt_count"])
+
+    if row["t_dna_ref_count"] > -1:
+        fmt += ":TUMOR_DNA_AD"
+        sample += ":{},{}".format(row["t_dna_ref_count"], row["t_dna_alt_count"])
+
+    if row["n_dna_ref_count"] > -1:
+        fmt += ":NORMAL_DNA_AD"
+        sample += ":{},{}".format(row["n_dna_ref_count"], row["n_dna_alt_count"])
 
     return "\t".join([chrom, pos, snpid, ref, alt, qual, fltr, info_str, fmt, sample])
 
