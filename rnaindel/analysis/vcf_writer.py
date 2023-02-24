@@ -198,13 +198,19 @@ def parse_row_to_vcf_record(row):
     fmt = "AD"
     sample = "{},{}".format(row["ref_count"], row["alt_count"])
 
-    if row["t_dna_ref_count"] > -1:
-        fmt += ":TUMOR_DNA_AD"
-        sample += ":{},{}".format(row["t_dna_ref_count"], row["t_dna_alt_count"])
+    try:
+        if row["t_dna_ref_count"] > -1:
+            fmt += ":TUMOR_DNA_AD"
+            sample += ":{},{}".format(row["t_dna_ref_count"], row["t_dna_alt_count"])
+    except:
+        pass
 
-    if row["n_dna_ref_count"] > -1:
-        fmt += ":NORMAL_DNA_AD"
-        sample += ":{},{}".format(row["n_dna_ref_count"], row["n_dna_alt_count"])
+    try:
+        if row["n_dna_ref_count"] > -1:
+            fmt += ":NORMAL_DNA_AD"
+            sample += ":{},{}".format(row["n_dna_ref_count"], row["n_dna_alt_count"])
+    except:
+        pass
 
     return "\t".join([chrom, pos, snpid, ref, alt, qual, fltr, info_str, fmt, sample])
 
