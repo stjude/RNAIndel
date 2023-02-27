@@ -244,6 +244,14 @@ indel realignment may prevent desired behavior.</p>
 See <a href="./docs/walkthrough/README.md">demo</a>.</p>
 <pre><code>&gt; rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v gatk.vcf.gz -p 8
 </code></pre>
+<h4 id="with-dna-seq">With DNA-Seq</h4>
+<p>Somatic predictions from RNA-Seq are validated against DNA-Seq on the fly.</p>
+<pre><code>&gt; rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -t tumor.dna.bam -n normal.dna.bam -p 8
+</code></pre>
+<h4 id="extravagenza">Extravagenza</h4>
+<p>Leverage all resources for best performance. </p>
+<pre><code>&gt; rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v mutect2.vcf.gz -t tumor.dna.bam -n normal.dna.bam -p 8
+</code></pre>
 <h4 id="options">Options</h4>
 <ul>
 <li><code>-i</code> input <a href="https://academic.oup.com/bioinformatics/article/29/1/15/272537">STAR</a>-mapped BAM file (required)</li>
@@ -383,6 +391,6 @@ Please let me know what your experience with RNAIndel was like (even bad comment
 </html>
 
 <!--
-MkDocs version : 1.3.1
-Build Date UTC : 2022-09-13 17:59:59.642437+00:00
+MkDocs version : 1.4.2
+Build Date UTC : 2023-02-27 20:53:58.862476+00:00
 -->
