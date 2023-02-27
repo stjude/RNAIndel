@@ -81,6 +81,90 @@
             },
             "label": "number of cores",
             "default": 8
+        },
+        {
+            "id": "tumor",
+            "type": "File?",
+            "inputBinding": {
+                "prefix": "-t",
+                "shellQuote": false,
+                "position": 6
+            },
+            "label": "Tumor DNA-Seq BAM file for cross-platform check (default: None)"
+        },
+        {
+            "id": "normal",
+            "type": "File?",
+            "inputBinding": {
+                "prefix": "-n",
+                "shellQuote": false,
+                "position": 7
+            },
+            "label": "Normal DNA-Seq BAM file for cross-platform check (default: None)"
+        },
+        {
+            "id": "vcf",
+            "type": "File?",
+            "inputBinding": {
+                "prefix": "-v",
+                "shellQuote": false,
+                "position": 8
+            },
+            "label": "VCF file from external caller. Supply as vcf.gz + index",
+            "secondaryFiles": [
+                {
+                    "pattern": ".tbi",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "id": "mapq",
+            "type": "int?",
+            "inputBinding": {
+                "prefix": "-q",
+                "shellQuote": false,
+                "position": 9
+            },
+            "label": "STAR mapping quality MAPQ for unique mappers (default: 255)",
+            "default": 255
+        },
+        {
+            "id": "heap",
+            "type": "string?",
+            "inputBinding": {
+                "prefix": "-m",
+                "shellQuote": false,
+                "position": 10
+            },
+            "label": "maximum heap space (default: 6000m)",
+            "default": "6000m"
+        },
+        {
+            "id": "pon",
+            "type": "File?",
+            "inputBinding": {
+                "prefix": "--pon",
+                "shellQuote": false,
+                "position": 11
+            },
+            "label": "User defined panel of normals to refine somatic predictions. Supply as vcf.gz + index",
+            "secondaryFiles": [
+                {
+                    "pattern": ".tbi",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "id": "region",
+            "type": "string?",
+            "inputBinding": {
+                "prefix": "--region",
+                "shellQuote": false,
+                "position": 12
+            },
+            "label": "specify region for target analysis: chrN:start-stop (default: None)",
         }
     ],
     "outputs": [
