@@ -153,6 +153,19 @@ See [demo](./docs/walkthrough/README.md).
 ```
 > rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v gatk.vcf.gz -p 8
 ```
+
+#### With DNA-Seq
+Somatic predictions from RNA-Seq are validated against DNA-Seq on the fly.
+```
+> rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -t tumor.dna.bam -n normal.dna.bam -p 8
+``` 
+
+#### Extravagenza
+Leverage all resources for best performance. 
+```
+> rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v mutect2.vcf.gz -t tumor.dna.bam -n normal.dna.bam -p 8
+```
+
 #### Options
 * ```-i``` input [STAR](https://academic.oup.com/bioinformatics/article/29/1/15/272537)-mapped BAM file (required)
 * ```-o``` output VCF file (required)

@@ -9,6 +9,7 @@ from rnaindel.defaultcaller.defaultcaller import callindel
 from .preprocessor import preprocess
 from .classifier import classify
 from .postprocessor import postprocess
+from .cross_checker import cross_check
 from .vcf_writer import write_vcf
 from .utils import (
     validate_int_inputs,
@@ -28,6 +29,8 @@ def analyze(subcommand, version=None):
     mapq = args.uniq_mapq
     region = args.region
     external_vcf = args.vcf_file
+    tdna = args.tumor_dna
+    ndna = args.normal_dna
 
     n_processes = 1 if region else args.process_num
 
@@ -54,7 +57,10 @@ def analyze(subcommand, version=None):
 
     df = postprocess(df, data_dir, args.perform_outlier_analysis, args.pon)
 
-    write_vcf(df, version, args)
+    if tdna or ndna:
+        df = cross_check(df, fasta, tdna, ndna)
+
+    write_vcf(df, version, args, tdna, ndna)
 
 
 def get_args(subcommand):
@@ -130,6 +136,23 @@ def get_args(subcommand):
     )
 
     if subcommand == "PredictIndels":
+        parser.add_argument(
+            "-t",
+            "--tumor-dna",
+            metavar="FILE",
+            default=None,
+            type=validate_file_input,
+            help="Tumor DNA-Seq BAM file for cross-platform check (default: None)",
+        )
+
+        parser.add_argument(
+            "-n",
+            "--normal-dna",
+            metavar="FILE",
+            default=None,
+            type=validate_file_input,
+            help="Normal DNA-Seq BAM file for cross-platform check (default: None)",
+        )
 
         parser.add_argument(
             "--pon",

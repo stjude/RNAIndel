@@ -131,7 +131,7 @@ def sort_positionally(df):
     df["chrom"] = df.apply(lambda x: 24 if x["chrom"] == "Y" else x["chrom"], axis=1)
     df["chrom"] = df.apply(lambda x: int(x["chrom"]), axis=1)
 
-    df.sort_values(["chrom", "pos"], inplace=True)
+    df.sort_values(["chrom", "cpos"], inplace=True)
 
     df["chrom"] = df.apply(lambda x: "Y" if x["chrom"] == 24 else x["chrom"], axis=1)
     df["chrom"] = df.apply(lambda x: "X" if x["chrom"] == 23 else x["chrom"], axis=1)
