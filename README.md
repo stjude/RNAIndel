@@ -160,7 +160,7 @@ Somatic predictions from RNA-Seq are validated against DNA-Seq on the fly.
 > rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -t tumor.dna.bam -n normal.dna.bam -p 8
 ``` 
 
-#### Extravagenza
+#### Extravaganza
 Leverage all resources for best performance. 
 ```
 > rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v mutect2.vcf.gz -t tumor.dna.bam -n normal.dna.bam -p 8
@@ -176,6 +176,8 @@ Leverage all resources for best performance.
 * <details>
     <summary>other options (click to open)</summary><p>
         
+    * ```-t``` Tumor DNA-Seq BAM file (default: None)
+    * ```-n``` Normal DNA-Seq BAM file (default: None)
     * ```-q``` STAR mapping quality MAPQ for unique mappers (default: 255)
     * ```-m``` maximum heap space (default: 6000m)
     * ```--region``` target genomic region. specify by chrN:start-stop (default: None)
@@ -204,7 +206,6 @@ Check [occurrence](./docs/filtering) to filter probable false positives.
 
 ## Contact
 * kohei.hagiwara[AT]stjude.org   
-Please let me know what your experience with RNAIndel was like (even bad comments are welcome)!
 
 ## Citation
 Published in [Bioinformatics](https://doi.org/10.1093/bioinformatics/btz753)
