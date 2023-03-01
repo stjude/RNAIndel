@@ -248,7 +248,7 @@ See <a href="./docs/walkthrough/README.md">demo</a>.</p>
 <p>Somatic predictions from RNA-Seq are validated against DNA-Seq on the fly.</p>
 <pre><code>&gt; rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -t tumor.dna.bam -n normal.dna.bam -p 8
 </code></pre>
-<h4 id="extravagenza">Extravagenza</h4>
+<h4 id="extravaganza">Extravaganza</h4>
 <p>Leverage all resources for best performance. </p>
 <pre><code>&gt; rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v mutect2.vcf.gz -t tumor.dna.bam -n normal.dna.bam -p 8
 </code></pre>
@@ -264,6 +264,8 @@ See <a href="./docs/walkthrough/README.md">demo</a>.</p>
 <p><details>
     <summary>other options (click to open)</summary><p></p>
 <ul>
+<li><code>-t</code> Tumor DNA-Seq BAM file (default: None)</li>
+<li><code>-n</code> Normal DNA-Seq BAM file (default: None)</li>
 <li><code>-q</code> STAR mapping quality MAPQ for unique mappers (default: 255)</li>
 <li><code>-m</code> maximum heap space (default: 6000m)</li>
 <li><code>--region</code> target genomic region. specify by chrN:start-stop (default: None)</li>
@@ -306,8 +308,7 @@ on a server with 32-core AMD EPYC 7542 CPU @2.90 GHz.</p>
 <p>Check <a href="./docs/filtering">occurrence</a> to filter probable false positives.</p>
 <h2 id="contact">Contact</h2>
 <ul>
-<li>kohei.hagiwara[AT]stjude.org <br />
-Please let me know what your experience with RNAIndel was like (even bad comments are welcome)!</li>
+<li>kohei.hagiwara[AT]stjude.org   </li>
 </ul>
 <h2 id="citation">Citation</h2>
 <p>Published in <a href="https://doi.org/10.1093/bioinformatics/btz753">Bioinformatics</a></p></div>
@@ -392,5 +393,5 @@ Please let me know what your experience with RNAIndel was like (even bad comment
 
 <!--
 MkDocs version : 1.4.2
-Build Date UTC : 2023-02-27 20:53:58.862476+00:00
+Build Date UTC : 2023-03-01 20:13:31.887267+00:00
 -->
