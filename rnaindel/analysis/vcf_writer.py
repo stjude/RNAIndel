@@ -13,6 +13,7 @@ def write_vcf(df, version, arguments, tdna, ndna):
         + format_fields(tdna, ndna)
         + get_cmd_line(arguments)
         + get_features_used(arguments.data_dir)
+        + format_contigs(df)
         + bottom_header(arguments.bam)
     )
 
@@ -25,6 +26,10 @@ def write_vcf(df, version, arguments, tdna, ndna):
         f.write(vcf_record + "\n")
 
     f.close()
+
+    pysam.tabix_index(
+        arguments.output_vcf, preset="vcf", force=True, keep_original=False
+    )
 
 
 def header_1(version, fasta):
@@ -96,6 +101,8 @@ def filter_fields():
     h = [
         '##FILTER=<ID=ProbableArtifact,Description="Matches to known non-somatic indel with the predicted artifact probability higher than the germline probability.">',
         '##FILTER=<ID=ProbableGermline,Description="Matches to known common indel or non-somatic indel with the predicted germline probability higher than the artifact probability">',
+        '##FILTER=<ID=ProbableArtifactByPON,Description="Matches to user-defined non-somatic indel with the predicted artifact probability higher than the germline probability.">',
+        '##FILTER=<ID=ProbableGermlineByPON,Description="Matches to user-defined non-somatic indel with the predicted germline probability higher than the artifact probability">',
         '##FILTER=<ID=LowMappabilityRegion,Description="More than half of reads covering the indel locus having MAPQ < unique mapping quality score.">',
     ]
     return h
@@ -162,6 +169,13 @@ def format_fields(tdna, ndna):
         h.append(
             '##FORMAT=<ID=NORMAL_DNA_AD,Number=2,Type=Integer,Description="Allele depth in Normal DNA-Seq.">'
         )
+
+    return h
+
+
+def format_contigs(df):
+    contigs = df["chrom"].drop_duplicates()
+    h = ["##contig=<ID={}>".format(contig) for contig in contigs]
 
     return h
 
