@@ -164,7 +164,7 @@
                 "shellQuote": false,
                 "position": 12
             },
-            "label": "specify region for target analysis: chrN:start-stop (default: None)",
+            "label": "specify region for target analysis: chrN:start-stop (default: None)"
         }
     ],
     "outputs": [
