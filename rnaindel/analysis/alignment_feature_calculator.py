@@ -206,7 +206,10 @@ def make_indel_alignment(variant, bam, downsample_threshold=1500):
 
     try:
         valn = VariantAlignment(
-            variant, bam, downsample_threshold=downsample_threshold, exclude_duplicates=True
+            variant,
+            bam,
+            downsample_threshold=downsample_threshold,
+            exclude_duplicates=True,
         )
     except:
         return None

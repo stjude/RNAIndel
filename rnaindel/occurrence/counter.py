@@ -2,6 +2,7 @@
 
 import os
 import sys
+import gzip
 import pysam
 import argparse
 from functools import partial
@@ -61,7 +62,15 @@ def validate_file_lst(filename):
 
 
 def is_rnaindel_output_vcf(vcf):
-    headers = [line for line in open(vcf) if line.startswith("##source=RNAIndel")]
+    if vcf.endswith(".gz"):
+        headers = [
+            line
+            for line in gzip.open(vcf, "rt")
+            if line.startswith("##source=RNAIndel")
+        ]
+    else:
+        headers = [line for line in open(vcf) if line.startswith("##source=RNAIndel")]
+
     if headers:
         return True
     else:
@@ -93,7 +102,15 @@ def make_indel_from_vcf_line(line, genome):
 
 
 def collect_somatic_predictions_from_vcf(vcf, genome):
-    somatic_lines = [line for line in open(vcf) if "predicted_class=somatic" in line]
+    if vcf.endswith(".gz"):
+        somatic_lines = [
+            line for line in gzip.open(vcf, "rt") if "predicted_class=somatic" in line
+        ]
+    else:
+        somatic_lines = [
+            line for line in open(vcf) if "predicted_class=somatic" in line
+        ]
+
     parsed_somatic_lines = [
         make_indel_from_vcf_line(line, genome)
         for line in somatic_lines
@@ -102,10 +119,19 @@ def collect_somatic_predictions_from_vcf(vcf, genome):
     return to_flat_lst(parsed_somatic_lines)
 
 
+def rreplace(s, old, new):
+    li = s.rsplit(old, 1)
+    return new.join(li)
+
+
 def annotate_vcf_with_recurrence(vcf, genome, occurrence_dict, outdir):
     new_vcf = edit_header(vcf)
 
-    fi = open(vcf)
+    if vcf.endswith(".gz"):
+        fi = gzip.open(vcf, "rt")
+    else:
+        fi = open(vcf)
+
     for line in fi:
         if line.startswith("#"):
             pass
@@ -120,18 +146,33 @@ def annotate_vcf_with_recurrence(vcf, genome, occurrence_dict, outdir):
     fi.close()
 
     if outdir:
-        filename = os.path.basename(vcf).replace(".vcf", ".occurrence.vcf")
-        fo = open(os.path.join(outdir, filename), "w")
+        filename = os.path.join(outdir, os.path.basename(vcf))
     else:
-        fo = open(vcf, "w")
+        filename = vcf
+
+    filename = rreplace(filename, ".vcf", ".occurrence.vcf")
+    filename = rreplace(filename, ".gz", "")
+
+    fo = open(filename, "w")
+
     fo.write("".join(new_vcf))
     fo.close()
 
+    pysam.tabix_index(filename, preset="vcf", force=True, keep_original=False)
+
 
 def edit_header(vcf):
-    header_lines = [line for line in open(vcf) if line.startswith("##")]
+    if vcf.endswith(".gz"):
+        header_lines = [line for line in gzip.open(vcf, "rt") if line.startswith("##")]
+    else:
+        header_lines = [line for line in open(vcf) if line.startswith("##")]
+
     new_header_line = '##INFO=<ID=occurrence,Number=1,Type=Integer,Description="Occurrence count in the input VCF files. Only counted for indels predicted as somatic">\n'
-    bottom = [line for line in open(vcf) if line.startswith("#CHROM")]
+
+    if vcf.endswith(".gz"):
+        bottom = [line for line in gzip.open(vcf, "rt") if line.startswith("#CHROM")]
+    else:
+        bottom = [line for line in open(vcf) if line.startswith("#CHROM")]
 
     if new_header_line not in header_lines:
         return header_lines + [new_header_line] + bottom
