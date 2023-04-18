@@ -63,7 +63,6 @@ def is_rescurable_homopolymer(row):
 
 
 def filter_str(row, non_somatic_db, pon, mapping_thresh):
-
     pred = row["predicted_class"]
 
     if pred == "somatic":
@@ -81,7 +80,6 @@ def filter_str(row, non_somatic_db, pon, mapping_thresh):
 
 
 def filter_by_db(row, non_somatic_db, pon):
-
     non_somatic_hits = row["indel"].query_vcf(non_somatic_db)
 
     if non_somatic_hits:
@@ -134,10 +132,6 @@ def sort_positionally(df):
     df["_chrom"] = df.apply(lambda x: int(x["_chrom"]), axis=1)
 
     df.sort_values(["_chrom", "cpos"], inplace=True)
-
-    #df["chrom"] = df.apply(lambda x: "Y" if x["chrom"] == 24 else x["chrom"], axis=1)
-    #df["chrom"] = df.apply(lambda x: "X" if x["chrom"] == 23 else x["chrom"], axis=1)
-    #df["chrom"] = df.apply(lambda x: "chr" + str(x["chrom"]), axis=1)
 
     return df
 
