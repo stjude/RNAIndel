@@ -5,7 +5,6 @@ from .classifier import make_feature_dict
 
 
 def write_vcf(df, version, arguments, tdna, ndna):
-
     header = (
         header_1(version, arguments.reference)
         + filter_fields()
@@ -17,7 +16,14 @@ def write_vcf(df, version, arguments, tdna, ndna):
         + bottom_header(arguments.bam)
     )
 
-    f = open(arguments.output_vcf, "w")
+    _out_vcf = arguments.output_vcf
+    if _out_vcf.endswith(".vcf.gz"):
+        _out_vcf = _out_vcf[:-3]
+
+    if not _out_vcf.endswith(".vcf"):
+        _out_vcf = _out_vcf + ".vcf"
+
+    f = open(_out_vcf, "w")
 
     f.write("\n".join(header))
 
@@ -27,9 +33,7 @@ def write_vcf(df, version, arguments, tdna, ndna):
 
     f.close()
 
-    pysam.tabix_index(
-        arguments.output_vcf, preset="vcf", force=True, keep_original=False
-    )
+    pysam.tabix_index(_out_vcf, preset="vcf", force=True, keep_original=False)
 
 
 def header_1(version, fasta):
@@ -230,13 +234,15 @@ def parse_row_to_vcf_record(row):
 
 
 def generate_info_str(row):
-    info_str = "predicted_class={};probabilities={},{},{};annotation={};cosmic_cnt={};".format(
-        row["predicted_class"],
-        row["prob_s"],
-        row["prob_g"],
-        row["prob_a"],
-        row["annotation"],
-        row["cosmic_cnt"],
+    info_str = (
+        "predicted_class={};probabilities={},{},{};annotation={};cosmic_cnt={};".format(
+            row["predicted_class"],
+            row["prob_s"],
+            row["prob_g"],
+            row["prob_a"],
+            row["annotation"],
+            row["cosmic_cnt"],
+        )
     )
 
     if row["pop_freq"] > 0:
