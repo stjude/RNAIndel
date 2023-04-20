@@ -17,7 +17,7 @@ setup(
         "scikit-learn >= 0.22.0",
         "indelpost >= 0.0.4", 
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.8",
     packages=find_packages(exclude=["contrib", "docs", "tests"]),
     package_data={
         "rnaindel": [

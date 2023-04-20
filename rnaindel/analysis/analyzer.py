@@ -50,7 +50,7 @@ def analyze(subcommand, version=None):
             args.safety_mode,
         )
         if len(df) == 0:
-            write_vcf(df, version, args)
+            write_vcf(df, version, args, tdna, ndna)
             sys.exit(0)
 
     df = classify(df, "{}/models".format(data_dir), n_processes)

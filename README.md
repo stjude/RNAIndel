@@ -77,13 +77,13 @@ If you want to have a more native feel, you can add an alias to your shell's rc 
 Note: if its the first time you are executing the `docker run` command, you will see the output of docker downloading the image
 
 ### PyPI
-RNAIndel depends on [python>=3.6.0](https://www.python.org/downloads/) and [java>=1.8.0](https://www.java.com/en/download/).<br> 
+RNAIndel depends on [python>=3.8.0](https://www.python.org/downloads/) and [java>=1.8.0](https://www.java.com/en/download/).<br> 
 Installing via the pip command will install the following packages:
 * [indelpost>=0.0.4](https://github.com/stjude/indelPost)
 * [pysam>=0.15.0](https://github.com/pysam-developers)
 * [cython>=0.29.12](https://cython.org/)
 * [numpy>=1.16.0](https://numpy.org/)
-* [ssw-py==0.2.6](https://github.com/Wyss/ssw-py)
+* [ssw-py>=1.0.1](https://github.com/libnano/ssw-py)
 * [pandas>=0.23.0](https://pandas.pydata.org/)
 * [scikit-learn>=0.22.0](http://scikit-learn.org/stable/install.html#)
 
