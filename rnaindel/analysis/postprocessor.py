@@ -127,8 +127,10 @@ def reclassify_by_knowledge(row, cosmic):
 
 def sort_positionally(df):
     df["_chrom"] = df.apply(lambda x: x["chrom"].replace("chr", ""), axis=1)
-    df["_chrom"] = df.apply(lambda x: 23 if x["_chrom"] == "X" else int(x["_chrom"]), axis=1)
-    df["_chrom"] = df.apply(lambda x: 24 if x["_chrom"] == "Y" else int(x["_chrom"]), axis=1)
+    df["_chrom"] = df.apply(lambda x: 23 if x["_chrom"] == "X" else x["_chrom"], axis=1)
+    df["_chrom"] = df.apply(lambda x: 24 if x["_chrom"] == "Y" else x["_chrom"], axis=1)
+    
+    df["_chrom"] = df.apply(lambda x: int(x["_chrom"]), axis=1)
 
     df.sort_values(["_chrom", "cpos"], inplace=True)
 
