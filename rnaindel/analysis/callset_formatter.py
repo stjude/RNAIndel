@@ -6,12 +6,14 @@ CANONICALS = [str(i) for i in range(1, 23)] + ["X", "Y"]
 
 
 def format_callset(tmp_dir, external_vcf, pass_only, region):
-
     allchroms = get_outfile(tmp_dir)
     if allchroms:
         append_external_indels(
             allchroms, external_vcf, pass_only, which_chrom=0, region=region
         )
+
+        append_softclips(allchroms)
+
         return allchroms
 
     by_chroms = get_chrom_files(tmp_dir)
@@ -20,6 +22,9 @@ def format_callset(tmp_dir, external_vcf, pass_only, region):
         append_external_indels(
             each_chrom[0], external_vcf, pass_only, which_chrom=each_chrom[1]
         )
+
+        append_softclips(each_chrom[0])
+
         available_chroms.append(each_chrom[0])
 
     return available_chroms
@@ -40,8 +45,19 @@ def get_chrom_files(tmp_dir):
     )
 
 
-def append_external_indels(filepath, external_vcf, pass_only, which_chrom, region=None):
+def append_softclips(filepath):
+    sftclip_filepath = filepath[: len(filepath) - 3] + "sftclp.txt"
 
+    if os.path.isfile(sftclip_filepath):
+        df1 = pd.read_csv(filepath, sep="\t")
+        df2 = pd.read_csv(sftclip_filepath, sep="\t")
+
+        df = pd.concat([df1, df2], ignore_index=True, sort=False)
+
+        df.to_csv(filepath, sep="\t", index=False)
+
+
+def append_external_indels(filepath, external_vcf, pass_only, which_chrom, region=None):
     if os.stat(filepath).st_size == 0:
         df1 = supply_empty_df()
     else:
@@ -101,7 +117,6 @@ def is_chr_prefixed_vcf(external_vcf):
 
 
 def update_data(data_lst, record, pass_only, max_indel_len=50):
-
     if pass_only:
         try:
             if record.filter.__getitem__("PASS").record:

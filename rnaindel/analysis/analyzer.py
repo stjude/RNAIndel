@@ -5,6 +5,7 @@ import argparse
 from functools import partial
 
 from rnaindel.defaultcaller.defaultcaller import callindel
+from rnaindel.defaultcaller.softclip_realigner import realn_softclips
 
 from .preprocessor import preprocess
 from .classifier import classify
@@ -36,7 +37,8 @@ def analyze(subcommand, version=None):
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         callindel(bam, fasta, tmp_dir, args.heap_memory, region, n_processes)
-
+        realn_softclips(bam, fasta, tmp_dir, data_dir, region, n_processes, args.safety_mode)
+        
         df = preprocess(
             tmp_dir,
             fasta,

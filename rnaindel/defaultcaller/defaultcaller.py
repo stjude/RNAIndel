@@ -24,7 +24,7 @@ def callindel(bam, fasta, tmp_dir, heap_memory, region, num_of_processes):
     base_cmd_str = (
         "java -Xmx{} Ace2.SAMStreamingSNPFinder -fasta {} -min-mapq 1 "
         "-optional-tags XT!=R -bam {} -tn T -min-quality 20 "
-        "-min-flanking-quality 20 -min-alt-allele-count 3 "
+        "-min-flanking-quality 20 -min-alt-allele-count 2 "
         "-min-minor-frequency 0 -broad-min-quality 10 "
         "-mmf-max-hq-mismatches 8 -mmf-max-hq-mismatches-xt-u 10 "
         "-mmf-min-hq-quality 15 -mmf-max-lq-mismatches 8 "
