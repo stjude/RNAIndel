@@ -11,8 +11,14 @@ CANONICALS = [str(i) for i in range(1, 23)] + ["X", "Y"]
 def realn_softclips(
     bam, fasta, tmp_dir, data_dir, region, num_of_processes, safety_mode
 ):
-    if num_of_processes == 1 or safety_mode or region:
+    if safety_mode:
+        num_of_processes = 1
+    
+    if region:
         softclip(region, bam, fasta, data_dir, tmp_dir)
+    elif num_of_processes == 1:
+        for chromosome in CANONICALS:
+            softclip(chromosome, bam, fasta, data_dir, tmp_dir)
     else:
         pool = Pool(num_of_processes)
 
