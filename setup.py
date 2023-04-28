@@ -13,6 +13,7 @@ setup(
     author_email="kohei.hagiwara@stjude.org",
     license="Apache License 2.0",
     install_requires=[
+        "ssw-py >= 1.0.1",
         "pandas >= 0.23.0",
         "scikit-learn >= 0.22.0",
         "indelpost >= 0.0.4", 
