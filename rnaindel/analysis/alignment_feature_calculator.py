@@ -410,7 +410,7 @@ def mapping_features(target_indel, valn, bam, mapq):
     # near exon
     is_near_exon_boundaray = (
         1
-        if most_common([is_near_boundary(read, target_indel) for read in target_reads])
+        if sum([is_near_boundary(read, target_indel) for read in target_reads])
         else 0
     )
 
