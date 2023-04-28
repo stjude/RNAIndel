@@ -1,5 +1,6 @@
 import os
 import pysam
+import pandas as pd
 from ssw import AlignmentMgr
 from indelpost import Variant
 from functools import partial
@@ -13,12 +14,13 @@ def realn_softclips(
 ):
     if safety_mode:
         num_of_processes = 1
-    
+
     if region:
         softclip(region, bam, fasta, data_dir, tmp_dir)
     elif num_of_processes == 1:
         for chromosome in CANONICALS:
             softclip(chromosome, bam, fasta, data_dir, tmp_dir)
+        merge_outfiles(tmp_dir)
     else:
         pool = Pool(num_of_processes)
 
@@ -26,6 +28,19 @@ def realn_softclips(
             partial(softclip, bam=bam, fasta=fasta, data_dir=data_dir, tmp_dir=tmp_dir),
             CANONICALS,
         )
+
+
+def merge_outfiles(tmp_dir):
+    outfilename = os.path.join(tmp_dir, "outfile.sftclp.txt")
+    files_by_chrom = [
+        os.path.join(tmp_dir, "chr{}.sftclp.txt".format(chrom))
+        for chrom in CANONICALS
+        if os.path.isfile(os.path.join(tmp_dir, "chr{}.sftclp.txt".format(chrom)))
+    ]
+
+    _dfs = [pd.read_csv(_file, sep="\t") for _file in files_by_chrom]
+    df = pd.concat(_dfs, ignore_index=True, sort=False)
+    df.to_csv(outfilename, sep="\t", index=False)
 
 
 def softclip(
