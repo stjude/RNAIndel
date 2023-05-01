@@ -66,12 +66,15 @@ def filter_str(row, non_somatic_db, pon, mapping_thresh):
     pred = row["predicted_class"]
 
     if pred == "somatic":
-        s = [
+        msg = [
             filter_by_db(row, non_somatic_db, pon),
             filter_by_mappability(row, mapping_thresh),
+            filter_by_bidirectionality(row),
+            filter_by_junction(row),
         ]
-        if any(s):
-            return ";".join(s).strip(";")
+        if any(msg):
+            msg = [_f for _f in msg if _f]
+            return ";".join(msg).strip(";")
         else:
             return "PASS"
     else:
@@ -110,6 +113,20 @@ def filter_by_mappability(row, mapping_thresh):
         return ""
 
 
+def filter_by_bidirectionality(row):
+    if row["is_bidirectional"]:
+        return ""
+    else:
+        return "UnidirectionalSupport"
+
+
+def filter_by_junction(row):
+    if row["is_near_boundary"]:
+        return "ImmediateProximityToJunciton"
+    else:
+        return ""
+
+
 def reclassify_by_knowledge(row, cosmic):
     if row["is_common"]:
         return False
@@ -129,7 +146,7 @@ def sort_positionally(df):
     df["_chrom"] = df.apply(lambda x: x["chrom"].replace("chr", ""), axis=1)
     df["_chrom"] = df.apply(lambda x: 23 if x["_chrom"] == "X" else x["_chrom"], axis=1)
     df["_chrom"] = df.apply(lambda x: 24 if x["_chrom"] == "Y" else x["_chrom"], axis=1)
-    
+
     df["_chrom"] = df.apply(lambda x: int(x["_chrom"]), axis=1)
 
     df.sort_values(["_chrom", "cpos"], inplace=True)
