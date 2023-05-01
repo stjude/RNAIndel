@@ -158,7 +158,7 @@ def softclip(
             window_end_pos = window_start_pos + window_width
             window_volume = 0
 
-    indels = list(set(indels))
+    indels = filter_indels(indels, min_occurrence=2)
 
     for v in indels:
         _chrom = v.chrom
@@ -179,6 +179,23 @@ def softclip(
     f.close()
 
 
+def filter_indels(indel_lst, min_occurrence):
+    indel_dict = {}
+    for _idl in indel_lst:
+        if indel_dict.get(_idl[0], None):
+            indel_stat = indel_dict[_idl[0]]
+            indel_stat[0].append(_idl[1])
+            indel_stat[1].append(_idl[2])
+        else:
+            indel_dict[_idl[0]] = [[_idl[1]], [_idl[2]]]
+
+    lst = []
+    for k, v in indel_dict.items():
+        if len(set(v[0])) >= min_occurrence:
+            lst.append(k)
+    return lst
+
+
 def process_clipped_reads(
     fasta_chrom,
     db_chrom,
@@ -189,7 +206,7 @@ def process_clipped_reads(
     refseq_db,
     fasta,
     min_clip_len,
-    density_thresh=0.05,
+    density_thresh=0.1,
     margin=50,
 ):
     if len(clipped_reads) / (window_volume + 1) < density_thresh:
@@ -223,8 +240,6 @@ def process_clip_dict(
 ):
     indels = []
     for clip_pos, clip_data in clips.items():
-        # len(clip_data): number of support
-
         for _read in clip_data:
             read = _read[1]
             ref_seq, pos_dict = preprocess_realn(
@@ -245,7 +260,11 @@ def process_clip_dict(
                 )
 
                 if len(variants) <= mut_num_thresh:
-                    tmp = [v for v in variants if v.is_indel]
+                    tmp = [
+                        (v, read.query_name, read.is_reverse)
+                        for v in variants
+                        if v.is_indel
+                    ]
                     indels += tmp
 
     return indels
