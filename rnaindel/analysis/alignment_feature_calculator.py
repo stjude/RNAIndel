@@ -527,7 +527,7 @@ def is_near_boundary(aligned_segment, target):
     if not isinstance(idx, int):
         return False
 
-    threshold = 2 if len(target.indel_seq) <= 2 else 3
+    threshold = 2 if len(target.indel_seq) <= 3 else 3
 
     is_near = 0
     if idx >= 2 and "N" in cigar_lst[idx - 2]:
