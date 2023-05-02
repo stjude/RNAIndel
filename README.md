@@ -23,7 +23,7 @@
    </a>
    <a href="https://badge.fury.io/py/rnaindel" target="_blank">
      <img alt="PyPI version"
-          src="https://badge.fury.io/py/rnaindel.png" />
+          src="https://badge.fury.io/py/rnaindel.svg" />
    </a>
    <br />
    <a href="https://github.com/stjude/RNAIndel/actions?query=workflow%3ADocumentation" target="_blank">
