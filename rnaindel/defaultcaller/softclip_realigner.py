@@ -218,7 +218,7 @@ def process_clipped_reads(
         )
     except:
         is_coding = 0
-
+    
     if not is_coding:
         return None
 
@@ -279,7 +279,7 @@ def preprocess_realn(fasta_chrom, read, fasta, lt_sided, margin=50):
 
 
 def realn(
-    read, ref_seq, match_score=3, mismatch_penalty=2, gap_open=3, gap_extension=1
+    read, ref_seq, match_score=3, mismatch_penalty=2, gap_open=3, gap_extension=0
 ):
     aln_mgr = AlignmentMgr(match_score=match_score, mismatch_penalty=mismatch_penalty)
     aln_mgr.set_read(read.query_sequence)

@@ -236,8 +236,14 @@ def read_support_features(valn, downsample_threshold=1500):
     else:
         ref_cnt, alt_cnt = orig_ref_cnt, orig_alt_cnt
 
+    ref_fw_rv = valn.count_alleles(fwrv=True, estimated_count=False)[0]
     alt_fw_rv = valn.count_alleles(fwrv=True, estimated_count=False)[1]
-    is_bidirectional = all(alt_fw_rv)
+    tot_fw = ref_fw_rv[0] + alt_fw_rv[0]
+    tot_rv = ref_fw_rv[1] + ref_fw_rv[1]
+    
+    is_bidirectional = True
+    if min(tot_fw, tot_rv) >= 3:
+        is_bidirectional = all(alt_fw_rv)
 
     return (
         int(ref_cnt),
