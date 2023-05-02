@@ -236,8 +236,14 @@ def read_support_features(valn, downsample_threshold=1500):
     else:
         ref_cnt, alt_cnt = orig_ref_cnt, orig_alt_cnt
 
+    ref_fw_rv = valn.count_alleles(fwrv=True, estimated_count=False)[0]
     alt_fw_rv = valn.count_alleles(fwrv=True, estimated_count=False)[1]
-    is_bidirectional = all(alt_fw_rv)
+    tot_fw = ref_fw_rv[0] + alt_fw_rv[0]
+    tot_rv = ref_fw_rv[1] + ref_fw_rv[1]
+    
+    is_bidirectional = True
+    if min(tot_fw, tot_rv) >= 3:
+        is_bidirectional = all(alt_fw_rv)
 
     return (
         int(ref_cnt),
@@ -410,7 +416,7 @@ def mapping_features(target_indel, valn, bam, mapq):
     # near exon
     is_near_exon_boundaray = (
         1
-        if most_common([is_near_boundary(read, target_indel) for read in target_reads])
+        if sum([is_near_boundary(read, target_indel) for read in target_reads])
         else 0
     )
 
@@ -527,7 +533,7 @@ def is_near_boundary(aligned_segment, target):
     if not isinstance(idx, int):
         return False
 
-    threshold = 2 if len(target.indel_seq) <= 2 else 3
+    threshold = 2 if len(target.indel_seq) <= 3 else 3
 
     is_near = 0
     if idx >= 2 and "N" in cigar_lst[idx - 2]:

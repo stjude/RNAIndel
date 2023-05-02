@@ -108,6 +108,8 @@ def filter_fields():
         '##FILTER=<ID=ProbableArtifactByPON,Description="Matches to user-defined non-somatic indel with the predicted artifact probability higher than the germline probability.">',
         '##FILTER=<ID=ProbableGermlineByPON,Description="Matches to user-defined non-somatic indel with the predicted germline probability higher than the artifact probability">',
         '##FILTER=<ID=LowMappabilityRegion,Description="More than half of reads covering the indel locus having MAPQ < unique mapping quality score.">',
+        '##FILTER=<ID=UnidirectionalSupport,Description="ALT allele is only supported by one read direction.">',
+        '##FILTER=<ID=ImmediateProximityToJunction,Description="Indel within exon, but near splice-junciton boundary. Possible mapping artifact">',
     ]
     return h
 
