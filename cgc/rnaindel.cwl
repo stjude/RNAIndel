@@ -172,8 +172,14 @@
             "id": "predicted_indels",
             "type": "File",
             "outputBinding": {
-                "glob": "*.vcf"
-            }
+                "glob": "*.vcf.gz"
+            },
+            "secondaryFiles": [
+                {
+                    "pattern": ".tbi",
+                    "required": true
+                }
+            ]
         }
     ],
     "doc": "RNAIndel calls coding indels from tumor RNA-Seq data and classifies them as somatic, germline, and artifactual. RNAIndel supports GRCh38 and 37.\n\n## Inputs\n* **BAM** - STAR-mapped BAM file\n* **Fasta** - Reference genome in FASTA format\n* **Reference** - Trained data models and databases. Can be obtained from http://ftp.stjude.org/pub/software/RNAIndel/data_dir_grch38.v3.tar.gz (GRCh38) or http://ftp.stjude.org/pub/software/RNAIndel/data_dir_grch37.v3.tar.gz (GRCh37)\n\n## Outputs\n* **Indel callset** - RNAIndel called indels",
