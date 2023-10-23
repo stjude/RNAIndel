@@ -12,12 +12,9 @@
         <link href="css/bootstrap.min.css" rel="stylesheet">
         <link href="css/font-awesome.min.css" rel="stylesheet">
         <link href="css/base.css" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/purebasic.min.css">
-
-        <script src="js/jquery-1.10.2.min.js" defer></script>
-        <script src="js/bootstrap.min.js" defer></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
-        <script>hljs.initHighlightingOnLoad();</script> 
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/purebasic.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
     </head>
 
     <body class="homepage">
@@ -200,6 +197,7 @@ Installing via the pip command will install the following packages:
 usage: rnaindel &lt;subcommand&gt; [&lt;args&gt;]
 
 subcommands are:
+    SetUp                     Initialize predicition models
     PredictIndels             Predict somatic/germline/artifact indels from tumor RNA-Seq data
     CalculateFeatures         Calculate and report features for training
     Train                     Perform model training
@@ -214,21 +212,26 @@ optional arguments:
 <h3 id="datapackage">DataPackage</h3>
 <p>Download data package (version 3 is not compatible with the previous data package). </p>
 <pre><code>#GRCh38
-curl -LO https://zenodo.org/record/6109305/files/data_dir_grch38.tar.gz
+curl -LO https://zenodo.org/records/10035247/files/data_dir_grch38.tar.gz
 tar -zxf data_dir_grch38.v3.tar.gz
 
 #GRCh37
-curl -LO https://zenodo.org/record/6109305/files/data_dir_grch37.tar.gz
+curl -LO https://zenodo.org/records/10035247/files/data_dir_grch38.tar.gz
 tar -zxf data_dir_grch37.v3.tar.gz
 </code></pre>
 <h2 id="usage">Usage</h2>
-<p>RNAIndel has 4 subcommands:
+<p>RNAIndel has 5 subcommands:
+* <code>SetUp</code> pretrain the model with user's sklearn version
 * <code>PredictIndels</code> analyze RNA-Seq data for indel discovery
 * <code>CalculateFeatures</code> calculate features for training
 * <code>Train</code> train models with user's dataset
 * <code>CountOccurrence</code> annotate over-represented somatic predictions</p>
 <p>Subcommands are invoked:</p>
 <pre><code>&gt; rnaindel subcommand [subcommand-specific options]
+</code></pre>
+<h3 id="set-up">Set up</h3>
+<p>Pretrain the RNAIndel model with the first-time-only command. Takes a few minutes to complete.</p>
+<pre><code>&gt; rnaindel SetUp -d data_dir
 </code></pre>
 <h3 id="discover-somatic-indels">Discover somatic indels</h3>
 <h4 id="input-bam-file">Input BAM file</h4>
@@ -320,12 +323,14 @@ on a server with 32-core AMD EPYC 7542 CPU @2.90 GHz.</p>
                 <p>© 2020 St. Jude Children's Research Hospital</p>
             <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
         </footer>
+        <script src="js/jquery-3.6.0.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
         <script>
             var base_url = ".",
                 shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
         </script>
-        <script src="js/base.js" defer></script>
-        <script src="search/main.js" defer></script>
+        <script src="js/base.js"></script>
+        <script src="search/main.js"></script>
 
         <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -392,6 +397,6 @@ on a server with 32-core AMD EPYC 7542 CPU @2.90 GHz.</p>
 </html>
 
 <!--
-MkDocs version : 1.4.3
-Build Date UTC : 2023-07-05 17:09:01.693741+00:00
+MkDocs version : 1.5.3
+Build Date UTC : 2023-10-23 19:50:04.163211+00:00
 -->
