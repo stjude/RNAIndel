@@ -98,6 +98,7 @@ Test the installation.
 usage: rnaindel <subcommand> [<args>]
 
 subcommands are:
+    SetUp                     Initialize predicition models
     PredictIndels             Predict somatic/germline/artifact indels from tumor RNA-Seq data
     CalculateFeatures         Calculate and report features for training
     Train                     Perform model training
@@ -114,16 +115,17 @@ optional arguments:
 Download data package (version 3 is not compatible with the previous data package). 
 ```
 #GRCh38
-curl -LO https://zenodo.org/record/6109305/files/data_dir_grch38.tar.gz
+curl -LO https://zenodo.org/records/10035247/files/data_dir_grch38.tar.gz
 tar -zxf data_dir_grch38.v3.tar.gz
 
 #GRCh37
-curl -LO https://zenodo.org/record/6109305/files/data_dir_grch37.tar.gz
+curl -LO https://zenodo.org/records/10035247/files/data_dir_grch38.tar.gz
 tar -zxf data_dir_grch37.v3.tar.gz
 ```
 
 ## Usage
-RNAIndel has 4 subcommands:
+RNAIndel has 5 subcommands:
+* ```SetUp``` pretrain the model with user's sklearn version
 * ```PredictIndels``` analyze RNA-Seq data for indel discovery
 * ```CalculateFeatures``` calculate features for training
 * ```Train``` train models with user's dataset
@@ -132,6 +134,12 @@ RNAIndel has 4 subcommands:
 Subcommands are invoked:
 ```
 > rnaindel subcommand [subcommand-specific options]
+```
+
+### Set up 
+Pretrain the RNAIndel model with the first-time-only command. Takes a few minutes to complete.
+``` 
+> rnaindel SetUp -d data_dir
 ```
 
 ### Discover somatic indels

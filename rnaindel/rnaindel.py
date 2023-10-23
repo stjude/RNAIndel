@@ -19,6 +19,7 @@ class Commands(object):
             usage="""rnaindel <subcommand> [<args>]
 
 subcommands are:
+    SetUp                     Initialize predicition models 
     PredictIndels             Predict somatic/germline/artifact indels from tumor RNA-Seq data
     CalculateFeatures         Calculate and report features for training
     Train                     Perform model training
@@ -27,7 +28,7 @@ subcommands are:
 
         parser.add_argument(
             "subcommand",
-            help="PredictIndels, CalculateFeatures, Train, CountOccurrence",
+            help="SetUp, PredictIndels, CalculateFeatures, Train, CountOccurrence",
         )
 
         parser.add_argument(
@@ -43,6 +44,9 @@ subcommands are:
 
         getattr(self, args.subcommand)()
 
+    def SetUp(self):
+        tr.setup()
+    
     def PredictIndels(self):
         ra.analyze("PredictIndels", version=__version__)
 

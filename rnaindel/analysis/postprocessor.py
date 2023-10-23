@@ -122,7 +122,7 @@ def filter_by_bidirectionality(row):
 
 def filter_by_junction(row):
     if row["is_near_boundary"]:
-        return "ImmediateProximityToJunciton"
+        return "ImmediateProximityToJunction"
     else:
         return ""
 
