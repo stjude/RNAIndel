@@ -19,7 +19,7 @@ class Commands(object):
             usage="""rnaindel <subcommand> [<args>]
 
 subcommands are:
-    SetUp                     Initialize predicition models 
+    SetUp                     Initialize prediction models
     PredictIndels             Predict somatic/germline/artifact indels from tumor RNA-Seq data
     CalculateFeatures         Calculate and report features for training
     Train                     Perform model training
