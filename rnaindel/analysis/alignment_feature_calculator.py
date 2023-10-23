@@ -116,7 +116,11 @@ def _wrapper(row, bam, mapq, downsample_threshold):
         variant,
     )
 
-    res = make_indel_alignment(variant, bam, downsample_threshold)
+    if "N" not in variant.alt and "N" not in variant.ref:
+        res = make_indel_alignment(variant, bam, downsample_threshold)
+    else:
+        res = None
+
     if res:
         try:
             valn, contig = res[0], res[1]
@@ -240,7 +244,7 @@ def read_support_features(valn, downsample_threshold=1500):
     alt_fw_rv = valn.count_alleles(fwrv=True, estimated_count=False)[1]
     tot_fw = ref_fw_rv[0] + alt_fw_rv[0]
     tot_rv = ref_fw_rv[1] + ref_fw_rv[1]
-    
+
     is_bidirectional = True
     if min(tot_fw, tot_rv) >= 3:
         is_bidirectional = all(alt_fw_rv)
@@ -415,9 +419,7 @@ def mapping_features(target_indel, valn, bam, mapq):
 
     # near exon
     is_near_exon_boundaray = (
-        1
-        if sum([is_near_boundary(read, target_indel) for read in target_reads])
-        else 0
+        1 if sum([is_near_boundary(read, target_indel) for read in target_reads]) else 0
     )
 
     reference = target_indel.reference

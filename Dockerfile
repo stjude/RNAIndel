@@ -15,7 +15,7 @@ ADD . .
 
 RUN pip install cython numpy
 
-RUN git clone https://github.com/Wyss/ssw-py.git && cd ssw-py && python3 setup.py install && cd /tmp
+RUN git clone https://github.com/libnano/ssw-py.git && cd ssw-py && python3 setup.py install && cd /tmp
 
 ENV PYTHONWARNINGS="ignore"
 RUN python3 -m pip install . && rm -rf /tmp/*
