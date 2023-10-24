@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
 BAMFILE=""
-DATA_DIR=
-NEXT=0
 
 for var in "$@"
 do
