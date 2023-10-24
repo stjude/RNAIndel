@@ -13,7 +13,9 @@ WORKDIR /tmp
 
 ADD . .
 
-RUN pip install cython numpy
+RUN python3 -m pip install --upgrade pip setuptools wheel
+
+RUN pip install cython numpy scikit-learn==1.3.2
 
 RUN git clone https://github.com/libnano/ssw-py.git && cd ssw-py && python3 setup.py install && cd /tmp
 

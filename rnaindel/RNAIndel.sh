@@ -19,19 +19,6 @@ do
       fi
      fi
   fi
-  if [[ $NEXT == 1 ]]
-  then
-    NEXT=0
-    DATA_DIR=$var
-  fi
-  if [[ $var == '-d' ]]
-  then
-    NEXT=1
-  fi
 done
 
-if [[ -d $DATA_DIR ]]
-then
-  rnaindel SetUp -d $DATA_DIR
-fi
 rnaindel "$@"
