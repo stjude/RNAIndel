@@ -137,7 +137,8 @@ Subcommands are invoked:
 ```
 
 ### Set up 
-Pretrain the RNAIndel model with the first-time-only command. Takes a few minutes to complete.
+Run the first-time-only command. Takes a few minutes to complete.<br />
+NOTE: not required to run the docker image. 
 ``` 
 > rnaindel SetUp -d data_dir
 ```
