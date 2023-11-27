@@ -1,8 +1,12 @@
 import os
 import sys
+import gzip
+import pickle
 import argparse
+import pandas as pd
 from .model_updater import updater
 from .model_selection import input_validator
+from sklearn.ensemble import IsolationForest
 
 
 def setup():
@@ -19,6 +23,8 @@ def setup():
         params = pretrained_params(indel_class)
 
         updater(df, indel_class, params[0], params[1], params[2], model_dir)
+
+    update_homopolymer_models(data_dir)
 
 
 def pretrained_params(indel_class):
@@ -96,3 +102,26 @@ def validate_dir_input(dir_path):
         return dir_path
     else:
         sys.exit("Error: {} not found.".format(dir_path))
+
+
+def update_homopolymer_models(dir_path):
+    homotypes = ("at_del", "at_ins", "gc_del", "gc_ins")
+
+    for _ in homotypes:
+        training_set = "{}/trainingset/{}_4.txt.gz".format(dir_path, _)
+        model_name = "{}/outliers/{}.pkl.gz".format(dir_path, _)
+
+        X_train = pd.read_csv(
+            training_set,
+            compression="gzip",
+            header=0,
+            sep="\t",
+            quotechar='"',
+            error_bad_lines=False,
+        )
+
+        iso = IsolationForest(random_state=42, contamination=0.05)
+        iso.fit(X_train)
+
+        with gzip.open(model_name, "wb") as f:
+            pickle.dump(iso, f)
