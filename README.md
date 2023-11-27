@@ -115,11 +115,11 @@ optional arguments:
 Download data package (version 3 is not compatible with the previous data package). 
 ```
 #GRCh38
-curl -LO https://zenodo.org/records/10035247/files/data_dir_grch38.tar.gz
+curl -LO https://zenodo.org/records/10211317/files/data_dir_grch38.tar.gz
 tar -zxf data_dir_grch38.v3.tar.gz
 
 #GRCh37
-curl -LO https://zenodo.org/records/10035247/files/data_dir_grch38.tar.gz
+curl -LO https://zenodo.org/records/10211317/files/data_dir_grch38.tar.gz
 tar -zxf data_dir_grch37.v3.tar.gz
 ```
 
@@ -137,7 +137,7 @@ Subcommands are invoked:
 ```
 
 ### Set up 
-Run the first-time-only command. Takes a few minutes to complete.<br />
+Run the first-time-only command. Takes 5 to 10 minutes to complete.<br />
 NOTE: not required to run the docker image. 
 ``` 
 > rnaindel SetUp -d data_dir
