@@ -116,11 +116,11 @@ Download data package (version 3 is not compatible with the previous data packag
 ```
 #GRCh38
 curl -LO https://zenodo.org/records/10211317/files/data_dir_grch38.tar.gz
-tar -zxf data_dir_grch38.v3.tar.gz
+tar -zxf data_dir_grch38.tar.gz
 
 #GRCh37
 curl -LO https://zenodo.org/records/10211317/files/data_dir_grch38.tar.gz
-tar -zxf data_dir_grch37.v3.tar.gz
+tar -zxf data_dir_grch37.tar.gz
 ```
 
 ## Usage
