@@ -117,7 +117,7 @@ def update_homopolymer_models(dir_path):
             header=0,
             sep="\t",
             quotechar='"',
-            error_bad_lines=False,
+            on_bad_lines="skip",
         )
 
         iso = IsolationForest(random_state=42, contamination=0.05)
