@@ -11,11 +11,11 @@ warnings.filterwarnings("ignore")
 
 
 def classify(df, model_dir, num_of_processes):
-    """ Makes prediction
+    """Makes prediction
     Args:
         df (pandas.DataFrame)
         model_dir (str): path to dir where models are locaded
-        num_of_processes (int): the number of processes 
+        num_of_processes (int): the number of processes
     Returns:
        df (pandas.DataFrame) : with prediction
     """
@@ -29,10 +29,10 @@ def classify(df, model_dir, num_of_processes):
 
 
 def calculate_proba(df, model_dir, num_of_processes):
-    """ Calculates prediction probability for 1-nt (single-nucleotide indels (sni)) 
+    """Calculates prediction probability for 1-nt (single-nucleotide indels (sni))
         and >1-mt (multi-nucleotide indels (mni)) indels
     Args:
-        df (pandas.DataFrame): with features calculated 
+        df (pandas.DataFrame): with features calculated
         model_dir (str): path to dir where model pickle files are located
         num_of_processes (int): a kwarg to specify number of processes for multiprocessing.pool
                                 Default = 1
@@ -98,7 +98,7 @@ def calculate_proba(df, model_dir, num_of_processes):
 
 
 def split_by_indel_size(df):
-    """ Sort 1-nt and >1-nt indels
+    """Sort 1-nt and >1-nt indels
     Args:
         df (pandas.DataFrame)
     Returns:
@@ -131,13 +131,13 @@ def make_feature_dict(model_dir):
 
 
 def predict(model, data, features):
-    """ Calculate prediction probabaility
+    """Calculate prediction probabaility
     Args:
-        model (file): trained model stored in .pkl.gz 
+        model (file): trained model stored in .pkl.gz
         data (pandas.DataFrame): df_sni or df_mni
         features (list): a subset of features used for prediction
     Returns:
-        prob (tuple): (artifact_prob, germline_prob, somatic_prob) 
+        prob (tuple): (artifact_prob, germline_prob, somatic_prob)
     """
     X = data[features]
     model_pkl = gzip.open(model, "rb")
@@ -147,7 +147,7 @@ def predict(model, data, features):
 
 
 def predict_class(row):
-    """ Assign class based on the highest probability
+    """Assign class based on the highest probability
     Args:
         row (pandas.Series)
     Returns:

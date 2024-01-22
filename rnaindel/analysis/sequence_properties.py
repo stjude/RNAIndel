@@ -9,12 +9,12 @@ from functools import reduce
 
 def editdistance(seq1, seq2):
     """Calculates edit distance
-    
+
     Args:
         seq1, seq2 (str): may be empty
     Returns:
         edit distance (int)
-    
+
     The original source of this implementation:
     https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#Python
     """
@@ -42,14 +42,14 @@ def editdistance(seq1, seq2):
 
 def linguistic_complexity(seq):
     """Quantifies the vocabulary usage of sequence.
-    
+
     Args:
         seq (str): sequnece consists of 'A', 'G', 'T', 'C'.
     Returns:
         linguistic complexity (float)
     Raises:
         ValueError: if input string contains 'N'
-       
+
     Example: vocabulary of ACACCA:
 
         1-letter vocabulary = 2; 'A', 'C'
@@ -63,7 +63,7 @@ def linguistic_complexity(seq):
 
         For a DNA sequnce of length n, the maximun number of
         i-letter vocabulary is min(4**i, n-i+1).
-                 
+
         ui = vi / min(4**i, n-i+1)
 
         linguistic_complexity(seq) = u1*u2*...*un
@@ -80,7 +80,7 @@ def linguistic_complexity(seq):
     else:
         usage = []
         for i in range(1, n):
-            max_vocabulary = min(4 ** i, n - i + 1)
+            max_vocabulary = min(4**i, n - i + 1)
 
             i_mer = []
             for j in range(n - i + 1):
@@ -94,15 +94,15 @@ def linguistic_complexity(seq):
 
 def reduce_repetitive_sequence(seq):
     """Reduces repetitive sequence to shortest non-overlapping repeat pattern
-       
+
     Args:
         seq (str)
     Returns:
         min_unit (str)
-    
+
     Example:
         'AGAGAGAG': repetitive patters are 'AG' and 'AGAG'.
-                    this function returns 'AG' 
+                    this function returns 'AG'
     """
     mid = int(len(seq) / 2)
     min_unit = seq
@@ -122,7 +122,7 @@ def reduce_repetitive_sequence(seq):
 
 def repeat(idl_type, lt_seq, idl_seq, rt_seq):
     """Counts the repeat of the indel sequence
-    
+
     Args:
         idl_type (int): 1 for insertion, 0 for deletion
         lt_seq (str): 5' flanking seq
@@ -130,25 +130,25 @@ def repeat(idl_type, lt_seq, idl_seq, rt_seq):
         rt_seq (str): 3' flanking seq
     Returns:
         repeat (int): see example below
-    
+
     Raises:
         ValueError: if idl_type is not either 1 or 0
         ValueError: if input is None or empty str
     Example:
         Reference ATCAGAGAGAGAGAGAGCATCA
-                     
+
         del(AGAG) ATCAG----AGAGAGAGCATCA
-        
-        'AGAG' reduced to 'AG'            
+
+        'AGAG' reduced to 'AG'
         Repeat of 'AG' in lt sequence: 1
         Repeat of 'AG' in rt sequence: 4
         Repeat of 'AG' in deleted seq: 2
 
-        Return 7 
-        
+        Return 7
+
         For deletion, the repeat of the original seq is
         considered.
-            
+
     """
     if idl_type != 1 and idl_type != 0:
         raise ValueError("indel type must be 1 for insertion or 0 for deletion")
@@ -204,16 +204,16 @@ def repeat(idl_type, lt_seq, idl_seq, rt_seq):
 
 def dna_strength(seq):
     """Calculates DNA strength
-      
+
     Args:
         seq (str): sequence of A, C, T, G, N with len > 1
     Returns:
         DNA strength (float): normalized by length
     Raises:
-        ValueError: if input is None or str shorter than 2 
-    
-    Citation:   
-       Khandelwal et al. 2010. 'A Phenomenological Model for 
+        ValueError: if input is None or str shorter than 2
+
+    Citation:
+       Khandelwal et al. 2010. 'A Phenomenological Model for
        Predicting Melting Temperature of DNA sequences', PLOS ONE
     """
     # Adapted from Table 1 Khandelwal et al (2010).
@@ -258,7 +258,7 @@ def dna_strength(seq):
 
 
 def gc(seq):
-    """ Calculates GC content
+    """Calculates GC content
 
     Args:
         seq (str): non empty
@@ -278,7 +278,7 @@ def gc(seq):
 
 def dissimilarity(lt_seq, idl_seq, rt_seq):
     """Calculate how dissimilar between indel and flanking sequences.
-    
+
     Args:
         lt_seq (str): 5' flanking seq
         indel_seq (str): inserted or deleted seq
@@ -286,16 +286,16 @@ def dissimilarity(lt_seq, idl_seq, rt_seq):
     Returns:
         dissimilarity (float)
     Raises:
-        ValueError: if input is None or empty str   
-    
-    Example:  
-       
+        ValueError: if input is None or empty str
+
+    Example:
+
        ref:  ATAGAAG****ATGCGGA
        data: ATAGAAGATCGATGCGGA
 
-       The inserted seq 'ATCG' is compared with the flanking seqs 
+       The inserted seq 'ATCG' is compared with the flanking seqs
        with the same length:GAAG and ATGC.
-       
+
        Returns the smaller length normalized editdistance
     """
     if not lt_seq or not idl_seq or not rt_seq:
@@ -316,7 +316,7 @@ def dissimilarity(lt_seq, idl_seq, rt_seq):
 
 def reverse_complement(seq):
     """Takes the reverse-complement of DNA seq
-    
+
     Args:
         seq (str)
     Returns:
@@ -333,7 +333,7 @@ def reverse_complement(seq):
 def exists_stop_codon(strand, seq):
     """Checks if stop codon exists in sequence with 0-frame
        (0-frame: seq[i:i+3] for i = 0, 3, 6, ...)
-    
+
     Args:
         strand (str): '+' for positive, '-' for negative
     Returns:
@@ -349,7 +349,7 @@ def exists_stop_codon(strand, seq):
         frames = TAC TGC TAT CGT CAA CCA TA
         -> no stop codon
            return False
-                  
+
         For strand = '-', sequence=same_as_above
         frames = TAT GGT TGA CGA TAG CAG TA
         -> 'TGA' exists
