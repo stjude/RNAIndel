@@ -86,7 +86,8 @@ def calculate_features(callset, fasta_file, bam_file, data_dir, mapq, external_v
 
     if len(df) > 0:
         df = transcript_features(df, path_to_proteindb)
-        df = alignment_features(df, bam_file, mapq)
+        if len(df) > 0:
+            df = alignment_features(df, bam_file, mapq)
 
         if len(df) > 0:
             return database_features(df, path_to_dbsnp, path_to_clinvar, path_to_cosmic)

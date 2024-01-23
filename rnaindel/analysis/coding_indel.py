@@ -3,7 +3,7 @@ from .sequence_properties import exists_stop_codon
 
 def annotate_coding_info(indel, coding_gene_db):
     """Generate coding indel objects
-    
+
     Args:
         chr (str): chr1-22, chrX or chrY. Note "chr"-prefixed.
         pos (int): 1-based genomic position
@@ -15,7 +15,7 @@ def annotate_coding_info(indel, coding_gene_db):
 
     Returns:
         coding_idl_lst (list): a list of CodingSequenceWithIndel obj
-                               empty list if non-coding indel  
+                               empty list if non-coding indel
     """
     coding_annots = []
     chrom, pos, indel_type, indel_seq = (
@@ -134,12 +134,12 @@ def get_gene_symbol(row):
 
 class CodingAnnotation(object):
     """Represents indel annotated with gene info
-    
+
     Attributes:
         strand (str): '+' for positive strand '-' for negative
         accession (str): RefSeq accession number (e.g. NM_****)
         gene_symbol (str): gene name
-        exon (int): exon number. 1 is the first exon 
+        exon (int): exon number. 1 is the first exon
         exon_start (int): the exon start pos on genome coordinate
         exon_end (int): the exon end pos on genome coordinate
         last_exon (int): 1 if the current exon is the last exon, 0 otherwise
@@ -218,10 +218,10 @@ class CodingAnnotation(object):
 
     def effect(self):
         """Report indel annotation based on the region where
-        indel is annotated. 
-        
+        indel is annotated.
+
         Possible regions:
-            Exon, 
+            Exon,
             Splice site (0 < dist.to exon boundary < 3)
             Splice region (2 < dist.to exon boundary < 11)
 
@@ -229,13 +229,13 @@ class CodingAnnotation(object):
             None
         Returns:
             indel annotation (str): see Example
-        
+
         Example:
-                           
+
             SDF4|NM_016547|167|frameshiftTruncating|0
-           
-        Pipe-delimited string reports GeneName, Accession, 
-        Codon pos, Effect and NMD-insensitivity. 
+
+        Pipe-delimited string reports GeneName, Accession,
+        Codon pos, Effect and NMD-insensitivity.
         """
         if self.strand == "+":
             if self.exon_start <= self.pos <= self.exon_end:
@@ -268,21 +268,21 @@ class CodingAnnotation(object):
 
     def cds_pos_in_exonic_indels(self):
         """Report coding sequence (CDS) pos affected by indel
-        
+
         Args:
             None
         Returns:
             cds pos (int): The first coding sequence base affected by the indel
-       
+
         Example:        1234567890123
                  CDS  : ATGCTACGACTGA
                   del : ATGCTA---CTGA  -> cds_pos = 7
-                             
+
                         123456   7890123
-                 CDS  : ATGCTA   CGACTGA             
+                 CDS  : ATGCTA   CGACTGA
                   ins : ATGCTATAGCGACTGA  -> cds_pos = 7
 
-        Note that the sequences are unaffected upto first 6 bases. 
+        Note that the sequences are unaffected upto first 6 bases.
         """
         # insertion/deletion on positive strand
         if self.strand == "+":
@@ -308,16 +308,16 @@ class CodingAnnotation(object):
             None
         Returns:
             indel annotation (str): gene|acc|codon_pos|effect|nmd_insensitivity
-            
+
             possible effect: frameshiftTruncating
                              inframeDel
                              inframeIns
                              nonsenseTruncating
                              spliceTruncating (the GT-AG motif broken)
                              splicePreserving (the GT-AG motif preserved)
-           
+
            The splice effect is possible when insertion occurs at the 5'exon
-           boundary.  
+           boundary.
         """
 
         # insertion at 5'exon_start
@@ -380,9 +380,9 @@ class CodingAnnotation(object):
         Args:
             None
         Returns:
-           indel annotation (str): gene|acc|codon_pos|effect|nmd_insensitivity 
-                                    
-           possible effect: 
+           indel annotation (str): gene|acc|codon_pos|effect|nmd_insensitivity
+
+           possible effect:
                            spliceShortIntron (for intron <= 5-nt)
                            splicePreserving (the GT-AG motif preserved)
                            spliceTruncating (the GT-AG motif broken)
@@ -471,15 +471,15 @@ class CodingAnnotation(object):
 
     def splice_region_on_pos_strand(self):
         """Annotate indel in splice region on positive strand
-        
+
         Splice region is defined intronic region where
              2 < distance to the exon boundary < 11
-        
+
         Args:
             None
         Returns:
             indel annotation (str): gene|acc|codon_pos|effect|nmd_insensitivity
-            
+
             possible effect: spliceRegion
         """
         # 5'splice region
@@ -496,21 +496,21 @@ class CodingAnnotation(object):
 
     def exonic_on_neg_strand(self):
         """Annotate coding indel on negative strand
-        
-         Args:
-             None
-         Returns:
-             indel annotation (str): gene|acc|codon_pos|effect|nmd_insensitivity
-         
-             possible effect: frameshiftTruncating
-                              inframeDel
-                              inframeIns
-                              nonsenseTruncating
-                              spliceTruncating (the GT-AG motif broken)
-                              splicePreserving (the GT-AG motif preserved)
-         
-             The splice effect is possible when insertion occurs at the 3'exon
-             boundary.
+
+        Args:
+            None
+        Returns:
+            indel annotation (str): gene|acc|codon_pos|effect|nmd_insensitivity
+
+            possible effect: frameshiftTruncating
+                             inframeDel
+                             inframeIns
+                             nonsenseTruncating
+                             spliceTruncating (the GT-AG motif broken)
+                             splicePreserving (the GT-AG motif preserved)
+
+            The splice effect is possible when insertion occurs at the 3'exon
+            boundary.
         """
 
         # insertion at 3'exon_start
@@ -666,12 +666,12 @@ class CodingAnnotation(object):
 
         Splice region is defined intronic region where
              2 < distance to the exon boundary < 11
-         
+
         Args:
             None
         Returns:
             indel annotation (str): gene|acc|codon_pos|effect|nmd_insensitivity
-         
+
             possible effect: spliceRegion
         """
         # 5'splice region

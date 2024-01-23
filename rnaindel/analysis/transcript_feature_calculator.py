@@ -22,31 +22,24 @@ def transcript_features(df, proteindb):
         df["gene_symbol"],
     ) = zip(*df.apply(_wrapper, domain_dict=domain_dict, axis=1))
 
+    df = df[df["cds_length"] > 1]
+    df.reset_index(drop=True)
+
     dfg = df.groupby("gene_symbol")
     df = dfg.apply(indels_per_gene)
 
     df.drop(columns=["coding_indel_isoforms"], inplace=True)
 
-    return df
+    df = df[df["ipg"] > 0]
+
+    return df.reset_index(drop=True)
 
 
 def _wrapper(row, domain_dict):
 
     coding_indel_isoforms = row["coding_indel_isoforms"]
 
-    annotations = get_annot_str(coding_indel_isoforms)
-    cds_length = get_median_cds_length(coding_indel_isoforms)
-    indel_location = get_median_indel_location(coding_indel_isoforms)
-    is_frame = is_inframe_for_at_least_one_isoform(coding_indel_isoforms)
-    is_splice = is_splice_for_at_least_one_isoform(coding_indel_isoforms)
-    is_truncating = truncating_is_most_common(coding_indel_isoforms)
-    is_nmd_insensitive = nmd_insensitive_is_most_common(coding_indel_isoforms)
-
-    is_in_cdd = in_conserved_domain_is_most_common(coding_indel_isoforms, domain_dict)
-
-    gene_symbol = get_gene_symbol(coding_indel_isoforms)
-
-    return (
+    (
         annotations,
         cds_length,
         indel_location,
@@ -56,7 +49,56 @@ def _wrapper(row, domain_dict):
         is_nmd_insensitive,
         is_in_cdd,
         gene_symbol,
+    ) = (
+        "",
+        -1,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        "",
     )
+
+    try:
+        annotations = get_annot_str(coding_indel_isoforms)
+        cds_length = get_median_cds_length(coding_indel_isoforms)
+        indel_location = get_median_indel_location(coding_indel_isoforms)
+        is_frame = is_inframe_for_at_least_one_isoform(coding_indel_isoforms)
+        is_splice = is_splice_for_at_least_one_isoform(coding_indel_isoforms)
+        is_truncating = truncating_is_most_common(coding_indel_isoforms)
+        is_nmd_insensitive = nmd_insensitive_is_most_common(coding_indel_isoforms)
+
+        is_in_cdd = in_conserved_domain_is_most_common(
+            coding_indel_isoforms, domain_dict
+        )
+
+        gene_symbol = get_gene_symbol(coding_indel_isoforms)
+
+        return (
+            annotations,
+            cds_length,
+            indel_location,
+            is_frame,
+            is_splice,
+            is_truncating,
+            is_nmd_insensitive,
+            is_in_cdd,
+            gene_symbol,
+        )
+    except:
+        return (
+            annotations,
+            cds_length,
+            indel_location,
+            is_frame,
+            is_splice,
+            is_truncating,
+            is_nmd_insensitive,
+            is_in_cdd,
+            gene_symbol,
+        )
 
 
 def get_annot_str(coding_indel_isoforms):
@@ -145,12 +187,15 @@ def indels_per_gene(df_grouped_by_gene_symbol):
         "coding_indel_isoforms"
     ].to_list()
 
-    # normalize by coding region len
-    normalized = [
-        (num_of_indels * 1000) / isoform.cds_len
-        for isoform in flatten_list_of_list(list_of_coding_indel_isoforms)
-    ]
+    try:
+        # normalize by coding region len
+        normalized = [
+            (num_of_indels * 1000) / isoform.cds_len
+            for isoform in flatten_list_of_list(list_of_coding_indel_isoforms)
+        ]
 
-    df_grouped_by_gene_symbol["ipg"] = np.median(normalized)
+        df_grouped_by_gene_symbol["ipg"] = np.median(normalized)
+    except:
+        df_grouped_by_gene_symbol["ipg"] = -1
 
     return df_grouped_by_gene_symbol
