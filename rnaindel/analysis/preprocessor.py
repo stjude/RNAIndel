@@ -50,10 +50,13 @@ def preprocess(
                 )
                 for call_set_by_chrom in callsets_by_chrom
             ]
+
+            df = pd.concat(dfs)
         else:
             pool = Pool(num_of_processes)
 
-            dfs = pool.map(
+            # workaround for higher coverage datasets (eg., cell-free RNA-Seq)
+            _data_files = pool.map(
                 partial(
                     calculate_features,
                     fasta_file=fasta_file,
@@ -61,6 +64,7 @@ def preprocess(
                     data_dir=data_dir,
                     mapq=mapq,
                     external_vcf=external_vcf,
+                    out_as_df=False,
                 ),
                 callsets_by_chrom,
             )
@@ -68,12 +72,36 @@ def preprocess(
             pool.close()
             pool.join()
 
-        df = pd.concat(dfs)
+            dfs = []
+            for _ in _data_files:
+                if ".done.txt" in _:
+                    dfs.append(
+                        pd.read_csv(
+                            _,
+                            sep="\t",
+                            dtype={
+                                "is_in_cdd": bool,
+                                "is_ins": bool,
+                                "is_bidirectional": bool,
+                            },
+                        )
+                    )
+
+            df = pd.concat(dfs)
+
+            fasta = pysam.FastaFile(fasta_file)
+            df["indel"] = df.apply(_remake, fasta=fasta, axis=1)
 
     return df
 
 
-def calculate_features(callset, fasta_file, bam_file, data_dir, mapq, external_vcf):
+def _remake(row, fasta):
+    return Variant(row["chrom"], row["pos"], row["ref"], row["alt"], fasta)
+
+
+def calculate_features(
+    callset, fasta_file, bam_file, data_dir, mapq, external_vcf, out_as_df=True
+):
     path_to_coding_gene_db = "{}/refgene/refCodingExon.bed.gz".format(data_dir)
     path_to_proteindb = "{}/protein/proteinConservedDomains.txt".format(data_dir)
     path_to_dbsnp = "{}/dbsnp/dbsnp.indel.vcf.gz".format(data_dir)
@@ -84,15 +112,25 @@ def calculate_features(callset, fasta_file, bam_file, data_dir, mapq, external_v
         callset, fasta_file, path_to_coding_gene_db, external_vcf
     )
 
+    _df_filename = callset.replace(".txt", ".failed.txt")
     if len(df) > 0:
         df = transcript_features(df, path_to_proteindb)
         if len(df) > 0:
             df = alignment_features(df, bam_file, mapq)
 
         if len(df) > 0:
-            return database_features(df, path_to_dbsnp, path_to_clinvar, path_to_cosmic)
+            df = database_features(df, path_to_dbsnp, path_to_clinvar, path_to_cosmic)
+            if out_as_df:
+                return df
+            else:
+                _df_filename = _df_filename.replace(".failed.txt", ".done.txt")
+                df.to_csv(_df_filename, sep="\t", index=False)
+            return _df_filename
 
-    return make_empty_df()
+    if out_as_df:
+        return make_empty_df()
+    else:
+        return _df_filename
 
 
 def filter_non_coding_indels(callset, fasta_file, path_to_coding_gene_db, external_vcf):
@@ -221,7 +259,9 @@ def make_empty_df():
         "is_near_boundary",
         "equivalence_exists",
         "is_multiallelic",
-        "cplx_variant",
+        "cpos",
+        "cref",
+        "calt",
         "dbsnp",
         "pop_freq",
         "is_common",

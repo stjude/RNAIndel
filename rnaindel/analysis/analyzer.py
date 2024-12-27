@@ -2,6 +2,7 @@ import os
 import sys
 import tempfile
 import argparse
+import pandas as pd
 from functools import partial
 
 from rnaindel.defaultcaller.defaultcaller import callindel
@@ -35,11 +36,14 @@ def analyze(subcommand, version=None):
 
     n_processes = 1 if region else args.process_num
 
+    check_cosmic(data_dir)
+
     with tempfile.TemporaryDirectory() as tmp_dir:
         callindel(bam, fasta, tmp_dir, args.heap_memory, region, n_processes)
-        realn_softclips(
-            bam, fasta, tmp_dir, data_dir, region, n_processes, args.safety_mode
-        )
+        if not args.deactivate_sensitive_mode:
+            realn_softclips(
+                bam, fasta, tmp_dir, data_dir, region, n_processes, args.safety_mode
+            )
 
         df = preprocess(
             tmp_dir,
@@ -65,6 +69,28 @@ def analyze(subcommand, version=None):
         df = cross_check(df, fasta, tdna, ndna)
 
     write_vcf(df, version, args, tdna, ndna)
+
+
+def check_cosmic(data_dir):
+    path = os.path.join(data_dir, "cosmic")
+
+    vcf_gz_ok = False
+    gz_tbi_ok = False
+    for _ in os.listdir(path):
+        if not vcf_gz_ok and _.endswith(".vcf.gz"):
+            vcf_gz_ok = True
+
+        if not gz_tbi_ok and _.endswith(".gz.tbi"):
+            gz_tbi_ok = True
+
+    if vcf_gz_ok and gz_tbi_ok:
+        pass
+    else:
+        print(
+            "ERROR: check COSMIC VCF file and index under {}/cosmic".format(data_dir),
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
 
 def get_args(subcommand):
@@ -199,6 +225,15 @@ def get_args(subcommand):
         )
 
         parser.set_defaults(safety_mode=False)
+
+        parser.add_argument(
+            "--deactivate-sensitive-mode",
+            dest="deactivate_sensitive_mode",
+            action="store_true",
+            help="deactivate additional realignments around softclips (experimental feature)",
+        )
+
+        parser.set_defaults(deactivate_sensitive_mode=False)
     else:
         parser.add_argument(
             "-o",

@@ -19,7 +19,7 @@ def postprocess(df, data_dir, perform_outlier_analysis, pon):
     if perform_outlier_analysis:
         df = outlier_analysis(df, os.path.join(data_dir, "outliers"))
 
-    df["cpos"], df["cref"], df["calt"] = zip(*df.apply(expand_complex, axis=1))
+    # df["cpos"], df["cref"], df["calt"] = zip(*df.apply(expand_complex, axis=1))
 
     dfg = df.groupby(["chrom", "cpos", "cref", "calt"])
     df = dfg.apply(recheck_caller_origin_by_complex_representation)

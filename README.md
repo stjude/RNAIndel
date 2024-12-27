@@ -194,6 +194,7 @@ Leverage all resources for best performance.
     * ```--include-all-external-calls``` set to include all indels in VCF file supplied by -v. (default: False. Use only calls with PASS in FILTER) 
     * ```--skip-homopolyer-outlier-analysis``` no outlier analysis for homopolymer indels (repeat > 4) performed if set. (default: False)  
     * ```--safety-mode``` deactivate parallelism at realignment step. may be required to run with -p > 1 on some platforms. (default: False)
+    * ```--deactivate-sensitive-mode``` deactivate additional realignments for soft-clipped reads. (default: False)
 
 </p></details>
 
