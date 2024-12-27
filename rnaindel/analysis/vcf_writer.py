@@ -61,7 +61,8 @@ def get_cmd_line(args):
         "--normal--dna {} --region {} --pon {} "
         "--include-all-external-calls {} "
         "--skip-homopolyer-outlier-analysis {} "
-        "--safety-mode {}".format(
+        "--safety-mode {} "
+        "--deactivate-sensitive-mode {}".format(
             os.path.abspath(args.bam),
             os.path.abspath(args.reference),
             os.path.abspath(args.output_vcf),
@@ -77,6 +78,7 @@ def get_cmd_line(args):
             (not args.pass_only),
             (not args.perform_outlier_analysis),
             (args.safety_mode),
+            (args.deactivate_sensitive_mode),
         )
     )
 

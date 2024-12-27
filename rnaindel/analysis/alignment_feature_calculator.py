@@ -3,6 +3,7 @@ import pysam
 import random
 from indelpost import Variant, VariantAlignment
 
+from .timeout import timeout
 from .utils import most_common, split, flatten_list_of_list
 from .sequence_properties import (
     repeat,
@@ -45,7 +46,9 @@ def alignment_features(df, bam, mapq, downsample_threshold=1000):
         df["is_near_boundary"],
         df["equivalence_exists"],
         df["is_multiallelic"],
-        df["cplx_variant"],
+        df["cpos"],
+        df["cref"],
+        df["calt"],
     ) = zip(
         *df.apply(
             _wrapper,
@@ -63,6 +66,7 @@ def alignment_features(df, bam, mapq, downsample_threshold=1000):
 
 def _wrapper(row, bam, mapq, downsample_threshold):
     variant = row["indel"]
+
     (
         indel_size,
         is_ins,
@@ -92,7 +96,9 @@ def _wrapper(row, bam, mapq, downsample_threshold):
         is_near_exon_boundaray,
         equivalent_exists,
         is_multiallelic,
-        cplx_variant,
+        cpos,
+        cref,
+        calt,
     ) = (
         -1,
         -1,
@@ -113,11 +119,16 @@ def _wrapper(row, bam, mapq, downsample_threshold):
         -1,
         -1,
         -1,
-        variant,
+        -1,
+        -1,
+        -1,
     )
 
     if "N" not in variant.alt and "N" not in variant.ref:
-        res = make_indel_alignment(variant, bam, downsample_threshold)
+        try:
+            res = make_indel_alignment(variant, bam, downsample_threshold)
+        except:
+            res = None
     else:
         res = None
 
@@ -135,7 +146,9 @@ def _wrapper(row, bam, mapq, downsample_threshold):
                 loc_strength,
                 dissim,
                 indel_complexity,
-                cplx_variant,
+                cpos,
+                cref,
+                calt,
             ) = sequence_features(variant, valn, contig)
             (
                 ref_cnt,
@@ -181,7 +194,9 @@ def _wrapper(row, bam, mapq, downsample_threshold):
         is_near_exon_boundaray,
         equivalent_exists,
         is_multiallelic,
-        cplx_variant,
+        cpos,
+        cref,
+        calt,
     )
 
 
@@ -206,6 +221,7 @@ def indel_type_features(variant):
     return indel_size, is_ins, is_at_ins, is_at_del, is_gc_ins, is_gc_del
 
 
+@timeout(2)
 def make_indel_alignment(variant, bam, downsample_threshold=1500):
 
     try:
@@ -352,7 +368,9 @@ def sequence_features(target_indel, valn, contig):
         loc_strength,
         dissim,
         indel_complexity,
-        cplx_var,
+        cplx_var.pos,
+        cplx_var.ref,
+        cplx_var.alt,
     )
 
 

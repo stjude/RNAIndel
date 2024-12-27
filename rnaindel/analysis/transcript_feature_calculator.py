@@ -57,7 +57,7 @@ def _wrapper(row, domain_dict):
         0,
         0,
         0,
-        0,
+        False,
         "",
     )
 
@@ -162,7 +162,7 @@ def in_conserved_domain_is_most_common(coding_indel_isoforms, domain_dict):
 def is_within(isoform, domain_dict):
     domain_position_lst = domain_dict.get(isoform.accession, [])
     if not domain_position_lst:
-        return 0
+        return False
 
     codon_pos = isoform.codon_pos
     domain_position_lst.append(codon_pos)
