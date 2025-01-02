@@ -11,6 +11,7 @@
             "type": {
                 "type": "enum",
                 "symbols": [
+                    "SetUp",
                     "PredictIndels",
                     "CalculateFeatures",
                     "Train",
@@ -165,6 +166,50 @@
                 "position": 12
             },
             "label": "specify region for target analysis: chrN:start-stop (default: None)"
+        },
+        {
+            "id": "sensitive_mode",
+            "type": "boolean?",
+            "default": False,
+            "inputBinding": {
+                "prefix": "--deactivate-sensitive-mode",
+                "shellQuote": false,
+                "position": 13
+            },
+            "label": "Disable additional realignments for soft-clipped reads (default: False)"
+        },
+        {
+            "id": "safety_mode",
+            "type": "boolean?",
+            "default": False,
+            "inputBinding": {
+                "prefix": "--safety-mode",
+                "shellQuote": false,
+                "position": 14
+            },
+            "label": "Deactivate parallelism at realignment step. may be required to run with -p > 1 on some platforms. (default: False)"
+        },
+        {
+            "id": "skip_homopolyer_outlier_analysis",
+            "type": "boolean?",
+            "default": False,
+            "inputBinding": {
+                "prefix": "--skip-homopolyer-outlier-analysis",
+                "shellQuote": false,
+                "position": 15
+            },
+            "label": "No outlier analysis for homopolymer indels (repeat > 4) performed if set. (default: False)"
+        },
+        {
+           "id": "include_all_external_calls",
+            "type": "boolean?",
+            "default": False,
+            "inputBinding": {
+                "prefix": "--include-all-external-calls",
+                "shellQuote": false,
+                "position": 16
+            },
+            "label": "Set to include all indels in VCF file supplied by -v. (default: False. Use only calls with PASS in FILTER)"
         }
     ],
     "outputs": [
