@@ -112,9 +112,9 @@ optional arguments:
 ```
 
 ### DataPackage
-Download data package (version 3 is not compatible with the previous data package). <br> 
-The dataset is based on NCBI RefSeq. If Ensembl transcripts are preferred, please
-use GRCh38 MANE ([Matched Annotation from NCBI and EBI](https://useast.ensembl.org/info/genome/genebuild/mane.html)). 
+Download data package (version 3 is not compatible with the previous data package). This data package is based on NCBI RefSeq. 
+If Ensembl transcripts are preferred, please use GRCh38 MANE 
+([Matched Annotation from NCBI and EBI](https://useast.ensembl.org/info/genome/genebuild/mane.html)). 
 ```
 #GRCh38
 curl -LO https://zenodo.org/records/17149265/files/data_dir_grch38.tar.gz
