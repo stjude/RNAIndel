@@ -214,13 +214,19 @@ optional arguments:
   --version   show program's version number and exit
 </code></pre>
 <h3 id="datapackage">DataPackage</h3>
-<p>Download data package (version 3 is not compatible with the previous data package). </p>
+<p>Download data package (version 3 is not compatible with the previous data package). This data package is based on NCBI RefSeq. 
+If Ensembl transcripts are preferred, please use GRCh38 MANE 
+(<a href="https://useast.ensembl.org/info/genome/genebuild/mane.html">Matched Annotation from NCBI and EBI</a>). </p>
 <pre><code>#GRCh38
-curl -LO https://zenodo.org/records/10552784/files/data_dir_grch38.tar.gz
+curl -LO https://zenodo.org/records/17149265/files/data_dir_grch38.tar.gz
 tar -zxf data_dir_grch38.tar.gz
 
+#GRCh38 MANE (Ensembl) 
+curl -LO https://zenodo.org/records/17149265/files/data_dir_grch38_mane.tar.gz
+tar -xvzf data_dir_grch38_mane.tar.gz
+
 #GRCh37
-curl -LO https://zenodo.org/records/10552784/files/data_dir_grch37.tar.gz
+curl -LO https://zenodo.org/records/17149265/files/data_dir_grch37.tar.gz
 tar -zxf data_dir_grch37.tar.gz
 </code></pre>
 <h2 id="usage">Usage</h2>
@@ -403,5 +409,5 @@ on a server with 32-core AMD EPYC 7542 CPU @2.90 GHz.</p>
 
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2025-01-06 17:34:07.095114+00:00
+Build Date UTC : 2025-10-03 20:39:05.041511+00:00
 -->
