@@ -96,7 +96,7 @@ def preprocess(
 
 
 def _remake(row, fasta):
-    return Variant(row["chrom"], row["pos"], row["ref"], row["alt"], fasta)
+    return Variant(str(row["chrom"]), row["pos"], row["ref"], row["alt"], fasta)
 
 
 def calculate_features(
