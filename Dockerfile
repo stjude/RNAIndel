@@ -3,8 +3,10 @@ FROM eclipse-temurin:8
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
+    python3-venv \
     libbz2-dev \
     liblzma-dev \
+    git \
     && rm -rf /var/lib/apt/lists/* 
 
 RUN mkdir /data
@@ -12,6 +14,10 @@ VOLUME /data
 WORKDIR /tmp
 
 ADD . .
+
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 RUN python3 -m pip install --upgrade pip setuptools wheel
 
