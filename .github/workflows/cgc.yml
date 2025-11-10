@@ -4,7 +4,7 @@ on:
     types: [released, edited]
 jobs:
   cgc:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: "Deploy"
     steps:
       - uses: actions/checkout@v2
