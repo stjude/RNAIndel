@@ -150,7 +150,6 @@ Subcommands are invoked:
 
 ### Set up 
 Run the first-time-only command. Takes 5 to 10 minutes to complete.<br />
-NOTE: not required to run the docker image. 
 ``` 
 > rnaindel SetUp -d data_dir
 ```
