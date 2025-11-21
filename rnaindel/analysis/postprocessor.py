@@ -1,5 +1,6 @@
 import os
 import pysam
+from pathlib import Path
 from .outlier import outlier_analysis
 
 
@@ -7,8 +8,14 @@ def postprocess(df, data_dir, perform_outlier_analysis, pon):
     path_to_cosmic = "{}/cosmic/CosmicCodingMuts.indel.vcf.gz".format(data_dir)
     path_to_non_somatic = "{}/non_somatic/non_somatic.vcf.gz".format(data_dir)
 
-    non_somatic = pysam.VariantFile(path_to_non_somatic)
-    cosmic = pysam.VariantFile(path_to_cosmic)
+    if Path(path_to_non_somatic).is_file():
+        non_somatic = pysam.VariantFile(path_to_non_somatic)
+    else:
+        non_somatic = None
+    if Path(path_to_cosmic).is_file():
+        cosmic = pysam.VariantFile(path_to_cosmic)
+    else:
+        cosmic = None
 
     df["filter"], df["reclassified"], df["predicted_class"] = zip(
         *df.apply(_wrapper, non_somatic_db=non_somatic, cosmic=cosmic, pon=pon, axis=1)
@@ -83,6 +90,9 @@ def filter_str(row, non_somatic_db, pon, mapping_thresh):
 
 
 def filter_by_db(row, non_somatic_db, pon):
+    if not non_somatic_db:
+        return ""
+
     non_somatic_hits = row["indel"].query_vcf(non_somatic_db)
 
     if non_somatic_hits:
@@ -128,7 +138,7 @@ def filter_by_junction(row):
 
 
 def reclassify_by_knowledge(row, cosmic):
-    if row["is_common"]:
+    if not cosmic or row["is_common"]:
         return False
 
     # known pathogenic event with high cosmic count
@@ -144,8 +154,12 @@ def reclassify_by_knowledge(row, cosmic):
 
 def sort_positionally(df):
     df["_chrom"] = df.apply(lambda x: str(x["chrom"]).replace("chr", ""), axis=1)
-    df["_chrom"] = df.apply(lambda x: 23 if str(x["_chrom"]) == "X" else x["_chrom"], axis=1)
-    df["_chrom"] = df.apply(lambda x: 24 if str(x["_chrom"]) == "Y" else x["_chrom"], axis=1)
+    df["_chrom"] = df.apply(
+        lambda x: 23 if str(x["_chrom"]) == "X" else x["_chrom"], axis=1
+    )
+    df["_chrom"] = df.apply(
+        lambda x: 24 if str(x["_chrom"]) == "Y" else x["_chrom"], axis=1
+    )
 
     df["_chrom"] = df.apply(lambda x: int(x["_chrom"]), axis=1)
 

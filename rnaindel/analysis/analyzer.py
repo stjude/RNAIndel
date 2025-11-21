@@ -1,9 +1,13 @@
+import re
 import os
 import sys
+import pysam
+import sklearn
 import tempfile
 import argparse
 import pandas as pd
 from functools import partial
+from collections import Counter
 
 from rnaindel.defaultcaller.defaultcaller import callindel
 from rnaindel.defaultcaller.softclip_realigner import realn_softclips
@@ -22,7 +26,6 @@ from .utils import (
 
 
 def analyze(subcommand, version=None):
-
     args = get_args(subcommand)
 
     bam = args.bam
@@ -34,15 +37,29 @@ def analyze(subcommand, version=None):
     tdna = args.tumor_dna
     ndna = args.normal_dna
 
+    setup_check(data_dir)
+
     n_processes = 1 if region else args.process_num
 
     check_cosmic(data_dir)
 
+    read_len = read_len_check(bam)
+    canonicals = canonical_chromosomes(bam)
     with tempfile.TemporaryDirectory() as tmp_dir:
-        callindel(bam, fasta, tmp_dir, args.heap_memory, region, n_processes)
+        callindel(
+            bam, fasta, tmp_dir, args.heap_memory, canonicals, region, n_processes
+        )
         if not args.deactivate_sensitive_mode:
             realn_softclips(
-                bam, fasta, tmp_dir, data_dir, region, n_processes, args.safety_mode
+                bam,
+                fasta,
+                tmp_dir,
+                data_dir,
+                canonicals,
+                region,
+                n_processes,
+                args.safety_mode,
+                read_len,
             )
 
         df = preprocess(
@@ -52,6 +69,7 @@ def analyze(subcommand, version=None):
             data_dir,
             mapq,
             n_processes,
+            canonicals,
             region,
             external_vcf,
             args.pass_only,
@@ -71,8 +89,57 @@ def analyze(subcommand, version=None):
     write_vcf(df, version, args, tdna, ndna)
 
 
+def setup_check(data_dir):
+    setup_log = "{}/models/setuplog.txt".format(data_dir)
+    if os.path.isfile(setup_log):
+        with open(setup_log) as f:
+            curr_v = str(sklearn.__version__)
+            setup_v = str(f.read().rstrip())
+            if curr_v != setup_v:
+                print(
+                    "Warning: Consider running SetUp command, rnaindel SetUp -d /path/to/data_dir",
+                    file=sys.stderr,
+                )
+    else:
+        print(
+            "Error: Run SetUp command, rnaindel SetUp -d /path/to/data_dir",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+
+def read_len_check(bam):
+    i = 0
+    lens = []
+    reads = pysam.AlignmentFile(bam).fetch()
+    for read in reads:
+        if i > 99:
+            break
+        lens.append(read.query_alignment_length)
+        i += 1
+    if lens:
+        return Counter(lens).most_common(1)[0][0]
+    return 75
+
+
+def canonical_chromosomes(bam):
+    chromosomes = pysam.AlignmentFile(bam).references
+    canonicals = []
+    for chrom in chromosomes:
+        chrom = chrom.replace("chr", "")
+        if chrom in ["X", "Y"]:
+            canonicals.append(chrom)
+        elif re.match(r"\d+", chrom):
+            canonicals.append(str(chrom))
+    return canonicals
+
+
 def check_cosmic(data_dir):
     path = os.path.join(data_dir, "cosmic")
+
+    # non-human support
+    if not os.path.isdir(path):
+        return
 
     vcf_gz_ok = False
     gz_tbi_ok = False

@@ -5,11 +5,8 @@ import shlex
 import subprocess
 from multiprocessing import Pool
 
-CANONICALS = [str(i) for i in range(1, 23)] + ["X", "Y"]
 
-
-def callindel(bam, fasta, tmp_dir, heap_memory, region, num_of_processes):
-
+def callindel(bam, fasta, tmp_dir, heap_memory, canonicals, region, num_of_processes):
     check_java_version()
 
     # Add Bambino home dir to CLASSPATH
@@ -35,7 +32,6 @@ def callindel(bam, fasta, tmp_dir, heap_memory, region, num_of_processes):
     )
 
     if region:
-
         outfile = os.path.join(tmp_dir, "outfile.txt")
 
         tmp = region.split(":")
@@ -55,10 +51,10 @@ def callindel(bam, fasta, tmp_dir, heap_memory, region, num_of_processes):
                 + " -chr {} -of {}".format(
                     chrom, os.path.join(tmp_dir, "chr{}.txt").format(chrom)
                 )
-                for chrom in CANONICALS
+                for chrom in canonicals
             ]
             outfiles = [
-                os.path.join(tmp_dir, "chr{}.txt").format(chrom) for chrom in CANONICALS
+                os.path.join(tmp_dir, "chr{}.txt").format(chrom) for chrom in canonicals
             ]
             pool = Pool(num_of_processes)
 
@@ -70,7 +66,6 @@ def callindel(bam, fasta, tmp_dir, heap_memory, region, num_of_processes):
             for rets, outfile in zip(caller_returns, outfiles):
                 check_caller_return(rets[0], rets[1], rets[2], outfile)
         else:
-
             outfile = os.path.join(tmp_dir, "outfile.txt")
 
             cmd_str = base_cmd_str + " -of {}".format(outfile)
@@ -119,13 +114,13 @@ def check_java_version():
 
 
 def run_shell_command(command_string):
-    """ Executes a command and returns stdout, stderr, return_code.
-        Input:
-            - command_string: Command to be executed
-        Output:
-            - stdout: stdout of command as a single string.
-            - stderr: stderr of command as a single string.
-            - return_code: integer return code of command.
+    """Executes a command and returns stdout, stderr, return_code.
+    Input:
+        - command_string: Command to be executed
+    Output:
+        - stdout: stdout of command as a single string.
+        - stderr: stderr of command as a single string.
+        - return_code: integer return code of command.
     """
     command = shlex.split(command_string)
     proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -139,7 +134,6 @@ def run_shell_command(command_string):
 
 
 def check_caller_return(stdout, stderr, return_code, outfile):
-
     if return_code != 0:
         print("Failed while calling indels.", file=sys.stderr)
         print(stderr, file=sys.stderr)

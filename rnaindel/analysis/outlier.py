@@ -8,7 +8,6 @@ import pickle
 
 
 def outlier_analysis(df, model_dir):
-
     _df = df[df["is_rescurable_homopolymer"]].reset_index(drop=True)
 
     if not len(_df):

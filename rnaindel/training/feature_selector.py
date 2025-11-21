@@ -21,10 +21,10 @@ def selector(
     max_features="auto",
 ):
     """Select s subset of features optimizing F beta
-    
+
     Args:
         df (pandas,DataFrame)
-        k (int): num of folds in cross validation 
+        k (int): num of folds in cross validation
         indel_class (str): s for single-nucleotide indels, m for multi-nucleotide indels
         artifact_ratio (int): downsampling ratio for artifact class
         beta (int): specify F beta score to be optimized
@@ -83,7 +83,7 @@ def greedy_search(
     max_features,
 ):
     """Pick up a feature with the greatest increment in F beta in a greedy manner
-    
+
     Args:
         selected_features (list): selected features
         remaining_features (list): features to be examined
@@ -101,7 +101,6 @@ def greedy_search(
     scores = []
 
     for feature in remaining_features:
-
         selected_features.append(feature)
 
         # do k-fold CV for each feature

@@ -14,7 +14,6 @@ from .homopolyer_trainer import train_homolopolymer
 
 
 def train():
-
     subcommand = "Train"
     args = get_args(subcommand)
 
@@ -24,7 +23,6 @@ def train():
     df = input_validator(args.training_data, indel_class)
 
     if indel_class in ["s", "m"]:
-
         # downsampling
         artifact_ratio, ds_f_beta, ds_precision = downsampler(
             df,

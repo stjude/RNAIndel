@@ -1,10 +1,14 @@
 import pysam
+from pathlib import Path
 
 
 def database_features(df, dbsnp, clinvar, cosmic):
     dbsnp = pysam.VariantFile(dbsnp)
-    clinvar = pysam.VariantFile(clinvar)
-    cosmic = pysam.VariantFile(cosmic)
+    if Path(clinvar).is_file():
+        clinvar = pysam.VariantFile(clinvar)
+        cosmic = pysam.VariantFile(cosmic)
+    else:
+        clinvar, comsic = None, None
 
     (
         df["dbsnp"],
@@ -22,31 +26,39 @@ def _wrapper(row, dbsnp, clinvar, cosmic):
     variant = row["indel"]
 
     dbsnp_annotation = dbsnp_annot(variant, dbsnp)
-    try:
-        clin_annotation = clinvar_annot(variant, clinvar)
-    except:
-        clin_annotation = -1, 0
-
-    # dbSNP ID
     rs_id = dbsnp_annotation[0]
 
-    pop_freq = max(dbsnp_annotation[1], clin_annotation[0])
+    if not clinvar:
+        is_on_db = dbsnp_annotation[-1]
+        is_common = is_on_db
+        pop_freq = -1
+        clin_annotation = -1, 0
+        cosmic_cnt = 0
+    else:
+        try:
+            clin_annotation = clinvar_annot(variant, clinvar)
+        except:
+            clin_annotation = -1, 0
 
-    is_common = _is_common(pop_freq, dbsnp_annotation)
+        # dbSNP ID
+        rs_id = dbsnp_annotation[0]
 
-    is_on_db = 0
-    if is_common:
-        is_on_db = 1
-    elif dbsnp_annotation[-1]:
-        is_on_db = 1
+        pop_freq = max(dbsnp_annotation[1], clin_annotation[0])
 
-    cosmic_cnt = cosmic_annot(variant, cosmic)
+        is_common = _is_common(pop_freq, dbsnp_annotation)
+
+        is_on_db = 0
+        if is_common:
+            is_on_db = 1
+        elif dbsnp_annotation[-2]:
+            is_on_db = 1
+
+        cosmic_cnt = cosmic_annot(variant, cosmic)
 
     return rs_id, pop_freq, is_common, is_on_db, clin_annotation[1], cosmic_cnt
 
 
 def get_population_freq(dbsnp_annotation, clin_annotation):
-
     max_dbsnp_freq = dbsnp_annotation[1] if dbsnp_annotation else -1
     max_clinvar_freq = clin_annotation[0] if clin_annotation else -1
 
@@ -65,28 +77,43 @@ def _is_common(pop_freq, dbsnp_annotation):
 
 def dbsnp_annot(variant, db):
     hits = variant.query_vcf(db)
+    ids, max_freq, dbsnp_common, is_common_in_non_cancer_pop = ".", -1, [], False
 
+    has_hits = False
     if hits:
-        ids = ",".join([hit["ID"] for hit in hits])
+        has_hits = True
+        _ids = []
+        for hit in hits:
+            _id = hit["ID"]
+            if _id:
+                _ids.append(_id)
 
-        max_thousand_genome_freq = max(
-            [get_allele_freq(hit["INFO"], preset="CAF") for hit in hits]
-        )
-        max_topmed_freq = max(
-            [get_allele_freq(hit["INFO"], preset="TOPMED") for hit in hits]
-        )
-        max_non_cancer_freq = max(
-            [get_allele_freq(hit["INFO"], preset="non_cancer_AF") for hit in hits]
-        )
+        if _ids:
+            ids = ",".join(_ids)
 
-        max_freq = max(max_thousand_genome_freq, max_topmed_freq, max_non_cancer_freq)
+        try:
+            max_thousand_genome_freq = max(
+                [get_allele_freq(hit["INFO"], preset="CAF") for hit in hits]
+            )
+            max_topmed_freq = max(
+                [get_allele_freq(hit["INFO"], preset="TOPMED") for hit in hits]
+            )
+            max_non_cancer_freq = max(
+                [get_allele_freq(hit["INFO"], preset="non_cancer_AF") for hit in hits]
+            )
 
-        dbsnp_common = [int(hit["INFO"].get("COMMON", -1)) for hit in hits]
-        is_common_in_non_cancer_pop = max_non_cancer_freq > 0.0001
+            max_freq = max(
+                max_thousand_genome_freq, max_topmed_freq, max_non_cancer_freq
+            )
 
-        return ids, max_freq, dbsnp_common, is_common_in_non_cancer_pop
-    else:
-        return ".", -1, [], False
+            dbsnp_common = [int(hit["INFO"].get("COMMON", -1)) for hit in hits]
+            is_common_in_non_cancer_pop = max_non_cancer_freq > 0.0001
+        except:
+            pass
+
+    return ids, max_freq, dbsnp_common, is_common_in_non_cancer_pop, has_hits
+    # else:
+    # return ".", -1, [], False
 
 
 def clinvar_annot(variant, db):

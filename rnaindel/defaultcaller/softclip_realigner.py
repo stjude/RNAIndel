@@ -4,37 +4,51 @@ import pandas as pd
 from ssw import AlignmentMgr
 from indelpost import Variant
 from functools import partial
+from collections import Counter
 from multiprocessing import Pool
-
-CANONICALS = [str(i) for i in range(1, 23)] + ["X", "Y"]
 
 
 def realn_softclips(
-    bam, fasta, tmp_dir, data_dir, region, num_of_processes, safety_mode
+    bam,
+    fasta,
+    tmp_dir,
+    data_dir,
+    canonicals,
+    region,
+    num_of_processes,
+    safety_mode,
+    read_len,
 ):
     if safety_mode:
         num_of_processes = 1
 
     if region:
-        softclip(region, bam, fasta, data_dir, tmp_dir)
+        softclip(region, bam, fasta, data_dir, tmp_dir, read_len)
     elif num_of_processes == 1:
-        for chromosome in CANONICALS:
-            softclip(chromosome, bam, fasta, data_dir, tmp_dir)
-        merge_outfiles(tmp_dir)
+        for chromosome in canonicals:
+            softclip(chromosome, bam, fasta, data_dir, tmp_dir, read_len)
+        merge_outfiles(tmp_dir, canonicals)
     else:
         pool = Pool(num_of_processes)
 
         pool.map(
-            partial(softclip, bam=bam, fasta=fasta, data_dir=data_dir, tmp_dir=tmp_dir),
-            CANONICALS,
+            partial(
+                softclip,
+                bam=bam,
+                fasta=fasta,
+                data_dir=data_dir,
+                tmp_dir=tmp_dir,
+                read_len=read_len,
+            ),
+            canonicals,
         )
 
 
-def merge_outfiles(tmp_dir):
+def merge_outfiles(tmp_dir, canonicals):
     outfilename = os.path.join(tmp_dir, "outfile.sftclp.txt")
     files_by_chrom = [
         os.path.join(tmp_dir, "chr{}.sftclp.txt".format(chrom))
-        for chrom in CANONICALS
+        for chrom in canonicals
         if os.path.isfile(os.path.join(tmp_dir, "chr{}.sftclp.txt".format(chrom)))
     ]
 
@@ -49,6 +63,7 @@ def softclip(
     fasta,
     data_dir,
     tmp_dir,
+    read_len,
     min_clip_len=10,
     base_qual_thresh=12,
     dirty_rate_thresh=0.2,
@@ -97,7 +112,7 @@ def softclip(
     clipped_reads = []
 
     is_first_read = True
-    window_width = 20
+    window_width = int(read_len * 0.4)  # 40% of read len
     window_start_pos = start
     window_end_pos = window_start_pos + window_width
     window_volume = 0
@@ -144,7 +159,7 @@ def softclip(
                     refseq_db,
                     fasta,
                     min_clip_len,
-                    density_thresh=0.05,
+                    density_thresh=0.1,
                     margin=50,
                 )
             except:
@@ -218,7 +233,7 @@ def process_clipped_reads(
         )
     except:
         is_coding = 0
-    
+
     if not is_coding:
         return None
 
@@ -320,8 +335,7 @@ def get_mapped_ends_n(aln):
 
 
 def is_hq_realn(read, aln, ref_seq, min_clip_len, end_match_thresh=6):
-    read_seq = read_seq = read.query_sequence
-
+    read_seq = read.query_sequence
     read_start_idx = aln.read_start
     read_end_idx = aln.read_end
     ref_start_idx = aln.reference_start
@@ -554,13 +568,14 @@ def is_beyond_window(read, window_end_pos):
 
 def sort_by_clip_ends(clipped_reads):
     lt_clipps, rt_clipps = {}, {}
-
+    lt_clip_pos, rt_clip_pos = [], []
     for read in clipped_reads:
         cigar_tupes = read.cigartuples
         read_seq = read.query_sequence
         first_cigar, last_cigar = cigar_tupes[0], cigar_tupes[-1]
         if first_cigar[0] == 4:
             clip_end = read.reference_start
+            lt_clip_pos.append(clip_end)
             if lt_clipps.get(clip_end, None):
                 lt_clipps[clip_end].append((read_seq[: first_cigar[1]], read))
             else:
@@ -568,6 +583,7 @@ def sort_by_clip_ends(clipped_reads):
 
         if last_cigar[0] == 4:
             clip_start = read.reference_end
+            rt_clip_pos.append(clip_start)
             if rt_clipps.get(clip_start, None):
                 rt_clipps[clip_start].append((read_seq[-last_cigar[1] :], read))
             else:

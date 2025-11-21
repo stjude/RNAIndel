@@ -2,6 +2,7 @@ import os
 import sys
 import gzip
 import pickle
+import sklearn
 import argparse
 import pandas as pd
 from .model_updater import updater
@@ -25,6 +26,9 @@ def setup():
         updater(df, indel_class, params[0], params[1], params[2], model_dir)
 
     update_homopolymer_models(data_dir)
+
+    with open("{}/models/setuplog.txt".format(data_dir), "w") as f:
+        f.write("{}\n".format(sklearn.__version__))
 
 
 def pretrained_params(indel_class):

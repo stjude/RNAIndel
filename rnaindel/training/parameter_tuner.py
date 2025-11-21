@@ -10,11 +10,18 @@ from sklearn.model_selection import ParameterGrid
 
 
 def tuner(
-    df, k, indel_class, artifact_ratio, features, beta, num_of_processes, auto_param,
+    df,
+    k,
+    indel_class,
+    artifact_ratio,
+    features,
+    beta,
+    num_of_processes,
+    auto_param,
 ):
     """Optimize the maximum number of features considered in sklearn random forest model
 
-    Args: 
+    Args:
         df (pandas.DataFrame)
         k (int): num of folds in cross validation
         indel_class (str): s for single-nucleotide indels, m for multi-nucleotide indels
@@ -22,10 +29,10 @@ def tuner(
         features (list): a list of feature names
         beta (int): specify F beta score to be optimized
         num_of_processes (int): num of processes in parallelism
-        auto_param (bool): Train with sklearn's default params if True 
+        auto_param (bool): Train with sklearn's default params if True
     Returns:
         report_result (tuple): (max_features (int), pt_f_beta (float), pt_precision)
-                                max_features: maximum num of features 
+                                max_features: maximum num of features
                                 pt_f_beta: F beta score optimized in parameter tuning (pt) step
                                 pt_precision: associated precision
     """
