@@ -18,7 +18,6 @@ def train_homolopolymer(df, model_dir):
 
 
 def split(df, n):
-
     (
         df["is_at_ins_{}_polymer".format(n)],
         df["is_at_del_{}_polymer".format(n)],
@@ -62,7 +61,6 @@ def flag_target_polymers(row, n):
 
 
 def is_target_polymer(row, n, for_at, for_ins):
-
     if row["ref_count"] + row["alt_count"] < 5:
         return False
 

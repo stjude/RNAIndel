@@ -52,7 +52,7 @@ def make_k_folds(df, k, indel_class):
 
                       [[df_t_1, df_v_1],
                              ...
-                       [df_t_k, df_v_k]]              
+                       [df_t_k, df_v_k]]
     """
     # df with 1-nt or >1-nt
     df = split_by_indel_size(df, indel_class)
@@ -80,7 +80,7 @@ def split_by_indel_size(df, indel_class):
         df (pandas.DataFrame)
         indel_class (str): "s" for 1-nt, "m" for >1-nt indels
     Returns:
-        df (pandas.DataFrame): only contains 1-nt 
+        df (pandas.DataFrame): only contains 1-nt
                                or >1-nt indels
     """
     if indel_class == "s":
@@ -98,7 +98,7 @@ def perform_k_fold_cv(folds, features, artifact_ratio, num_of_processes, max_fea
         num_of_processes (int): positive int for multiprocessing
     Returns:
         stats (np.array): aggreated from k folds
-                           arr([true positive, 
+                           arr([true positive,
                                false positive,
                                false negative])
     """
@@ -145,7 +145,7 @@ def train_classifiers(df, artifact_ratio, features, max_features):
         artifact_ratio (int): positive int
         features (list): feature set used for training
     Returns:
-        models (list): a list of 20 trained RandomForest obj 
+        models (list): a list of 20 trained RandomForest obj
     """
     models = []
     for i in range(20):
@@ -205,7 +205,7 @@ def downsample(df, artifact_ratio, i):
     Args:
         df (pandas.DataFrame)
         artifact_ratio (int): positive int x in s:g:a = 1:1:x
-        i (int): i-th classifier. used to set seed 
+        i (int): i-th classifier. used to set seed
     Return:
         df (pandas.DataFrame): s:g:a = 1:1:x
     """
@@ -241,9 +241,9 @@ def predict_prob(model, df, features):
 
 
 def annotate_prediction(row):
-    """Annotate predicated class based 
+    """Annotate predicated class based
     on the highest prediction probability
-    
+
     Args:
         row (pandas.Series)
     Returns
@@ -262,7 +262,7 @@ def annotate_prediction(row):
 
 
 def make_score_dict(param_to_be_optimized, stat_arr, beta):
-    """Associate performance scores and param being optimized 
+    """Associate performance scores and param being optimized
 
     Args:
         param_to_be_optimized (int or str): int for artifact ratio
@@ -351,7 +351,7 @@ def report_result(df, beta):
 
 
 def features(indel_class):
-    """Manage feature names 
+    """Manage feature names
 
     Args:
         indel_class (str): "s" for single-nucleotide indels (1-nt indels)

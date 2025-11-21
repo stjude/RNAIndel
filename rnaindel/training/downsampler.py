@@ -10,7 +10,13 @@ from .model_selection import report_result
 
 
 def downsampler(
-    df, k, indel_class, beta, num_of_processes, downsample_ratio, max_features="auto",
+    df,
+    k,
+    indel_class,
+    beta,
+    num_of_processes,
+    downsample_ratio,
+    max_features="auto",
 ):
     """Optimize downsampling ratio optimizing F beta: somatic:germline:artifact = 1:1:x
 
@@ -25,8 +31,8 @@ def downsampler(
     Returns:
         report_result (tuple): (artifact_ratio (int), ds_f_beta (float), ds_precision (float)
                                artifact_ratio: ratio optimizing ds_f_beta
-                               ds_f_beta: F beta score optimized in downsampling (ds) step. 
-                               ds_precision: associated precision at the F beta optimum 
+                               ds_f_beta: F beta score optimized in downsampling (ds) step.
+                               ds_precision: associated precision at the F beta optimum
     """
 
     all_features = features(indel_class)

@@ -63,7 +63,6 @@ def adjust_start_pos(aligned_segment, is_for_ref):
 
 
 def get_ref_seq(aligned_segment, target_indel, cigar_string, cigar_list):
-
     aln_start, aln_end = (
         aligned_segment.reference_start + 1,
         aligned_segment.reference_end,
@@ -91,7 +90,6 @@ def get_ref_seq(aligned_segment, target_indel, cigar_string, cigar_list):
 
 
 def split(aligned_segment, target_indel, is_for_ref):
-
     target_pos = target_indel.pos
     string_pos = adjust_start_pos(aligned_segment, is_for_ref)
 

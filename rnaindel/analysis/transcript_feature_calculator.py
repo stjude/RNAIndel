@@ -7,7 +7,6 @@ numeric = re.compile(r"[0-9]+")
 
 
 def transcript_features(df, proteindb):
-
     domain_dict = make_conserved_domain_dict(proteindb)
 
     (
@@ -36,7 +35,6 @@ def transcript_features(df, proteindb):
 
 
 def _wrapper(row, domain_dict):
-
     coding_indel_isoforms = row["coding_indel_isoforms"]
 
     (

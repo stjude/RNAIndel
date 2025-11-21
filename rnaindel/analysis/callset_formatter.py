@@ -2,10 +2,8 @@ import os
 import pysam
 import pandas as pd
 
-CANONICALS = [str(i) for i in range(1, 23)] + ["X", "Y"]
 
-
-def format_callset(tmp_dir, external_vcf, pass_only, region):
+def format_callset(tmp_dir, external_vcf, pass_only, canonicals, region):
     allchroms = get_outfile(tmp_dir)
     if allchroms:
         append_external_indels(
@@ -16,7 +14,7 @@ def format_callset(tmp_dir, external_vcf, pass_only, region):
 
         return allchroms
 
-    by_chroms = get_chrom_files(tmp_dir)
+    by_chroms = get_chrom_files(tmp_dir, canonicals)
     available_chroms = []
     for each_chrom in by_chroms:
         append_external_indels(
@@ -37,10 +35,10 @@ def get_outfile(tmp_dir):
         return None
 
 
-def get_chrom_files(tmp_dir):
+def get_chrom_files(tmp_dir, canonicals):
     return (
         (os.path.join(tmp_dir, "chr{}.txt".format(chrom)), chrom)
-        for chrom in CANONICALS
+        for chrom in canonicals
         if os.path.isfile(os.path.join(tmp_dir, "chr{}.txt".format(chrom)))
     )
 
@@ -62,6 +60,7 @@ def append_external_indels(filepath, external_vcf, pass_only, which_chrom, regio
         df1 = supply_empty_df()
     else:
         df1 = pd.read_csv(filepath, sep="\t")
+
         df1 = df1[(df1["Type"] == "deletion") | (df1["Type"] == "insertion")]
         df1 = df1[["Chr", "Pos", "Chr_Allele", "Alternative_Allele", "Type"]]
 

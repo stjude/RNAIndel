@@ -38,7 +38,7 @@
 
 
   <p align="center">
-   RNAIndel calls coding indels from tumor RNA-Seq data and classifies them as somatic, germline, and artifactual. RNAIndel supports GRCh38 and 37. <br> 
+   RNAIndel calls coding indels from tumor RNA-Seq data and classifies them as somatic, germline, and artifactual. RNAIndel supports GRCh38, 37, and mouse mm10. <br> 
    <br />
    <a href="https://stjude.github.io/RNAIndel/"><strong>Explore the docs »</strong></a>
    <br />
@@ -115,18 +115,23 @@ optional arguments:
 Download data package (version 3 is not compatible with the previous data package). This data package is based on NCBI RefSeq. 
 If Ensembl transcripts are preferred, please use GRCh38 MANE 
 ([Matched Annotation from NCBI and EBI](https://useast.ensembl.org/info/genome/genebuild/mane.html)). 
+Mouse genome is also experimentally supported (RNAIndel version 3.4.0 or higher).  
 ```
 #GRCh38
-curl -LO https://zenodo.org/records/17149265/files/data_dir_grch38.tar.gz
-tar -zxf data_dir_grch38.tar.gz
+curl -LO https://zenodo.org/records/17675562/files/data_dir_grch38.tar.gz
+tar -xvzf data_dir_grch38.tar.gz
 
 #GRCh38 MANE (Ensembl) 
-curl -LO https://zenodo.org/records/17149265/files/data_dir_grch38_mane.tar.gz
+curl -LO https://zenodo.org/records/17675562/files/data_dir_grch38_mane.tar.gz
 tar -xvzf data_dir_grch38_mane.tar.gz
 
 #GRCh37
-curl -LO https://zenodo.org/records/17149265/files/data_dir_grch37.tar.gz
-tar -zxf data_dir_grch37.tar.gz
+curl -LO https://zenodo.org/records/17675562/files/data_dir_grch37.tar.gz
+tar -xvzf data_dir_grch37.tar.gz
+
+#mouse mm10
+curl -LO https://zenodo.org/records/17675562/files/data_dir_mm10.tar.gz
+tar -xvzf data_dir_mm10.tar.gz
 ```
 
 
@@ -145,7 +150,6 @@ Subcommands are invoked:
 
 ### Set up 
 Run the first-time-only command. Takes 5 to 10 minutes to complete.<br />
-NOTE: not required to run the docker image. 
 ``` 
 > rnaindel SetUp -d data_dir
 ```

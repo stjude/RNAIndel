@@ -14,9 +14,6 @@ from .alignment_feature_calculator import alignment_features
 from .database_feature_calculator import database_features
 
 
-CANONICALS = [str(i) for i in range(1, 23)] + ["X", "Y"]
-
-
 def preprocess(
     tmp_dir,
     fasta_file,
@@ -24,19 +21,21 @@ def preprocess(
     data_dir,
     mapq,
     num_of_processes,
+    canonicals,
     region,
     external_vcf,
     pass_only,
     safety_mode,
 ):
     if num_of_processes == 1:
-
-        callset = format_callset(tmp_dir, external_vcf, pass_only, region)
+        callset = format_callset(tmp_dir, external_vcf, pass_only, canonicals, region)
         df = calculate_features(
-            callset, fasta_file, bam_file, data_dir, mapq, external_vcf
+            callset, fasta_file, bam_file, data_dir, mapq, canonicals, external_vcf
         )
     else:
-        callsets_by_chrom = format_callset(tmp_dir, external_vcf, pass_only, region)
+        callsets_by_chrom = format_callset(
+            tmp_dir, external_vcf, pass_only, canonicals, region
+        )
 
         if safety_mode:
             dfs = [
@@ -46,12 +45,15 @@ def preprocess(
                     bam_file=bam_file,
                     data_dir=data_dir,
                     mapq=mapq,
+                    canonicals=canonicals,
                     external_vcf=external_vcf,
                 )
                 for call_set_by_chrom in callsets_by_chrom
             ]
-
-            df = pd.concat(dfs)
+            if dfs:
+                df = pd.concat(dfs)
+            else:
+                df = make_empty_df()
         else:
             pool = Pool(num_of_processes)
 
@@ -63,6 +65,7 @@ def preprocess(
                     bam_file=bam_file,
                     data_dir=data_dir,
                     mapq=mapq,
+                    canonicals=canonicals,
                     external_vcf=external_vcf,
                     out_as_df=False,
                 ),
@@ -87,10 +90,13 @@ def preprocess(
                         )
                     )
 
-            df = pd.concat(dfs)
+            if dfs:
+                df = pd.concat(dfs)
 
-            fasta = pysam.FastaFile(fasta_file)
-            df["indel"] = df.apply(_remake, fasta=fasta, axis=1)
+                fasta = pysam.FastaFile(fasta_file)
+                df["indel"] = df.apply(_remake, fasta=fasta, axis=1)
+            else:
+                df = make_empty_df()
 
     return df
 
@@ -100,7 +106,14 @@ def _remake(row, fasta):
 
 
 def calculate_features(
-    callset, fasta_file, bam_file, data_dir, mapq, external_vcf, out_as_df=True
+    callset,
+    fasta_file,
+    bam_file,
+    data_dir,
+    mapq,
+    canonicals,
+    external_vcf,
+    out_as_df=True,
 ):
     path_to_coding_gene_db = "{}/refgene/refCodingExon.bed.gz".format(data_dir)
     path_to_proteindb = "{}/protein/proteinConservedDomains.txt".format(data_dir)
@@ -109,9 +122,8 @@ def calculate_features(
     path_to_cosmic = "{}/cosmic/CosmicCodingMuts.indel.vcf.gz".format(data_dir)
 
     df = filter_non_coding_indels(
-        callset, fasta_file, path_to_coding_gene_db, external_vcf
+        callset, fasta_file, path_to_coding_gene_db, canonicals, external_vcf
     )
-
     _df_filename = callset.replace(".txt", ".failed.txt")
     if len(df) > 0:
         df = transcript_features(df, path_to_proteindb)
@@ -133,8 +145,9 @@ def calculate_features(
         return _df_filename
 
 
-def filter_non_coding_indels(callset, fasta_file, path_to_coding_gene_db, external_vcf):
-
+def filter_non_coding_indels(
+    callset, fasta_file, path_to_coding_gene_db, canonicals, external_vcf
+):
     reference = pysam.FastaFile(fasta_file)
     coding_gene_db = pysam.TabixFile(path_to_coding_gene_db)
 
@@ -144,14 +157,16 @@ def filter_non_coding_indels(callset, fasta_file, path_to_coding_gene_db, extern
         records = csv.DictReader(f, delimiter="\t")
         for record in records:
             try:
-                indel, origin = bambino2variant(record, reference, is_prefixed)
-                update_coding_indels(coding_indels, indel, origin, coding_gene_db)
+                indel, origin = bambino2variant(
+                    record, reference, is_prefixed, canonicals
+                )
+                if origin:
+                    update_coding_indels(coding_indels, indel, origin, coding_gene_db)
             except:
                 pass
 
     if coding_indels:
         df = pd.DataFrame(coding_indels)
-
         if external_vcf:
             dfg = df.groupby(["chrom", "pos", "ref", "alt"])
             df = dfg.apply(summarize_caller_origin)
@@ -164,7 +179,6 @@ def filter_non_coding_indels(callset, fasta_file, path_to_coding_gene_db, extern
 
 
 def update_coding_indels(coding_indels, indel, origin, coding_gene_db):
-
     coding_annotations = annotate_coding_info(indel, coding_gene_db)
     if coding_annotations:
         d = {
@@ -188,11 +202,11 @@ def summarize_caller_origin(df_groupedby_indel):
     return df_groupedby_indel
 
 
-def bambino2variant(record, reference, is_prefixed):
+def bambino2variant(record, reference, is_prefixed, canonicals):
     chrom = record["Chr"].replace("chr", "")
 
-    if not chrom in CANONICALS:
-        return None
+    if not chrom in canonicals:
+        return None, None
 
     chrom = "chr" + chrom if is_prefixed else chrom
 

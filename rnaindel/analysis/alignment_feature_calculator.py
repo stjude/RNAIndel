@@ -221,9 +221,8 @@ def indel_type_features(variant):
     return indel_size, is_ins, is_at_ins, is_at_del, is_gc_ins, is_gc_del
 
 
-@timeout(2)
+@timeout(5)
 def make_indel_alignment(variant, bam, downsample_threshold=1500):
-
     try:
         valn = VariantAlignment(
             variant,
@@ -242,7 +241,6 @@ def make_indel_alignment(variant, bam, downsample_threshold=1500):
 
 
 def read_support_features(valn, downsample_threshold=1500):
-
     orig_ref_cnt, orig_alt_cnt = valn.count_alleles(
         by_fragment=True, estimated_count=False
     )
@@ -275,7 +273,6 @@ def read_support_features(valn, downsample_threshold=1500):
 
 
 def sequence_features(target_indel, valn, contig):
-
     contig_seq_tuple = contig.get_contig_seq(split=True)
     lt_seq, rt_seq = contig_seq_tuple[0], contig_seq_tuple[-1]
 
@@ -347,7 +344,6 @@ def sequence_features(target_indel, valn, contig):
     # indel complexity
     cplx_var = valn.phase(how="complex")
     if not cplx_var.is_non_complex_indel():
-
         lt_len = min(len(lt_seq), len(lt_ref), local)
         rt_len = min(len(rt_seq), len(rt_ref), local)
 
@@ -482,7 +478,6 @@ class MockVariant(object):
 
 
 def get_indels_from_read(aligned_segment, reference, return_index=False, target=None):
-
     indels = []
     cigarstring = aligned_segment.cigarstring
     if not "I" in cigarstring and not "D" in cigarstring:
