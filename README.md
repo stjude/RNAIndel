@@ -114,7 +114,7 @@ optional arguments:
 ### DataPackage
 Download data package (version 3 is not compatible with the previous data package). This data package is based on NCBI RefSeq. 
 If Ensembl transcripts are preferred, please use GRCh38 MANE 
-([Matched Annotation from NCBI and EBI](https://useast.ensembl.org/info/genome/genebuild/mane.html)).<br>
+([Matched Annotation from NCBI and EBI](https://useast.ensembl.org/info/genome/genebuild/mane.html)). 
 Mouse genome is also experimentally supported (RNAIndel version 3.4.0 or higher).  
 ```
 #GRCh38
