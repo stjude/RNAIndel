@@ -12,7 +12,6 @@ from indelpost import Variant
 
 # def count(file_lst, genome, out_dir):
 def count():
-
     subcommand = "CountOccurrence"
     args = get_args(subcommand)
 
