@@ -37,7 +37,7 @@ rnaindel Train -t training_set.tab -d ./data_dir_grch38 -c indel_class_to_train 
 ```
 #### Options
 * ```-t``` training set with annotation (required)
-* ```-d``` [data directory](../../README.md/#setup) contains trained models and databases (required) 
+* ```-d``` [data directory](../index.md#set-up) contains trained models and databases (required)
 * ```-c``` indel class to be trained. "s" for single-nucleotide indel, "m" for multi-nucleotide indel, "h" for homopolymer indel(required)
 * <details>
     <summary>other options (click to open)</summary><p>
@@ -49,7 +49,7 @@ rnaindel Train -t training_set.tab -d ./data_dir_grch38 -c indel_class_to_train 
     * ```--fs-beta``` F beta to be optimized in feature selection step. Optimized for TPR if beta > 100. (default: 10)
     * ```--pt-beta``` F beta to be optimized in parameter tuning step. Optimized for TPR if beta > 100. (default: 10)
     * ```--downsample-ratio``` train with a user-specified downsample ratio: integer between 1 and 20. (default: None)
-    * ```--feature-names``` train with a user-specified subset of features: [input example](../../sample_data/inputs/feature_names.txt) (default: None)
+    * ```--feature-names``` train with a user-specified subset of features (default: None)
     * ```--auto-param``` train with sklearn.RandomForestClassifer's max_features="auto" (default: False)
 
 </p></details>

@@ -9,5 +9,6 @@ nav:
   - "Home": "index.md"
   - "Filtering": "filtering/README.md"
   - "Training": "training/README.md"
+  - "Walkthrough": "walkthrough/README.md"
 
 theme: cosmo
