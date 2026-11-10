@@ -1,13 +1,18 @@
 from setuptools import setup, find_packages
+from pathlib import Path
 
 version = {}
 with open("./rnaindel/version.py") as fp:
     exec(fp.read(), version)
 
+long_description = Path("README.md").read_text(encoding="utf-8")
+
 setup(
     name="rnaindel",
     version=version["__version__"],
     description="Somatic indel discovery tool for tumor RNA-Seq data",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     url="https://github.com/stjude/RNAIndel",
     author="Kohei Hagiwara",
     author_email="kohei.hagiwara@stjude.org",

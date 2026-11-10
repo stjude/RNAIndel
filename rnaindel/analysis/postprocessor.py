@@ -26,13 +26,16 @@ def postprocess(df, data_dir, perform_outlier_analysis, pon):
     if perform_outlier_analysis:
         df = outlier_analysis(df, os.path.join(data_dir, "outliers"))
 
-    # df["cpos"], df["cref"], df["calt"] = zip(*df.apply(expand_complex, axis=1))
+    group_cols = ["chrom", "cpos", "cref", "calt"]
 
-    dfg = df.groupby(["chrom", "cpos", "cref", "calt"])
-    df = dfg.apply(recheck_caller_origin_by_complex_representation)
+    both = df.groupby(group_cols)["origin"].transform("nunique") > 1
+    df.loc[both, "origin"] = "both"
+
+    max_somatic_prob = df.groupby(group_cols)["prob_s"].transform("max")
+
+    df["keep_this"] = df["prob_s"].eq(max_somatic_prob)
 
     df = df[df["keep_this"]]
-
     df.reset_index(drop=True, inplace=True)
 
     return sort_positionally(df)
@@ -174,6 +177,9 @@ def expand_complex(row):
 
 
 def recheck_caller_origin_by_complex_representation(df_groupedby_indel):
+    # copy to prevent unintended behaviors
+    df_groupedby_indel = df_groupedby_indel.copy()
+
     origins = set(df_groupedby_indel["origin"].to_list())
 
     if len(origins) > 1:
@@ -181,8 +187,11 @@ def recheck_caller_origin_by_complex_representation(df_groupedby_indel):
 
     max_somatic_prob = df_groupedby_indel["prob_s"].max()
 
-    df_groupedby_indel["keep_this"] = df_groupedby_indel.apply(
-        lambda x: x["prob_s"] == max_somatic_prob, axis=1
-    )
+    # df_groupedby_indel["keep_this"] = df_groupedby_indel.apply(
+    #    lambda x: x["prob_s"] == max_somatic_prob, axis=1
+    # )
+
+    # vectorize
+    df_groupedby_indel["keep_this"] = df_groupedby_indel["prob_s"] == max_somatic_prob
 
     return df_groupedby_indel

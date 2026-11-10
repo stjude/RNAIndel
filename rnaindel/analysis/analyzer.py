@@ -126,12 +126,21 @@ def canonical_chromosomes(bam):
     chromosomes = pysam.AlignmentFile(bam).references
     canonicals = []
     for chrom in chromosomes:
-        chrom = chrom.replace("chr", "")
-        if chrom in ["X", "Y"]:
-            canonicals.append(chrom)
-        elif re.match(r"\d+", chrom):
-            canonicals.append(str(chrom))
+        if re.fullmatch(r"(chr)?([1-9]|1\d|2[0-2]|X|Y|MT?)", chrom):
+            canonicals.append(chrom.replace("chr", ""))
     return canonicals
+
+
+# def canonical_chromosomes(bam):
+#    chromosomes = pysam.AlignmentFile(bam).references
+#    canonicals = []
+#    for chrom in chromosomes:
+#        chrom = chrom.replace("chr", "")
+#        if chrom in ["X", "Y"]:
+#            canonicals.append(chrom)
+#        elif re.match(r"\d+", chrom):
+#            canonicals.append(str(chrom))
+#    return canonicals
 
 
 def check_cosmic(data_dir):

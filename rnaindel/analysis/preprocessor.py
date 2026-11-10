@@ -124,6 +124,7 @@ def calculate_features(
     df = filter_non_coding_indels(
         callset, fasta_file, path_to_coding_gene_db, canonicals, external_vcf
     )
+
     _df_filename = callset.replace(".txt", ".failed.txt")
     if len(df) > 0:
         df = transcript_features(df, path_to_proteindb)
