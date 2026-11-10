@@ -43,6 +43,9 @@
                             <li class="nav-item">
                                 <a href="./" class="nav-link active" aria-current="page">Training</a>
                             </li>
+                            <li class="nav-item">
+                                <a href="../walkthrough/" class="nav-link">Walkthrough</a>
+                            </li>
                         </ul>
 
                     <ul class="nav navbar-nav ms-md-auto">
@@ -57,7 +60,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a rel="next" class="nav-link disabled">
+                                <a rel="next" href="../walkthrough/" class="nav-link">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -123,7 +126,7 @@ Specify the indel class to be trained by <code>-c</code>. </p>
 <h4 id="options">Options</h4>
 <ul>
 <li><code>-t</code> training set with annotation (required)</li>
-<li><code>-d</code> <a href="../../README.md/#setup">data directory</a> contains trained models and databases (required) </li>
+<li><code>-d</code> <a href="../#set-up">data directory</a> contains trained models and databases (required)</li>
 <li><code>-c</code> indel class to be trained. "s" for single-nucleotide indel, "m" for multi-nucleotide indel, "h" for homopolymer indel(required)</li>
 <li>
 <p><details>
@@ -136,7 +139,7 @@ Specify the indel class to be trained by <code>-c</code>. </p>
 <li><code>--fs-beta</code> F beta to be optimized in feature selection step. Optimized for TPR if beta &gt; 100. (default: 10)</li>
 <li><code>--pt-beta</code> F beta to be optimized in parameter tuning step. Optimized for TPR if beta &gt; 100. (default: 10)</li>
 <li><code>--downsample-ratio</code> train with a user-specified downsample ratio: integer between 1 and 20. (default: None)</li>
-<li><code>--feature-names</code> train with a user-specified subset of features: <a href="../../sample_data/inputs/feature_names.txt">input example</a> (default: None)</li>
+<li><code>--feature-names</code> train with a user-specified subset of features (default: None)</li>
 <li><code>--auto-param</code> train with sklearn.RandomForestClassifer's max_features="auto" (default: False)</li>
 </ul>
 </li>

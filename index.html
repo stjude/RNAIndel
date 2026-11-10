@@ -43,6 +43,9 @@
                             <li class="nav-item">
                                 <a href="training/" class="nav-link">Training</a>
                             </li>
+                            <li class="nav-item">
+                                <a href="walkthrough/" class="nav-link">Walkthrough</a>
+                            </li>
                         </ul>
 
                     <ul class="nav navbar-nav ms-md-auto">
@@ -259,7 +262,7 @@ indel realignment may prevent desired behavior.</p>
 </code></pre>
 <h4 id="ensemble-calling">Ensemble calling</h4>
 <p>Indels in the exernal VCF (supplied by -v) are integrated to the callset by the built-in caller to boost performance.<br> 
-See <a href="./docs/walkthrough/README.md">demo</a>.</p>
+See <a href="walkthrough/">demo</a>.</p>
 <pre><code>&gt; rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v gatk.vcf.gz -p 8
 </code></pre>
 <h4 id="with-dna-seq">With DNA-Seq</h4>
@@ -322,9 +325,9 @@ on a server with 32-core AMD EPYC 7542 CPU @2.90 GHz.</p>
 </tbody>
 </table>
 <h3 id="train-rnaindel">Train RNAIndel</h3>
-<p>Users can <a href="./docs/training">train</a> RNAIndel with their own training set. </p>
+<p>Users can <a href="training/">train</a> RNAIndel with their own training set.</p>
 <h3 id="annotate-over-represented-putative-somatic-indels">Annotate over-represented putative somatic indels</h3>
-<p>Check <a href="./docs/filtering">occurrence</a> to filter probable false positives.</p>
+<p>Check <a href="filtering/">occurrence</a> to filter probable false positives.</p>
 <h2 id="contact">Contact</h2>
 <ul>
 <li>kohei.hagiwara[AT]stjude.org   </li>
@@ -413,5 +416,5 @@ on a server with 32-core AMD EPYC 7542 CPU @2.90 GHz.</p>
 
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2025-11-21 21:50:23.061241+00:00
+Build Date UTC : 2026-11-10 21:02:50.688282+00:00
 -->
