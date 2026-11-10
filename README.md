@@ -169,7 +169,7 @@ This mode uses the built-in caller to analyze simple and complex indels.
 
 #### Ensemble calling 
 Indels in the exernal VCF (supplied by -v) are integrated to the callset by the built-in caller to boost performance.<br> 
-See [demo](./docs/walkthrough/README.md).
+See [demo](./walkthrough/README.md).
 ```
 > rnaindel PredictIndels -i input.bam -o output.vcf -r ref.fa -d data_dir -v gatk.vcf.gz -p 8
 ```
@@ -220,10 +220,10 @@ on a server with 32-core AMD EPYC 7542 CPU @2.90 GHz.
 |max    | 1388 sec        | 23.5 GB    |
 
 ### Train RNAIndel
-Users can [train](./docs/training) RNAIndel with their own training set. 
+Users can [train](./training/README.md) RNAIndel with their own training set.
 
 ### Annotate over-represented putative somatic indels
-Check [occurrence](./docs/filtering) to filter probable false positives.
+Check [occurrence](./filtering/README.md) to filter probable false positives.
 
 ## Contact
 * kohei.hagiwara[AT]stjude.org   
