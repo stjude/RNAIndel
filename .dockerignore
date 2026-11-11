@@ -2,7 +2,6 @@
 docs/
 sample_data/
 .github/
-README.md
 Dockerfile
 .gitignore
 gh-pages 
